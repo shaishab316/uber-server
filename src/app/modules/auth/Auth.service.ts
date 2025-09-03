@@ -1,12 +1,22 @@
 /* eslint-disable no-unused-vars */
 import { $ZodIssue } from 'zod/v4/core/errors.cjs';
 import { User as TUser } from '../../../../prisma';
-import { TAccountVerify, TUserLogin } from './Auth.interface';
+import {
+  TAccountVerify,
+  TAccountVerifyOtpSend,
+  TUserLogin,
+} from './Auth.interface';
 import { encodeToken, TToken, verifyPassword } from './Auth.utils';
 import { ZodError } from 'zod';
 import prisma from '../../../util/prisma';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
+import { otpGenerator } from '../../../util/crypto/otpGenerator';
+import config from '../../../config';
+import { sendEmail } from '../../../util/sendMail';
+import { otp_send_template } from '../../../templates';
+import { errorLogger } from '../../../util/logger/logger';
+import ms from 'ms';
 
 export const AuthServices = {
   async login({ password, email, phone }: TUserLogin): Promise<Partial<TUser>> {
@@ -65,6 +75,51 @@ export const AuthServices = {
         encodeToken({ uid }, token_type),
       ]),
     ) as Record<T[number], string>;
+  },
+
+  async accountVerifyOtpSend({ email, phone }: TAccountVerifyOtpSend) {
+    this.validEmailORPhone({ email, phone });
+
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ email }, { phone }] },
+    });
+
+    if (!user)
+      throw new ServerError(StatusCodes.NOT_FOUND, "User doesn't exist");
+
+    if (user.is_verified)
+      throw new ServerError(
+        StatusCodes.BAD_REQUEST,
+        'Your account is already verified',
+      );
+
+    const otp = otpGenerator(config.otp.length);
+
+    try {
+      if (email)
+        sendEmail({
+          to: email,
+          subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
+          html: otp_send_template({
+            userName: user.name,
+            otp,
+            template: 'account_verify',
+          }),
+        });
+    } catch (error: any) {
+      errorLogger.error(error.message);
+    }
+
+    return prisma.user.update({
+      where: { id: user.id },
+      data: {
+        otp,
+        otp_expires_at: new Date(Date.now() + ms(config.otp.exp)),
+      },
+      select: {
+        otp_expires_at: true,
+      },
+    });
   },
 
   async accountVerify({ email, phone, otp }: TAccountVerify) {

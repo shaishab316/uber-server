@@ -12,6 +12,13 @@ export const AuthValidations = {
     }),
   }),
 
+  accountVerifyOtpSend: z.object({
+    body: z.object({
+      email: z.email({ error: 'Email is invalid' }).optional(),
+      phone: z.string().optional(),
+    }),
+  }),
+
   accountVerify: z.object({
     body: z.object({
       email: z.email({ error: 'Email is invalid' }).optional(),

@@ -18,6 +18,15 @@ export const AuthControllers = {
     });
   }),
 
+  accountVerifyOtpSend: catchAsync(async ({ body }, res) => {
+    const data = await AuthServices.accountVerifyOtpSend(body);
+
+    serveResponse(res, {
+      message: 'OTP sent successfully!',
+      data,
+    });
+  }),
+
   accountVerify: catchAsync(async ({ body }, res) => {
     const user = await AuthServices.accountVerify(body);
 

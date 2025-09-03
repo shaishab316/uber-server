@@ -20,6 +20,12 @@ router.post(
 );
 
 router.post(
+  '/account-verify/otp-send',
+  purifyRequest(AuthValidations.accountVerifyOtpSend),
+  AuthControllers.accountVerifyOtpSend,
+);
+
+router.post(
   '/login',
   purifyRequest(AuthValidations.login),
   AuthControllers.login,

@@ -22,8 +22,8 @@ export const ${mName}Routes = router;`,
 
   model: mName => `model ${mName} {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@map("${mName[0].toLowerCase()}${mName.slice(1)}s")
 }
