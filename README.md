@@ -2,9 +2,13 @@
 
 A driver management platform for Uber-like services. This platform includes features like user management, chat functionality, OTP service, Stripe integration, and request validation.
 
-## Template
-
-This project is based on the [express-it](https://github.com/shaishab316/express-it) template.
+[![Template](https://img.shields.io/badge/template-express--it-blue?style=for-the-badge&logoColor=white)](https://github.com/shaishab316/express-it)
+![Node.js](https://img.shields.io/badge/node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express.js](https://img.shields.io/badge/express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Prisma](https://img.shields.io/badge/prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![MongoDB](https://img.shields.io/badge/mongodb-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Stripe](https://img.shields.io/badge/stripe-008CDD?style=for-the-badge&logo=stripe&logoColor=white)
 
 ## Features
 
@@ -32,7 +36,7 @@ This project is based on the [express-it](https://github.com/shaishab316/express
 To get started with the application, clone the repository and install the dependencies:
 
 ```bash
-git clone https://github.com/Joint-Venture-AI/uber.git
+git clone https://github.com/Alpha-Bytes-Department/uber-server.git
 cd uber
 npm install
 ```
@@ -83,4 +87,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Repository
 
-Find the repository on GitHub: [uber](https://github.com/Joint-Venture-AI/uber.git)
+Find the repository on GitHub: [uber](https://github.com/Alpha-Bytes-Department/uber-server.git)
