@@ -1,0 +1,38 @@
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role     EUserRole @default(USER)
+  email    String?
+  phone    String?
+  password String
+
+  avatar String @default("/images/placeholder.png")
+  name   String @default("Unknown")
+
+  nid_number     String?
+  payment_method String?
+  driver_info    TDriverInfo?
+
+  is_verified Boolean @default(false)
+  is_active   Boolean @default(false)
+  is_admin    Boolean @default(false)
+
+  otp            String?
+  otp_expires_at DateTime?
+
+  @@map("users")
+}
+
+enum EUserRole {
+  USER
+  DRIVER
+}
+
+type TDriverInfo {
+  business_contact String
+  driver_license   String
+  car_photo        String
+  car_name         String
+}

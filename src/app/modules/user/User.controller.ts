@@ -3,37 +3,32 @@ import catchAsync from '../../middlewares/catchAsync';
 import serveResponse from '../../../util/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { OtpServices } from '../otp/Otp.service';
-import { errorLogger } from '../../../util/logger/logger';
+import { User as TUser } from '../../../../prisma';
+import prisma from '../../../util/prisma';
 
 export const UserControllers = {
-  create: catchAsync(async ({ body }, res) => {
+  register: catchAsync(async ({ body }, res) => {
     const user = await UserServices.create(body);
 
-    try {
-      await OtpServices.send(user, 'accountVerify');
-    } catch (error) {
-      errorLogger.error(error);
-    }
-
-    const { access_token, refresh_token } = await AuthServices.retrieveToken(
-      user._id!,
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id,
+      'access_token',
+      'refresh_token',
     );
-
-    AuthServices.setTokens(res, { access_token, refresh_token });
 
     serveResponse(res, {
       statusCode: StatusCodes.CREATED,
-      message: `${user.role.toCapitalize() ?? 'User'} registered successfully!`,
+      message: `${user.role?.toCapitalize() ?? 'Unknown'} registered successfully!`,
       data: {
         access_token,
+        refresh_token,
         user,
       },
     });
   }),
 
   edit: catchAsync(async (req, res) => {
-    const data = await UserServices.edit(req);
+    const data = await UserServices.updateUser(req);
 
     serveResponse(res, {
       message: 'Profile updated successfully!',
@@ -41,8 +36,24 @@ export const UserControllers = {
     });
   }),
 
-  list: catchAsync(async (req, res) => {
-    const { meta, users } = await UserServices.list(req.query);
+  superEdit: catchAsync(async ({ params, body }, res) => {
+    const user = (await prisma.user.findUnique({
+      where: { id: params.userId },
+    })) as TUser;
+
+    const data = await UserServices.updateUser({
+      user,
+      body,
+    });
+
+    serveResponse(res, {
+      message: `${user?.role?.toCapitalize() ?? 'User'} updated successfully!`,
+      data,
+    });
+  }),
+
+  getAllUser: catchAsync(async ({ query }, res) => {
+    const { meta, users } = await UserServices.getAllUser(query);
 
     serveResponse(res, {
       message: 'Users retrieved successfully!',
@@ -51,7 +62,21 @@ export const UserControllers = {
     });
   }),
 
-  me: catchAsync(({ user }, res) => {
+  superGetAllUser: catchAsync(async ({ query }, res) => {
+    const { meta, users } = await UserServices.getAllUser(query);
+
+    Object.assign(meta, {
+      users: await UserServices.getUsersCount(),
+    });
+
+    serveResponse(res, {
+      message: 'Users retrieved successfully!',
+      meta,
+      data: users,
+    });
+  }),
+
+  profile: catchAsync(({ user }, res) => {
     serveResponse(res, {
       message: 'Profile retrieved successfully!',
       data: user,

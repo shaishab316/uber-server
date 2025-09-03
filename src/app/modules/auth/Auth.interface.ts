@@ -1,11 +1,7 @@
-import { Types } from 'mongoose';
-import config from '../../../config';
+import z from 'zod';
+import { AuthValidations } from './Auth.validation';
 
-export type TAuth = {
-  _id: Types.ObjectId;
-
-  user: Types.ObjectId;
-  password: string;
-};
-
-export type TToken = keyof typeof config.jwt;
+export type TUserLogin = z.infer<typeof AuthValidations.login>['body'];
+export type TAccountVerify = z.infer<
+  typeof AuthValidations.accountVerify
+>['body'];

@@ -1,17 +1,4 @@
-import { Types } from 'mongoose';
-import { EUserGender, EUserRole } from './User.enum';
+import { z } from 'zod';
+import { UserValidations } from './User.validation';
 
-export type TUser = {
-  _id: Types.ObjectId;
-
-  name?: string;
-  email: string;
-  avatar?: string;
-  role: EUserRole;
-  phone?: string;
-  gender?: EUserGender;
-  birthDate?: Date;
-
-  createdAt?: Date;
-  updatedAt?: Date;
-};
+export type TUserRegister = z.infer<typeof UserValidations.register>['body'];

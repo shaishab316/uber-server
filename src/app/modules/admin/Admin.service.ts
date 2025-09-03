@@ -1,10 +1,8 @@
 import colors from 'colors';
 import { errorLogger } from '../../../util/logger/logger';
-import User from '../user/User.model';
 import { logger } from '../../../util/logger/logger';
 import config from '../../../config';
-import { EUserRole } from '../user/User.enum';
-import { UserServices } from '../user/User.service';
+import prisma from '../../../util/prisma';
 
 export const AdminServices = {
   /**
@@ -15,21 +13,42 @@ export const AdminServices = {
    * Otherwise, it creates a new admin user with the provided admin data.
    */
   async seed() {
-    const adminData = config.admin;
+    const { name, email, password } = config.admin;
 
     try {
-      const admin = await User.exists({
-        email: adminData.email,
+      const admin = await prisma.user.findFirst({
+        where: { email },
       });
 
-      if (admin) return;
+      if (admin?.is_admin && admin?.is_active && admin?.is_verified) return;
 
       logger.info(colors.green('🔑 admin creation started...'));
 
-      await UserServices.create({
-        ...adminData,
-        role: EUserRole.ADMIN,
-      });
+      if (admin) {
+        await prisma.user.update({
+          where: {
+            id: admin.id,
+          },
+          data: {
+            is_active: true,
+            is_verified: true,
+            is_admin: true,
+          },
+        });
+      } else {
+        await prisma.user.create({
+          data: {
+            name,
+            email,
+            password: await password?.hash(),
+            avatar: config.server.default_avatar,
+
+            is_active: true,
+            is_verified: true,
+            is_admin: true,
+          },
+        });
+      }
 
       logger.info(colors.green('✔ admin created successfully!'));
     } catch (error) {

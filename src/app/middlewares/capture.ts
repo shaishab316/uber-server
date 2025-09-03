@@ -5,44 +5,49 @@ import multer, { FileFilterCallback } from 'multer';
 import ServerError from '../../errors/ServerError';
 import catchAsync from './catchAsync';
 import config from '../../config';
-import mongoose from 'mongoose';
-import { GridFSBucket } from 'mongodb';
 import { errorLogger, logger } from '../../util/logger/logger';
 import colors from 'colors';
 import { json } from '../../util/transform/json';
+import { getBucket } from '../../util/server/connectDB';
+import path from 'path';
 
-let bucket: GridFSBucket | null = null;
+export const fileValidators = {
+  images: {
+    validator: /^image\//,
+  },
+  videos: {
+    validator: /^video\//,
+  },
+  audios: {
+    validator: /^audio\//,
+  },
+  documents: {
+    validator: /(pdf|word|excel|text)/,
+  },
+  any: {
+    validator: /.*/,
+  },
+};
 
-mongoose.connection.on('connected', () => {
-  bucket ??= new GridFSBucket(mongoose.connection.db as any, {
-    bucketName: 'images',
-  });
-});
+export const fileTypes = Object.keys(
+  fileValidators,
+) as (keyof typeof fileValidators)[];
 
-/**
- * @description Multer middleware to handle image uploads to MongoDB GridFS
- */
-const capture = (fields: {
+interface UploadFields {
   [field: string]: {
     default?: string | string[] | null;
     maxCount?: number;
     size?: number;
+    fileType: (typeof fileTypes)[number];
   };
-}) =>
+}
+
+/**
+ * Universal file uploader middleware
+ */
+const capture = (fields: UploadFields) =>
   catchAsync(async (req, res, next) => {
     req.tempFiles ??= [];
-
-    Object.keys(fields).forEach(field => {
-      fields[field].maxCount ??= 5;
-      fields[field].size ??= 5;
-      if (fields[field].default === undefined)
-        fields[field].default = config.server.default_avatar;
-      else if (
-        Array.isArray(fields[field].default) &&
-        fields[field].default[0] === undefined
-      )
-        fields[field].default = [config.server.default_avatar];
-    });
 
     try {
       await new Promise<void>((resolve, reject) =>
@@ -53,16 +58,17 @@ const capture = (fields: {
 
       Object.keys(fields).forEach(field => {
         if (files?.[field]?.length) {
-          const images = files[field].map(
-            ({ filename }) => `/images/${filename}`,
+          const uploadedFiles = files[field].map(
+            file => `/${fields[field].fileType}/${file.filename}`,
           );
 
-          req.body[field] = Array.isArray(fields[field].default)
-            ? images
-            : images[0];
+          req.body[field] =
+            (fields[field]?.maxCount || 1) > 1
+              ? uploadedFiles
+              : uploadedFiles[0];
 
           //! for cleanup
-          req.tempFiles.push(...images);
+          req.tempFiles.push(...uploadedFiles);
         }
       });
     } catch (error) {
@@ -84,33 +90,22 @@ const capture = (fields: {
 export default capture;
 
 /**
- * @description Retrieves an image from MongoDB GridFS
+ * Universal file retriever
  */
-export const imageRetriever = catchAsync(async (req, res) => {
-  if (!bucket)
+export const fileRetriever = catchAsync(async (req, res) => {
+  if (!getBucket())
     throw new ServerError(
       StatusCodes.SERVICE_UNAVAILABLE,
-      'Images not available',
+      'Files not available',
     );
 
-  let filename = req.params.filename.replace(/[^\w.-]/g, '');
-  const shouldRedirect = !/\.png$/i.test(filename);
-
-  if (shouldRedirect) filename = `${filename.replace(/\.[a-zA-Z]+$/, '')}.png`;
-
-  const fileExists = await bucket.find({ filename }).hasNext();
+  const filename = req.params.filename.replace(/[^\w.-]/g, '');
+  const fileExists = await getBucket()!.find({ filename }).hasNext();
   if (!fileExists)
-    throw new ServerError(StatusCodes.NOT_FOUND, 'Image not found');
-
-  if (shouldRedirect)
-    return res.redirect(
-      StatusCodes.MOVED_PERMANENTLY,
-      `/images/${encodeURIComponent(filename)}`,
-    );
+    throw new ServerError(StatusCodes.NOT_FOUND, 'File not found');
 
   return new Promise((resolve, reject) => {
-    res.set('Content-Type', 'image/png');
-    const stream = bucket!
+    const stream = getBucket()!
       .openDownloadStreamByName(filename)
       .on('error', () =>
         reject(new ServerError(StatusCodes.NOT_FOUND, 'Stream error')),
@@ -123,32 +118,30 @@ export const imageRetriever = catchAsync(async (req, res) => {
 });
 
 /**
- * @description Deletes an image from MongoDB GridFS
+ * Delete file from GridFS
  */
-export const deleteImage = async (filename: string) => {
-  filename = filename.replace(/^\/images\//, '');
+export const deleteFile = async (filename: string) => {
+  filename = path.basename(filename);
 
   try {
-    if (!bucket) return;
+    if (!getBucket()) return;
 
-    logger.info(colors.yellow(`🗑️ Deleting image: '${filename}'`));
+    logger.info(colors.yellow(`🗑️ Deleting file: '${filename}'`));
 
     const result = await Promise.all(
-      (
-        await bucket
-          .find({ filename: filename.replace(/^\/images\//, '') })
-          .toArray()
-      )?.map(({ _id }) => bucket!.delete(_id)),
+      (await getBucket()!.find({ filename }).toArray()).map(({ _id }) =>
+        getBucket()!.delete(_id),
+      ),
     );
 
-    if (result)
-      logger.info(colors.green(`✔ image '${filename}' deleted successfully!`));
-    else logger.info(colors.red(`❌ image '${filename}' not deleted!`));
+    if (result.length)
+      logger.info(colors.green(`✔ file '${filename}' deleted successfully!`));
+    else logger.info(colors.red(`❌ file '${filename}' not deleted!`));
 
     return result;
   } catch (error: any) {
     errorLogger.error(
-      colors.red(`❌ image '${filename}' not deleted!`),
+      colors.red(`❌ file '${filename}' not deleted!`),
       error?.stack ?? error,
     );
   }
@@ -160,41 +153,37 @@ const storage = new GridFsStorage({
     filename: `${originalname
       .replace(/\..+$/, '')
       .replace(/[^\w]+/g, '-')
-      .toLowerCase()}-${Date.now()}.png`,
-    bucketName: 'images',
+      .toLowerCase()}-${Date.now()}${originalname.match(/\.[a-z0-9]+$/i) ?? ''}`,
+    bucketName: 'files',
     metadata: {
-      uploadedBy: req?.user?._id ?? null,
+      uploadedBy: req?.user?.id?.oid ?? null,
       originalName: originalname,
     },
   }),
 });
 
-const fileFilter = (
-  _: any,
-  file: Express.Multer.File,
-  cb: FileFilterCallback,
-) => {
-  if (
-    /^image\/.+/i.test(file.mimetype) ||
-    /\.(jpe?g|png|gif|webp|avif|svg|bmp|tiff?)$/i.test(file.originalname)
-  )
-    return cb(null, true);
-  cb(
-    new ServerError(
-      StatusCodes.BAD_REQUEST,
-      `${file.originalname} is not a valid image file`,
-    ),
-  );
-};
+const fileFilter =
+  (fields: UploadFields) =>
+  (_: any, file: Express.Multer.File, cb: FileFilterCallback) => {
+    const fieldType = Object.keys(fields)
+      .find(f => file.fieldname === f)
+      ?.toLowerCase();
+    const fileType = fields[fieldType!]?.fileType;
 
-const upload = (fields: {
-  [field: string]: {
-    default?: string | string[] | null;
-    maxCount?: number;
-    size?: number;
+    const mime = file.mimetype.toLowerCase();
+
+    if (fileValidators[fileType]?.validator.test(mime)) return cb(null, true);
+
+    cb(
+      new ServerError(
+        StatusCodes.BAD_REQUEST,
+        `${file.originalname} is not a valid ${fileType} file`,
+      ),
+    );
   };
-}) =>
-  multer({ storage, fileFilter }).fields(
+
+const upload = (fields: UploadFields) =>
+  multer({ storage, fileFilter: fileFilter(fields) }).fields(
     Object.keys(fields).map(field => ({
       name: field,
       maxCount: fields[field].maxCount || undefined,

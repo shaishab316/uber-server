@@ -3,19 +3,21 @@ import { ErrorRequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import colors from 'colors';
 import { ZodError } from 'zod';
-import mongoose from 'mongoose';
 import config from '../../config';
 import ServerError from '../../errors/ServerError';
 import handleZodError from '../../errors/handleZodError';
-import handleValidationError from '../../errors/handleValidationError';
-import handleMongooseDuplicateError from '../../errors/handleMongooseDuplicateError';
 import { errorLogger } from '../../util/logger/logger';
 import { TErrorHandler, TErrorMessage } from '../../types/errors.types';
 import multer from 'multer';
 import handleMulterError from '../../errors/handleMulterError';
-import { deleteImage } from './capture';
+import { Prisma } from '../../../prisma';
+import {
+  handlePrismaRequestError,
+  handlePrismaValidationError,
+} from '../../errors/handlePrismaErrors';
+import { deleteFile } from './capture';
 
-const defaultError: TErrorHandler = {
+export const defaultError: TErrorHandler = {
   statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
   message: 'Something went wrong',
   errorMessages: [],
@@ -23,7 +25,7 @@ const defaultError: TErrorHandler = {
 
 const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
   /** delete uploaded files */
-  req.tempFiles?.forEach(deleteImage);
+  req.tempFiles?.forEach(deleteFile);
 
   if (config.server.isDevelopment)
     console.log(colors.red('🚨 globalErrorHandler ~~ '), error);
@@ -44,9 +46,10 @@ export default globalErrorHandler;
 const formatError = (error: any): TErrorHandler => {
   if (error instanceof multer.MulterError) return handleMulterError(error);
   if (error instanceof ZodError) return handleZodError(error);
-  if (error instanceof mongoose.Error.ValidationError)
-    return handleValidationError(error);
-  if (error.code === 11000) return handleMongooseDuplicateError(error);
+  if (error instanceof Prisma.PrismaClientKnownRequestError)
+    return handlePrismaRequestError(error);
+  if (error instanceof Prisma.PrismaClientValidationError)
+    return handlePrismaValidationError(error);
   if (error instanceof ServerError)
     return {
       statusCode: error.statusCode,

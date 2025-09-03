@@ -1,20 +1,18 @@
 import { z } from 'zod';
-import { EUserGender } from './User.enum';
-import { date } from '../../../util/transform/date';
-import { lower } from '../../../util/transform/lower';
+import { EUserRole } from '../../../../prisma';
+import { enum_encode } from '../../../util/transform/enum';
 
 export const UserValidations = {
-  create: z.object({
+  register: z.object({
     body: z.object({
-      email: z
-        .string({
-          required_error: 'Email is missing',
-        })
-        .email('Give a valid email'),
+      name: z
+        .string({ error: 'Name is missing' })
+        .trim()
+        .min(1, "Name can't be empty"),
+      email: z.email({ error: 'Email is invalid' }).optional(),
+      phone: z.string().optional(),
       password: z
-        .string({
-          required_error: 'Password is missing',
-        })
+        .string({ error: 'Password is missing' })
         .min(6, 'Password must be at least 6 characters long'),
     }),
   }),
@@ -24,12 +22,8 @@ export const UserValidations = {
       name: z.string().optional(),
       avatar: z.string().optional(),
       phone: z.string().optional(),
-      gender: z
-        .string()
-        .transform(lower)
-        .pipe(z.nativeEnum(EUserGender))
-        .optional(),
-      birthDate: z.string().transform(date).optional(),
+      fcmToken: z.string().optional(),
+      address: z.string().optional(),
     }),
   }),
 
@@ -37,22 +31,27 @@ export const UserValidations = {
     body: z.object({
       oldPassword: z
         .string({
-          required_error: 'Old Password is missing',
+          error: 'Old Password is missing',
         })
         .min(1, 'Old Password is required')
         .min(6, 'Old Password must be at least 6 characters long'),
       newPassword: z
         .string({
-          required_error: 'New Password is missing',
+          error: 'New Password is missing',
         })
         .min(1, 'New Password is required')
         .min(6, 'New Password must be at least 6 characters long'),
     }),
   }),
 
-  list: z.object({
+  getAllUser: z.object({
     query: z.object({
       search: z.string().trim().optional(),
+      role: z
+        .string()
+        .optional()
+        .transform(enum_encode)
+        .pipe(z.enum(EUserRole).optional()),
     }),
   }),
 };
