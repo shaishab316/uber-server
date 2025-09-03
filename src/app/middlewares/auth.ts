@@ -98,5 +98,6 @@ auth.driver = auth({
 
 //! Token Verification
 auth.refresh_token = auth({ token_type: 'refresh_token' });
+auth.reset_token = auth({ token_type: 'reset_token' });
 
 export default auth;

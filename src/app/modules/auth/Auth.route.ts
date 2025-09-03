@@ -37,6 +37,12 @@ router.post(
   AuthControllers.forgotPassword,
 );
 
+router.post(
+  '/forgot-password/otp-verify',
+  purifyRequest(AuthValidations.accountVerify),
+  AuthControllers.forgotPasswordOtpVerify,
+);
+
 /**
  * generate new access token
  */

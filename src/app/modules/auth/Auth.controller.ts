@@ -42,6 +42,17 @@ export const AuthControllers = {
     });
   }),
 
+  forgotPasswordOtpVerify: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.accountVerify(body);
+
+    const { reset_token } = AuthServices.retrieveToken(user.id!, 'reset_token');
+
+    serveResponse(res, {
+      message: 'OTP verified successfully!',
+      data: { user, reset_token },
+    });
+  }),
+
   forgotPassword: catchAsync(async ({ body }, res) => {
     const data = await AuthServices.forgotPassword(body);
 
