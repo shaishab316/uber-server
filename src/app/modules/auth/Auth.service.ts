@@ -37,6 +37,38 @@ export const AuthServices = {
       throw new ServerError(StatusCodes.UNAUTHORIZED, 'Incorrect password');
     }
 
+    if (!user.is_verified) {
+      const otp = otpGenerator(config.otp.length);
+
+      try {
+        if (email)
+          sendEmail({
+            to: email,
+            subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
+            html: otp_send_template({
+              userName: user.name,
+              otp,
+              template: 'account_verify',
+            }),
+          });
+      } catch (error: any) {
+        errorLogger.error(error.message);
+      }
+
+      const { otp_expires_at } = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          otp,
+          otp_expires_at: new Date(Date.now() + ms(config.otp.exp)),
+        },
+        select: {
+          otp_expires_at: true,
+        },
+      });
+
+      Object.assign(user, { otp_expires_at });
+    }
+
     Object.assign(user, { password: undefined });
 
     return user;
@@ -104,6 +136,45 @@ export const AuthServices = {
             userName: user.name,
             otp,
             template: 'account_verify',
+          }),
+        });
+    } catch (error: any) {
+      errorLogger.error(error.message);
+    }
+
+    return prisma.user.update({
+      where: { id: user.id },
+      data: {
+        otp,
+        otp_expires_at: new Date(Date.now() + ms(config.otp.exp)),
+      },
+      select: {
+        otp_expires_at: true,
+      },
+    });
+  },
+
+  async forgotPassword({ email, phone }: TAccountVerifyOtpSend) {
+    this.validEmailORPhone({ email, phone });
+
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ email }, { phone }] },
+    });
+
+    if (!user)
+      throw new ServerError(StatusCodes.NOT_FOUND, "User doesn't exist");
+
+    const otp = otpGenerator(config.otp.length);
+
+    try {
+      if (email)
+        sendEmail({
+          to: email,
+          subject: `Your ${config.server.name} Password Reset OTP is ⚡ ${otp} ⚡.`,
+          html: otp_send_template({
+            userName: user.name,
+            otp,
+            template: 'reset_password',
           }),
         });
     } catch (error: any) {

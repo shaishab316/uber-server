@@ -42,6 +42,15 @@ export const AuthControllers = {
     });
   }),
 
+  forgotPassword: catchAsync(async ({ body }, res) => {
+    const data = await AuthServices.forgotPassword(body);
+
+    serveResponse(res, {
+      message: 'OTP sent successfully!',
+      data,
+    });
+  }),
+
   /*
 
   

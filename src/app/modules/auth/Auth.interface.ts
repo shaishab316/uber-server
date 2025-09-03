@@ -6,5 +6,5 @@ export type TAccountVerify = z.infer<
   typeof AuthValidations.accountVerify
 >['body'];
 export type TAccountVerifyOtpSend = z.infer<
-  typeof AuthValidations.accountVerifyOtpSend
+  typeof AuthValidations.otpSend
 >['body'];

@@ -20,15 +20,21 @@ router.post(
 );
 
 router.post(
+  '/login',
+  purifyRequest(AuthValidations.login),
+  AuthControllers.login,
+);
+
+router.post(
   '/account-verify/otp-send',
-  purifyRequest(AuthValidations.accountVerifyOtpSend),
+  purifyRequest(AuthValidations.otpSend),
   AuthControllers.accountVerifyOtpSend,
 );
 
 router.post(
-  '/login',
-  purifyRequest(AuthValidations.login),
-  AuthControllers.login,
+  '/forgot-password',
+  purifyRequest(AuthValidations.otpSend),
+  AuthControllers.forgotPassword,
 );
 
 /**
