@@ -90,6 +90,28 @@ export const AuthControllers = {
     });
   }),
 
+  changePassword: catchAsync(async ({ user, body }, res) => {
+    if (!(await verifyPassword(body.oldPassword, user.password))) {
+      throw new ServerError(StatusCodes.UNAUTHORIZED, 'Incorrect password');
+    }
+
+    if (body.oldPassword === body.newPassword) {
+      throw new ServerError(
+        StatusCodes.UNAUTHORIZED,
+        'You cannot use old password',
+      );
+    }
+
+    await AuthServices.modifyPassword({
+      userId: user.id,
+      password: body.newPassword,
+    });
+
+    serveResponse(res, {
+      message: 'Password changed successfully!',
+    });
+  }),
+
   /*
 
   refreshToken: catchAsync(async ({ user }, res) => {
@@ -104,11 +126,7 @@ export const AuthControllers = {
     });
   }),
 
-  changePassword: catchAsync(async (_, res) => {
-    serveResponse(res, {
-      message: 'Password changed successfully!',
-    });
-  }),
+  
 
   */
 };
