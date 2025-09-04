@@ -67,6 +67,20 @@ export const UserServices = {
   },
 
   async updateUser({ user, body }: { user: Partial<TUser>; body: TUserEdit }) {
+    if (body.phone || body.email) {
+      const existingUser = await prisma.user.findFirst({
+        where: { OR: [{ email: body.email }, { phone: body.phone }] },
+        select: { id: true, email: true, phone: true },
+      });
+
+      if (existingUser && existingUser.id !== user.id) {
+        throw new ServerError(
+          StatusCodes.CONFLICT,
+          `User already exists with this ${existingUser.email ? 'email' : ''} ${existingUser.phone ? 'phone' : ''}`.trim(),
+        );
+      }
+    }
+
     body.avatar ||= undefined;
     if (body.avatar) user?.avatar?.__pipes(deleteFile);
 
