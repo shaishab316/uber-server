@@ -223,4 +223,20 @@ export const AuthServices = {
       },
     });
   },
+
+  async modifyPassword({
+    userId,
+    password,
+  }: {
+    userId: string;
+    password: string;
+  }) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { password: await password.hash() },
+      select: {
+        id: true,
+      },
+    });
+  },
 };

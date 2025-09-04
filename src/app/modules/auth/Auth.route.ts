@@ -4,6 +4,7 @@ import { AuthValidations } from './Auth.validation';
 import { UserControllers } from '../user/User.controller';
 import { UserValidations } from '../user/User.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
+import auth from '../../middlewares/auth';
 
 const router = Router();
 
@@ -43,6 +44,13 @@ router.post(
   AuthControllers.forgotPasswordOtpVerify,
 );
 
+router.post(
+  '/reset-password',
+  auth.reset_token,
+  purifyRequest(AuthValidations.resetPassword),
+  AuthControllers.resetPassword,
+);
+
 /**
  * generate new access token
  */
@@ -67,12 +75,6 @@ router.post(
   //   purifyRequest(OtpValidations.email, OtpValidations.otp),
   //   UserMiddlewares.useUser(),
   //   OtpControllers.resetPasswordOtpVerify,
-  // );
-  // router.post(
-  //   '/reset-password',
-  //   auth.reset(),
-  //   purifyRequest(AuthValidations.resetPassword),
-  //   AuthControllers.resetPassword,
   // );
 }
 

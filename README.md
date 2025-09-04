@@ -2,7 +2,7 @@
 
 A driver management platform for Uber-like services. This platform includes features like user management, chat functionality, OTP service, Stripe integration, and request validation.
 
-[![Template](https://img.shields.io/badge/template-express--it-blue?style=for-the-badge&logoColor=white)](https://github.com/shaishab316/express-it)
+[![Template](https://img.shields.io/badge/🗂️%20express--it-blue?style=for-the-badge&logoColor=white)](https://github.com/shaishab316/express-it)
 ![Node.js](https://img.shields.io/badge/node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Express.js](https://img.shields.io/badge/express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)

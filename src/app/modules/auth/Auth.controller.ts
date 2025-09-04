@@ -1,6 +1,9 @@
 import { AuthServices } from './Auth.service';
 import catchAsync from '../../middlewares/catchAsync';
 import serveResponse from '../../../util/server/serveResponse';
+import { verifyPassword } from './Auth.utils';
+import ServerError from '../../../errors/ServerError';
+import { StatusCodes } from 'http-status-codes';
 
 export const AuthControllers = {
   login: catchAsync(async ({ body }, res) => {
@@ -62,10 +65,19 @@ export const AuthControllers = {
     });
   }),
 
-  /*
+  resetPassword: catchAsync(async ({ user, body }, res) => {
+    if (await verifyPassword(body.password, user.password)) {
+      throw new ServerError(
+        StatusCodes.UNAUTHORIZED,
+        'You cannot use old password',
+      );
+    }
 
-  
-  resetPassword: catchAsync(async ({ user }, res) => {
+    await AuthServices.modifyPassword({
+      userId: user.id,
+      password: body.password,
+    });
+
     const { access_token, refresh_token } = AuthServices.retrieveToken(
       user.id,
       'access_token',
@@ -77,6 +89,8 @@ export const AuthControllers = {
       data: { access_token, refresh_token, user },
     });
   }),
+
+  /*
 
   refreshToken: catchAsync(async ({ user }, res) => {
     const { access_token } = AuthServices.retrieveToken(
