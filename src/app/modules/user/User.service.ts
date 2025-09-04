@@ -66,25 +66,18 @@ export const UserServices = {
     });
   },
 
-  async updateUser({
-    user,
-    body: { car_photo, ...body },
-  }: {
-    user: Partial<TUser>;
-    body: TUserEdit;
-  }) {
+  async updateUser({ user, body }: { user: Partial<TUser>; body: TUserEdit }) {
     user?.driver_info?.car_photo?.__pipes(deleteFile);
     if (body.avatar) user?.avatar?.__pipes(deleteFile);
 
     return prisma.user.update({
       where: { id: user.id },
-      data: {
-        ...body,
-        driver_info: {
-          car_photo,
-          ...((body.driver_info ?? {}) as any),
-        },
+      omit: {
+        password: true,
+        otp: true,
+        otp_expires_at: true,
       },
+      data: body,
     });
   },
 

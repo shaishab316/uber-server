@@ -26,14 +26,6 @@ export const UserValidations = {
       avatar: z.string().optional(),
       nid_number: z.string().optional(),
       payment_method: z.string().optional(),
-      driver_info: z
-        .object({
-          business_contact: z.string().optional(),
-          car_name: z.string().optional(),
-          driver_license: z.string().optional(),
-        })
-        .optional(),
-      car_photo: z.string().optional(),
     }),
   }),
 
