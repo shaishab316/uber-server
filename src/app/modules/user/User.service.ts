@@ -67,7 +67,7 @@ export const UserServices = {
   },
 
   async updateUser({ user, body }: { user: Partial<TUser>; body: TUserEdit }) {
-    user?.driver_info?.car_photo?.__pipes(deleteFile);
+    body.avatar ||= undefined;
     if (body.avatar) user?.avatar?.__pipes(deleteFile);
 
     return prisma.user.update({

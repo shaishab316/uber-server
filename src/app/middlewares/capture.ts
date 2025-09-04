@@ -69,6 +69,8 @@ const capture = (fields: UploadFields) =>
 
           //! for cleanup
           req.tempFiles.push(...uploadedFiles);
+        } else {
+          req.body[field] = fields[field].default;
         }
       });
     } catch (error) {
