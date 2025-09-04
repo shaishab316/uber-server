@@ -4,7 +4,7 @@ import prisma from '../../../util/prisma';
 import { EUserRole, Prisma, User as TUser } from '../../../../prisma';
 import { TPagination } from '../../../util/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
-import { TUserRegister } from './User.interface';
+import { TUserEdit, TUserRegister } from './User.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
@@ -68,16 +68,23 @@ export const UserServices = {
 
   async updateUser({
     user,
-    body,
+    body: { car_photo, ...body },
   }: {
     user: Partial<TUser>;
-    body: Partial<TUser>;
+    body: TUserEdit;
   }) {
+    user?.driver_info?.car_photo?.__pipes(deleteFile);
     if (body.avatar) user?.avatar?.__pipes(deleteFile);
 
     return prisma.user.update({
       where: { id: user.id },
-      data: body,
+      data: {
+        ...body,
+        driver_info: {
+          car_photo,
+          ...((body.driver_info ?? {}) as any),
+        },
+      },
     });
   },
 

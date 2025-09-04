@@ -19,11 +19,21 @@ export const UserValidations = {
 
   edit: z.object({
     body: z.object({
+      email: z.email({ error: 'Email is invalid' }).optional(),
+      phone: z.string().optional(),
+      role: z.enum(EUserRole).optional(),
       name: z.string().optional(),
       avatar: z.string().optional(),
-      phone: z.string().optional(),
-      fcmToken: z.string().optional(),
-      address: z.string().optional(),
+      nid_number: z.string().optional(),
+      payment_method: z.string().optional(),
+      driver_info: z
+        .object({
+          business_contact: z.string().optional(),
+          car_name: z.string().optional(),
+          driver_license: z.string().optional(),
+        })
+        .optional(),
+      car_photo: z.string().optional(),
     }),
   }),
 

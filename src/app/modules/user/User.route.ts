@@ -43,7 +43,18 @@ const user = Router();
   user.patch(
     '/edit',
     auth(),
-    avatarCapture,
+    capture({
+      avatar: {
+        size: 5 * 1024 * 1024,
+        maxCount: 1,
+        fileType: 'images',
+      },
+      car_photo: {
+        size: 20 * 1024 * 1024,
+        maxCount: 1,
+        fileType: 'images',
+      },
+    }),
     purifyRequest(UserValidations.edit),
     UserControllers.edit,
   );

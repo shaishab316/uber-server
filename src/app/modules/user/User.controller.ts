@@ -77,6 +77,12 @@ export const UserControllers = {
   }),
 
   profile: catchAsync(({ user }, res) => {
+    Object.assign(user, {
+      password: undefined,
+      otp: undefined,
+      otp_expires_at: undefined,
+    } as Partial<TUser>);
+
     serveResponse(res, {
       message: 'Profile retrieved successfully!',
       data: user,
