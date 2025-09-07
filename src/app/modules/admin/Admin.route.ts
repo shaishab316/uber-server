@@ -1,11 +1,16 @@
 import { Router } from 'express';
 import { UserRoutes } from '../user/User.route';
 import { ContextPageRoutes } from '../contextPage/ContextPage.route';
+import { DriverRoutes } from '../driver/Driver.route';
 
 export default Router().inject([
   {
     path: '/users',
     route: UserRoutes.admin,
+  },
+  {
+    path: '/drivers',
+    route: DriverRoutes.admin,
   },
   {
     path: '/context-pages',

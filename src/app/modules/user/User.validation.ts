@@ -8,7 +8,7 @@ export const UserValidations = {
       name: z
         .string({ error: 'Name is missing' })
         .trim()
-        .min(1, "Name can't be empty"),
+        .nonempty('Name is required'),
       email: z.email({ error: 'Email is invalid' }).optional(),
       phone: z.string().optional(),
       password: z

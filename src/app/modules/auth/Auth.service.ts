@@ -17,6 +17,7 @@ import { sendEmail } from '../../../util/sendMail';
 import { otp_send_template } from '../../../templates';
 import { errorLogger } from '../../../util/logger/logger';
 import ms from 'ms';
+import { userOmit } from '../user/User.service';
 
 export const AuthServices = {
   async login({ password, email, phone }: TUserLogin): Promise<Partial<TUser>> {
@@ -216,11 +217,7 @@ export const AuthServices = {
         otp: null,
         otp_expires_at: null,
       },
-      omit: {
-        password: true,
-        otp: true,
-        otp_expires_at: true,
-      },
+      omit: userOmit,
     });
   },
 

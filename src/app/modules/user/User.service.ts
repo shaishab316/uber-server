@@ -15,6 +15,12 @@ import { otp_send_template } from '../../../templates';
 import ms from 'ms';
 import { sendEmail } from '../../../util/sendMail';
 
+export const userOmit = {
+  password: true,
+  otp: true,
+  otp_expires_at: true,
+};
+
 export const UserServices = {
   async create({ password, name, email, phone }: TUserRegister) {
     AuthServices.validEmailORPhone({ email, phone });
@@ -58,11 +64,7 @@ export const UserServices = {
         otp,
         otp_expires_at: new Date(Date.now() + ms(config.otp.exp)),
       },
-      omit: {
-        password: true,
-        otp: true,
-        driver_info: true,
-      },
+      omit: userOmit,
     });
   },
 
@@ -86,11 +88,7 @@ export const UserServices = {
 
     return prisma.user.update({
       where: { id: user.id },
-      omit: {
-        password: true,
-        otp: true,
-        otp_expires_at: true,
-      },
+      omit: userOmit,
       data: body,
     });
   },
