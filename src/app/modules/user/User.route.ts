@@ -4,7 +4,6 @@ import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 import { UserValidations } from './User.validation';
 import capture from '../../middlewares/capture';
-import auth from '../../middlewares/auth';
 import { AuthControllers } from '../auth/Auth.controller';
 
 const avatarCapture = capture({
@@ -39,32 +38,42 @@ const admin = Router();
 
 const user = Router();
 {
-  user.get('/', auth(), UserControllers.profile);
+  user.get('/', UserControllers.profile);
 
   user.patch(
     '/edit',
-    auth(),
-    capture({
-      avatar: {
-        size: 5 * 1024 * 1024,
-        maxCount: 1,
-        fileType: 'images',
-      },
-      car_photo: {
-        size: 20 * 1024 * 1024,
-        maxCount: 1,
-        fileType: 'images',
-      },
-    }),
+    avatarCapture,
     purifyRequest(UserValidations.edit),
     UserControllers.edit,
   );
 
   user.post(
     '/change-password',
-    auth(),
     purifyRequest(UserValidations.changePassword),
     AuthControllers.changePassword,
+  );
+
+  user.post(
+    '/apply-for-driver',
+    capture({
+      avatar: {
+        size: 5 * 1024 * 1024,
+        maxCount: 1,
+        fileType: 'images',
+      },
+      driver_license: {
+        size: 100 * 1024 * 1024,
+        maxCount: 1,
+        fileType: 'images',
+      },
+      car_photo: {
+        size: 100 * 1024 * 1024,
+        maxCount: 1,
+        fileType: 'images',
+      },
+    }),
+    purifyRequest(UserValidations.applyForDriver),
+    UserControllers.applyForDriver,
   );
 }
 

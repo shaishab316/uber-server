@@ -3,8 +3,9 @@ import catchAsync from '../../middlewares/catchAsync';
 import serveResponse from '../../../util/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { User as TUser } from '../../../../prisma';
+import { EUserRole, User as TUser } from '../../../../prisma';
 import prisma from '../../../util/prisma';
+import ServerError from '../../../errors/ServerError';
 
 export const UserControllers = {
   register: catchAsync(async ({ body }, res) => {
@@ -94,6 +95,24 @@ export const UserControllers = {
 
     serveResponse(res, {
       message: `${user?.name ?? 'User'} deleted successfully!`,
+    });
+  }),
+
+  applyForDriver: catchAsync(async ({ body, user }, res) => {
+    if (user.role === EUserRole.DRIVER)
+      throw new ServerError(
+        StatusCodes.UNAUTHORIZED,
+        'You are already a driver',
+      );
+
+    const data = await UserServices.applyForDriver({
+      user_id: user.id,
+      ...body,
+    });
+
+    serveResponse(res, {
+      message: 'Application submitted successfully!',
+      data,
     });
   }),
 };

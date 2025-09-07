@@ -56,4 +56,44 @@ export const UserValidations = {
         .pipe(z.enum(EUserRole).optional()),
     }),
   }),
+
+  applyForDriver: z.object({
+    body: z.object({
+      avatar: z
+        .string({
+          error: 'Avatar is missing',
+        })
+        .nonempty('Avatar is required'),
+      driver_license: z
+        .string({
+          error: 'Driver License is missing',
+        })
+        .nonempty('Driver License is required'),
+      car_photo: z
+        .string({
+          error: 'Car Photo is missing',
+        })
+        .nonempty('Car Photo is required'),
+      car_name: z
+        .string({
+          error: 'Car Name is missing',
+        })
+        .nonempty('Car Name is required'),
+      nid_number: z
+        .string({
+          error: 'NID Number is missing',
+        })
+        .nonempty('NID Number is required'),
+      payment_method: z
+        .string({
+          error: 'Payment Method is missing',
+        })
+        .nonempty('Payment Method is required'),
+      business_contact: z
+        .string({
+          error: 'Business Contact is missing',
+        })
+        .nonempty('Business Contact is required'),
+    }),
+  }),
 };

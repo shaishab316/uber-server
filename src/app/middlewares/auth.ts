@@ -48,6 +48,8 @@ const auth = ({
     next();
   });
 
+auth.all = auth();
+
 auth.admin = auth({
   validator(user) {
     if (!user.is_admin) {

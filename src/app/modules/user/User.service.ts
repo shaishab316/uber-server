@@ -4,7 +4,7 @@ import prisma from '../../../util/prisma';
 import { EUserRole, Prisma, User as TUser } from '../../../../prisma';
 import { TPagination } from '../../../util/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
-import { TUserEdit, TUserRegister } from './User.interface';
+import { TApplyForDriver, TUserEdit, TUserRegister } from './User.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
@@ -168,34 +168,30 @@ export const UserServices = {
     return prisma.user.delete({ where: { id: userId } });
   },
 
-  // async getPendingInfluencers({ page, limit }: TList) {
-  //   const where = {
-  //     role: EUserRole.USER,
-  //     socials: {
-  //       some: {},
-  //     },
-  //   };
-
-  //   const influencers = await prisma.user.findMany({
-  //     where,
-  //     skip: (page - 1) * limit,
-  //     take: limit,
-  //   });
-
-  //   const total = await prisma.user.count({
-  //     where,
-  //   });
-
-  //   return {
-  //     meta: {
-  //       pagination: {
-  //         page,
-  //         limit,
-  //         total,
-  //         totalPages: Math.ceil(total / limit),
-  //       } as TPagination,
-  //     },
-  //     influencers,
-  //   };
-  // },
+  async applyForDriver({
+    avatar,
+    driver_license,
+    business_contact,
+    car_name,
+    car_photo,
+    nid_number,
+    payment_method,
+    user_id,
+  }: TApplyForDriver & { user_id: string }) {
+    return prisma.user.update({
+      where: { id: user_id },
+      data: {
+        is_pending_driver: true,
+        avatar,
+        nid_number,
+        payment_method,
+        driver_info: {
+          business_contact,
+          car_name,
+          car_photo,
+          driver_license,
+        },
+      },
+    });
+  },
 };
