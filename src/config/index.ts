@@ -163,6 +163,12 @@ const config = {
       down: 'Admin info - end',
     }),
   },
+
+  google_map_key: env('google map key', '', {
+    regex: '^.{10,}$',
+    up: 'Google map key - start',
+    down: 'Google map key - end',
+  }),
 };
 
 export default config;
