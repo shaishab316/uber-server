@@ -23,7 +23,9 @@ model User {
   otp            String?
   otp_expires_at DateTime?
 
-  location TLocation?
+  location       TLocation?
+  trips_received Trip[]     @relation("Passenger")
+  trips_given    Trip[]     @relation("Driver")
 
   @@map("users")
 }
