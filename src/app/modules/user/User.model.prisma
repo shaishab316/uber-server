@@ -23,6 +23,8 @@ model User {
   otp            String?
   otp_expires_at DateTime?
 
+  location TLocation?
+
   @@map("users")
 }
 
@@ -36,4 +38,9 @@ type TDriverInfo {
   driver_license   String
   car_photo        String
   car_name         String
+}
+
+type TLocation {
+  geo     Float[]
+  address String?
 }

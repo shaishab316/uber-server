@@ -37,6 +37,15 @@ export const UserControllers = {
     });
   }),
 
+  updateLocation: catchAsync(async (req, res) => {
+    await UserServices.updateUser(req);
+
+    serveResponse(res, {
+      message: 'Location updated successfully!',
+      data: req.body,
+    });
+  }),
+
   superEdit: catchAsync(async ({ params, body }, res) => {
     const user = (await prisma.user.findUnique({
       where: { id: params.userId },

@@ -75,6 +75,12 @@ const user = Router();
     purifyRequest(UserValidations.applyForDriver),
     UserControllers.applyForDriver,
   );
+
+  user.post(
+    '/update-location',
+    purifyRequest(UserValidations.updateLocation),
+    UserControllers.updateLocation,
+  );
 }
 
 export const UserRoutes = {

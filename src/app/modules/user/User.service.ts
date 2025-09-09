@@ -16,6 +16,7 @@ import ms from 'ms';
 import { sendEmail } from '../../../util/sendMail';
 
 export const userOmit = {
+  location: true,
   password: true,
   otp: true,
   otp_expires_at: true,
