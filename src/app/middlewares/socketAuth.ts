@@ -3,6 +3,7 @@ import { Socket } from 'socket.io';
 import { socketError } from '../modules/socket/Socket.utils';
 import { decodeToken } from '../modules/auth/Auth.utils';
 import prisma from '../../util/prisma';
+import { userOmit } from '../modules/user/User.service';
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
   const token = socket.handshake?.auth?.token ?? socket.handshake?.query?.token;
@@ -12,6 +13,7 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
 
     const user = await prisma.user.findUnique({
       where: { id: uid },
+      omit: userOmit,
     });
 
     Object.assign(socket.data, { user });

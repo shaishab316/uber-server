@@ -14,6 +14,7 @@ export const socketError = (socket: Socket, error: Error) => {
   errorLogger.error(colors.red(error.message));
 };
 
-export const socketInfo = (message: string) => {
+export const socketInfo = (socket: Socket, message: string) => {
+  socket.emit('socketLog', message);
   logger.info(colors.green(message));
 };

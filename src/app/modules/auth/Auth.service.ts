@@ -28,6 +28,7 @@ export const AuthServices = {
       omit: {
         otp: true,
         otp_expires_at: true,
+        location: true,
       },
     });
 

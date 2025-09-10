@@ -5,6 +5,6 @@ import colors from 'colors';
 import { logger } from './util/logger/logger';
 
 startServer().then(server => {
-  server?.__pipes(SocketServices.init);
+  SocketServices.init(server);
   logger.info(colors.green('🚀 Socket services initialized successfully'));
 });

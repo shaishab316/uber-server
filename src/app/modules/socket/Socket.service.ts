@@ -19,21 +19,30 @@ export const SocketServices = {
 
     io.on('connection', socket => {
       const user: TUser = socket.data.user;
-      user.id?.__pipes(socket.join, this.online);
 
-      socketInfo(`👤 User (${user?.name}) connected to room: (${user})`);
+      socket.join(user.id);
+      this.online(user.id);
 
-      socket.on('leave', ({ chatId }: { chatId: string }) => {
+      socketInfo(
+        socket,
+        `👤 User (${user?.name}) connected to room: (${user.id})`,
+      );
+
+      socket.on('leave', (chatId: string) => {
+        socketInfo(
+          socket,
+          `👤 User (${user?.name}) left from room: (${chatId})`,
+        );
         socket.leave(chatId);
-        socketInfo(`👤 User (${user?.name}) left from room: (${chatId})`);
       });
 
       socket.on('disconnect', () => {
-        user.id?.__pipes(socket.leave, this.offline);
-
         socketInfo(
+          socket,
           `👤 User (${user?.name}) disconnected from room: (${user.id})`,
         );
+        this.offline(user.id);
+        socket.leave(user.id);
       });
 
       socket.on('error', error => {
