@@ -2,6 +2,7 @@ import { Router } from 'express';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 import { DriverControllers } from './Driver.controller';
+import { AvailableDriverRoutes } from '../availableDriver/AvailableDriver.route';
 
 const admin = Router();
 {
@@ -24,4 +25,9 @@ const admin = Router();
   );
 }
 
-export const DriverRoutes = { admin };
+const driver = Router();
+{
+  driver.use('/available-drivers', AvailableDriverRoutes.driver);
+}
+
+export const DriverRoutes = { admin, driver };

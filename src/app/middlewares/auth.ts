@@ -13,15 +13,13 @@ import { EUserRole, User as TUser } from '../../../prisma';
  */
 const auth = ({
   token_type = 'access_token',
-  validator = () => void 0,
+  validators = [],
 }: {
   token_type?: TToken;
-  validator?: (user: TUser) => void;
+  validators?: ((user: TUser) => void)[];
 } = {}) =>
   catchAsync(async (req, _, next) => {
-    const token =
-      // req.cookies[token_type] ||
-      req.headers.authorization || req.query[token_type];
+    const token = req.headers.authorization || req.cookies[token_type];
 
     const id = decodeToken(token, token_type)?.uid;
 
@@ -41,7 +39,7 @@ const auth = ({
         'Maybe your account has been deleted. Register again.',
       );
 
-    validator(user);
+    for (const validator of validators) validator(user);
 
     req.user = user;
 
@@ -51,51 +49,36 @@ const auth = ({
 auth.all = auth();
 
 auth.admin = auth({
-  validator(user) {
-    if (!user.is_admin) {
-      throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not an admin');
-    }
-  },
+  validators: [
+    commonValidator,
+    user => {
+      if (!user.is_admin) {
+        throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not an admin');
+      }
+    },
+  ],
 });
 
 auth.user = auth({
-  validator({ is_verified, is_active, role, is_admin }) {
-    if (is_admin) return;
-
-    if (!is_verified) {
-      throw new ServerError(
-        StatusCodes.UNAUTHORIZED,
-        'You account are not verified',
-      );
-    } else if (!is_active) {
-      throw new ServerError(
-        StatusCodes.UNAUTHORIZED,
-        'You account are not active',
-      );
-    } else if (role !== EUserRole.USER) {
-      throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not a user');
-    }
-  },
+  validators: [
+    commonValidator,
+    user => {
+      if (user.role !== EUserRole.USER) {
+        throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not a user');
+      }
+    },
+  ],
 });
 
 auth.driver = auth({
-  validator({ is_verified, is_active, role, is_admin }) {
-    if (is_admin) return;
-
-    if (!is_verified) {
-      throw new ServerError(
-        StatusCodes.UNAUTHORIZED,
-        'You account are not verified',
-      );
-    } else if (!is_active) {
-      throw new ServerError(
-        StatusCodes.UNAUTHORIZED,
-        'You account are not active',
-      );
-    } else if (role !== EUserRole.DRIVER) {
-      throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not a driver');
-    }
-  },
+  validators: [
+    commonValidator,
+    user => {
+      if (user.role !== EUserRole.DRIVER) {
+        throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not a driver');
+      }
+    },
+  ],
 });
 
 //! Token Verification
@@ -103,3 +86,19 @@ auth.refresh_token = auth({ token_type: 'refresh_token' });
 auth.reset_token = auth({ token_type: 'reset_token' });
 
 export default auth;
+
+function commonValidator({ is_admin, is_verified, is_active }: TUser) {
+  if (is_admin) return;
+
+  if (!is_verified) {
+    throw new ServerError(
+      StatusCodes.UNAUTHORIZED,
+      'Your account are not verified',
+    );
+  } else if (!is_active) {
+    throw new ServerError(
+      StatusCodes.UNAUTHORIZED,
+      'Your account are not active',
+    );
+  }
+}
