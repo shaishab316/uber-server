@@ -56,33 +56,4 @@ router.post(
  */
 // router.get('/refresh-token', auth.refresh_token, AuthControllers.refreshToken);
 
-/* Otps */
-
-/**
- * Forget password
- */
-{
-  // router.post(
-  //   '/reset-password-otp-send',
-  //   otpLimiter,
-  //   purifyRequest(OtpValidations.email),
-  //   UserMiddlewares.useUser(),
-  //   OtpControllers.resetPasswordOtpSend,
-  // );
-  // router.post(
-  //   '/reset-password-otp-verify',
-  //   otpLimiter,
-  //   purifyRequest(OtpValidations.email, OtpValidations.otp),
-  //   UserMiddlewares.useUser(),
-  //   OtpControllers.resetPasswordOtpVerify,
-  // );
-}
-
-// router.get(
-//   '/account-verify-otp-send',
-//   otpLimiter,
-//   auth.guest(),
-//   OtpControllers.accountVerifyOtpSend,
-// );
-
 export const AuthRoutes = router;

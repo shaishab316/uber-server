@@ -9,6 +9,7 @@ import connectDB from './connectDB';
 import { AdminServices } from '../../app/modules/admin/Admin.service';
 import killPort from 'kill-port';
 import { verifyEmailTransporter } from '../sendMail';
+import { setupIndexes } from '../db/setupIndexes';
 
 const {
   server: { port, ip_address, name },
@@ -28,11 +29,10 @@ export default async function startServer() {
       console.log(error);
     }
 
-    await Promise.all([
-      connectDB(),
-      AdminServices.seed(),
-      verifyEmailTransporter(),
-    ]);
+    await connectDB();
+    await setupIndexes();
+    await AdminServices.seed();
+    await verifyEmailTransporter();
 
     const server = createServer(app);
 
