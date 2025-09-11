@@ -51,6 +51,8 @@ router.post(
   AuthControllers.resetPassword,
 );
 
+router.post('/logout', AuthControllers.logout);
+
 /**
  * generate new access token
  */

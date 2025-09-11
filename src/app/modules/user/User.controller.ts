@@ -17,6 +17,8 @@ export const UserControllers = {
       'refresh_token',
     );
 
+    AuthServices.setTokens(res, { access_token, refresh_token });
+
     serveResponse(res, {
       statusCode: StatusCodes.CREATED,
       message: `${user.role?.toCapitalize() ?? 'Unknown'} registered successfully!`,

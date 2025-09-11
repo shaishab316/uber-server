@@ -40,12 +40,16 @@ app.use(
   cookieParser(),
 );
 
-// Health check endpoint
-app.get('/', (_, res) => {
-  res.send(`
-    ${config.server.name} is running successfully.
-    Please check the <a href="${config.url.api_doc}">documentation</a> for more details.
-  `);
+app.get('/health', (_, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+app.get('/login', (_, res) => {
+  res.sendFile(__dirname + '/app/modules/auth/views/login.html');
+});
+
+app.get('/profile', (_, res) => {
+  res.sendFile(__dirname + '/app/modules/user/views/profile.html');
 });
 
 // API routes

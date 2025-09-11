@@ -18,6 +18,7 @@ import { otp_send_template } from '../../../templates';
 import { errorLogger } from '../../../util/logger/logger';
 import ms from 'ms';
 import { userOmit } from '../user/User.service';
+import { Response } from 'express';
 
 export const AuthServices = {
   async login({ password, email, phone }: TUserLogin): Promise<Partial<TUser>> {
@@ -96,6 +97,25 @@ export const AuthServices = {
 
       if (issues.length) throw new ZodError(issues);
     }
+  },
+
+  setTokens(res: Response, tokens: { [key in TToken]?: string }) {
+    Object.entries(tokens).forEach(([key, value]) =>
+      res.cookie(key, value, {
+        httpOnly: true,
+        secure: !config.server.isDevelopment,
+        maxAge: ms(config.jwt[key as TToken].expire_in),
+      }),
+    );
+  },
+
+  destroyTokens<T extends readonly TToken[]>(res: Response, ...cookies: T) {
+    for (const cookie of cookies)
+      res.clearCookie(cookie, {
+        httpOnly: true,
+        secure: !config.server.isDevelopment,
+        maxAge: 0, // expire immediately
+      });
   },
 
   /** this function returns an object of tokens

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100">
+    <div class="flex items-center justify-center space-x-4">
+      <a href="/login" class="text-blue-500 hover:underline">Login</a>
+      <a href="/profile" class="text-blue-500 hover:underline">profile</a>
+      <a
+        href="/api/v1/admin/logs/info-page"
+        class="text-blue-500 hover:underline"
+        >logs</a
+      >
+      <a
+        href="/api/v1/admin/logs/error-page"
+        class="text-blue-500 hover:underline"
+        >error logs</a
+      >
+    </div>
+    <div class="flex items-center justify-center min-h-screen">
+      <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
+        <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+        <div id="message" class="mb-4 text-center text-sm"></div>
+
+        <form id="login-form" class="space-y-4">
+          <div>
+            <label for="email" class="block text-sm font-medium mb-1"
+              >Email</label
+            >
+            <input
+              type="email"
+              id="email"
+              placeholder="admin@uber.com"
+              required
+              class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium mb-1"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter password"
+              required
+              class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('login-form');
+      const messageDiv = document.getElementById('message');
+      const LOGIN_API = '/api/v1/auth/login';
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        messageDiv.textContent = '';
+        messageDiv.className = 'mb-4 text-center text-sm text-gray-700';
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        try {
+          const res = await fetch(LOGIN_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            messageDiv.textContent = data.message;
+            messageDiv.className =
+              'mb-4 text-center text-sm text-green-600 font-medium';
+
+            localStorage.setItem('user', JSON.stringify(data.data.user));
+
+            window.location.href = '/profile';
+          } else {
+            messageDiv.textContent = data.message || 'Login failed!';
+            messageDiv.className =
+              'mb-4 text-center text-sm text-red-600 font-medium';
+          }
+        } catch (err) {
+          console.error(err);
+          messageDiv.textContent = 'An error occurred. Please try again.';
+          messageDiv.className =
+            'mb-4 text-center text-sm text-red-600 font-medium';
+        }
+      });
+    </script>
+  </body>
+</html>
