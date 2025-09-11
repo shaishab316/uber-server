@@ -138,7 +138,7 @@ export const deleteFile = async (filename: string) => {
 
     if (result.length)
       logger.info(colors.green(`✔ file '${filename}' deleted successfully!`));
-    else logger.info(colors.red(`❌ file '${filename}' not deleted!`));
+    else errorLogger.error(colors.red(`❌ file '${filename}' not deleted!`));
 
     return result;
   } catch (error: any) {

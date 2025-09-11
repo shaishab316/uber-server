@@ -3,23 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Uber</title>
+    <title>Uber Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div class="flex items-center justify-center space-x-4">
-      <a href="/login" class="text-blue-500 hover:underline">Login</a>
-      <a href="/profile" class="text-blue-500 hover:underline">profile</a>
-      <a
-        href="/api/v1/admin/logs/info-page"
-        class="text-blue-500 hover:underline"
-        >logs</a
+  <body class="bg-gray-100">
+    <!-- Buttons -->
+    <div
+      class="fixed top-4 left-[50%] transform -translate-x-1/2 flex items-center justify-center space-x-4 mb-10"
+    >
+      <button
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        onclick="loadIframe('/welcome.html')"
       >
-      <a
-        href="/api/v1/admin/logs/error-page"
-        class="text-blue-500 hover:underline"
-        >error logs</a
+        Home
+      </button>
+      <button
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        onclick="loadIframe('/login')"
       >
+        Login
+      </button>
+      <button
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        onclick="loadIframe('/profile')"
+      >
+        Profile
+      </button>
+      <button
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        onclick="loadIframe('/api/v1/admin/logs/info-page')"
+      >
+        Logs
+      </button>
+      <button
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        onclick="loadIframe('/api/v1/admin/logs/error-page')"
+      >
+        Error Logs
+      </button>
     </div>
+
+    <!-- Iframe -->
+    <iframe
+      id="content-frame"
+      src="welcome.html"
+      class="w-full h-screen"
+    ></iframe>
+
+    <script>
+      function loadIframe(url) {
+        document.getElementById('content-frame').src = url;
+      }
+    </script>
   </body>
 </html>
