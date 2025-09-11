@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import ServerError from '../../errors/ServerError';
 import { decodeToken, TToken } from '../modules/auth/Auth.utils';
 import catchAsync from './catchAsync';
-import prisma from '../../util/prisma';
+import { prisma } from '../../util/db';
 import { EUserRole, User as TUser } from '../../../prisma';
 
 /**

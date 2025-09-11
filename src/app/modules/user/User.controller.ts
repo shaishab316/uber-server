@@ -4,7 +4,7 @@ import serveResponse from '../../../util/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
 import { EUserRole, User as TUser } from '../../../../prisma';
-import prisma from '../../../util/prisma';
+import { prisma } from '../../../util/db';
 import ServerError from '../../../errors/ServerError';
 
 export const UserControllers = {

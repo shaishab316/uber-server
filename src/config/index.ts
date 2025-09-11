@@ -22,6 +22,8 @@ const user_email =
 const support_email =
   process.env.EMAIL_SUPPORT ?? `support@${server_name.toLocaleLowerCase()}.com`;
 
+const db_name = server_name.toLowerCase().replace(' ', '-');
+
 /**
  * Configuration object for the application
  *
@@ -57,6 +59,9 @@ const config = {
     default_avatar: env('default avatar', '/images/placeholder.png', {
       regex: '^\/.*\.(png|jpg|jpeg|svg)$',
     }),
+    db_name: env('db name', db_name, {
+      regex: '^\w[\w\s-]{1,50}$',
+    }),
     mock_mail: env('mock mail', true, {
       regex: '^(true|false)$',
       down: 'Server info - end',
@@ -64,14 +69,11 @@ const config = {
   },
 
   url: {
-    database: env(
-      'database url',
-      `mongodb://127.0.0.1:27017/${server_name.toLowerCase().replace(' ', '-')}`,
-      {
-        up: 'Database info - start',
-        regex: '^mongodb:\/\/.*$',
-      },
-    ),
+    database: env('database url', `mongodb://127.0.0.1:27017/${db_name}`, {
+      up: 'Database info - start',
+      regex: '^mongodb:\/\/.*$',
+    }),
+
     api_doc: env('api doc', '', {
       regex: '^https?:\/\/.*$|^$',
     }),

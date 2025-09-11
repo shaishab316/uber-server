@@ -1,6 +1,6 @@
 import { TList } from '../query/Query.interface';
 import { userSearchableFields as searchFields } from './User.constant';
-import prisma from '../../../util/prisma';
+import { prisma } from '../../../util/db';
 import { EUserRole, Prisma, User as TUser } from '../../../../prisma';
 import { TPagination } from '../../../util/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';

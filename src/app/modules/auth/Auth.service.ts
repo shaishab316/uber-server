@@ -8,7 +8,7 @@ import {
 } from './Auth.interface';
 import { encodeToken, TToken, verifyPassword } from './Auth.utils';
 import { ZodError } from 'zod';
-import prisma from '../../../util/prisma';
+import { prisma } from '../../../util/db';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { otpGenerator } from '../../../util/crypto/otpGenerator';

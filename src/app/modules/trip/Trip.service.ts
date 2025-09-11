@@ -1,4 +1,4 @@
-import prisma from '../../../util/prisma';
+import { prisma } from '../../../util/db';
 import { TTripStart } from './Trip.interface';
 
 export const TripServices = {

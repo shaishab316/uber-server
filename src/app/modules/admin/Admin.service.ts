@@ -2,7 +2,7 @@ import colors from 'colors';
 import { errorLogger } from '../../../util/logger/logger';
 import { logger } from '../../../util/logger/logger';
 import config from '../../../config';
-import prisma from '../../../util/prisma';
+import { prisma } from '../../../util/db';
 
 export const AdminServices = {
   /**

@@ -1,5 +1,5 @@
 import { EUserRole, Prisma } from '../../../../prisma';
-import prisma from '../../../util/prisma';
+import { prisma } from '../../../util/db';
 import { TList } from '../query/Query.interface';
 import { userOmit } from '../user/User.service';
 import { userSearchableFields as searchFields } from '../user/User.constant';
