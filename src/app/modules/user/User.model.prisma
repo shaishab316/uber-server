@@ -44,6 +44,7 @@ type TDriverInfo {
 }
 
 type TLocation {
+  type    String  @default("Point")
   geo     Float[]
   address String?
 }

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { EUserRole } from '../../../../prisma';
 import { enum_encode } from '../../../util/transform/enum';
+import { locationSchema } from '../trip/Trip.validation';
 
 export const UserValidations = {
   register: z.object({
@@ -99,25 +100,7 @@ export const UserValidations = {
 
   updateLocation: z.object({
     body: z.object({
-      location: z.object({
-        geo: z
-          .tuple([
-            z.coerce
-              .number()
-              .refine(
-                long => long >= -180 && long <= 180,
-                'Longitude must be between -180 and 180',
-              ),
-            z.coerce
-              .number()
-              .refine(
-                lat => lat >= -90 && lat <= 90,
-                'Latitude must be between -90 and 90',
-              ),
-          ])
-          .optional(),
-        address: z.coerce.string().optional(),
-      }),
+      location: locationSchema,
     }),
   }),
 };

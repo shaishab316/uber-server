@@ -1,5 +1,6 @@
 model Trip {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  status       EStatus   @default(REQUESTED)
   requested_at DateTime  @default(now())
   accepted_at  DateTime?
   started_at   DateTime?
@@ -7,20 +8,37 @@ model Trip {
   completed_at DateTime?
   cancelled_at DateTime?
 
-  distance_km  Float
-  duration_sec BigInt
-  total_cost   Float
+  distance_km  Float?
+  duration_sec BigInt?
+  total_cost   Float?
 
-  driver_id    String @db.ObjectId
-  passenger_id String @db.ObjectId
+  driver_id      String? @db.ObjectId
+  passenger_id   String  @db.ObjectId
+  passenger_ages Int[]
 
-  driver    User @relation("Driver", fields: [driver_id], references: [id], onDelete: Cascade)
-  passenger User @relation("Passenger", fields: [passenger_id], references: [id], onDelete: Cascade)
+  driver    User? @relation("Driver", fields: [driver_id], references: [id], onDelete: Cascade)
+  passenger User  @relation("Passenger", fields: [passenger_id], references: [id], onDelete: Cascade)
 
+  vehicle         EVehicle
   pickup_address  TLocation
   dropoff_address TLocation
+  stops           TLocation[]
 
-  stops TLocation[]
+  exclude_driver_ids String[] @default([])
 
   @@map("trips")
+}
+
+enum EVehicle {
+  BIKE
+  CAR
+}
+
+enum EStatus {
+  REQUESTED
+  ACCEPTED
+  STARTED
+  ARRIVED
+  COMPLETED
+  CANCEL
 }
