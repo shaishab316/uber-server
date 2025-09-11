@@ -36,6 +36,9 @@ export default async function startServer() {
 
     const server = createServer(app);
 
+    console.clear();
+    console.log(colors.gray('[console cleared]'));
+
     await new Promise<void>(resolve => {
       server.listen(port, ip_address, resolve);
     });
