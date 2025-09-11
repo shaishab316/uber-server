@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Logs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto py-8">
+      <h1 class="text-3xl font-bold mb-6 text-center">
+        Application Error Logs
+      </h1>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap justify-between mb-4 gap-2 items-center">
+        <div class="flex gap-2 items-center">
+          <label for="search" class="font-medium">Search:</label>
+          <input
+            type="text"
+            id="search"
+            placeholder="Search logs..."
+            class="border rounded px-2 py-1"
+          />
+        </div>
+        <div class="flex gap-2 items-center">
+          <label for="date" class="font-medium">Date:</label>
+          <input type="date" id="date" class="border rounded px-2 py-1" />
+        </div>
+        <div class="flex gap-2 items-center">
+          <label for="limit" class="font-medium">Logs per page:</label>
+          <select id="limit" class="border rounded px-2 py-1">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto bg-white shadow rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-800 text-white">
+            <tr>
+              <th class="py-3 px-4 text-left">Timestamp</th>
+              <th class="py-3 px-4 text-left">Message</th>
+            </tr>
+          </thead>
+          <tbody
+            id="logs-body"
+            class="bg-white divide-y divide-gray-200"
+          ></tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex justify-center mt-6 gap-1" id="pagination"></div>
+    </div>
+
+    <script>
+      const API_URL = 'http://10.10.12.48:3947/api/v1/admin/logs/error';
+      const params = new URLSearchParams(window.location.search);
+
+      // Current state
+      let currentPage = parseInt(params.get('page')) || 1;
+      let limit = parseInt(params.get('limit')) || 10;
+      let search = params.get('search') || '';
+      let date = params.get('timestamp') || '';
+
+      // Elements
+      const limitSelect = document.getElementById('limit');
+      const searchInput = document.getElementById('search');
+      const dateInput = document.getElementById('date');
+
+      // Set initial values
+      limitSelect.value = limit;
+      searchInput.value = search;
+
+      // Auto-select today's date if no date provided
+      if (!date) {
+        const today = new Date();
+        date = today.toISOString().split('T')[0];
+      }
+      dateInput.value = date;
+
+      // Debounce search
+      let searchTimeout;
+      const debounceDelay = 300;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          search = searchInput.value.trim();
+          currentPage = 1;
+          fetchLogs();
+        }, debounceDelay);
+      });
+
+      // Event listeners for limit/date
+      limitSelect.addEventListener('change', () => {
+        limit = parseInt(limitSelect.value);
+        currentPage = 1;
+        fetchLogs();
+      });
+      dateInput.addEventListener('change', () => {
+        date = dateInput.value;
+        currentPage = 1;
+        fetchLogs();
+      });
+
+      // Update URL query params
+      function updateURL() {
+        const url = new URL(window.location);
+        url.searchParams.set('page', currentPage);
+        url.searchParams.set('limit', limit);
+        url.searchParams.set('search', search);
+        url.searchParams.set('timestamp', date);
+        window.history.replaceState({}, '', url);
+      }
+
+      // Fetch logs
+      async function fetchLogs() {
+        try {
+          const url = new URL(API_URL);
+          url.searchParams.set('page', currentPage);
+          url.searchParams.set('limit', limit);
+          if (search) url.searchParams.set('search', search);
+          if (date) url.searchParams.set('timestamp', date);
+
+          const res = await fetch(url.toString());
+          const json = await res.json();
+
+          const logs = json.logs || json.data || [];
+          const meta = json.meta.pagination;
+
+          const tbody = document.getElementById('logs-body');
+          tbody.innerHTML = '';
+
+          logs.forEach(log => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50';
+            tr.innerHTML = `
+        <td class="py-2 px-4 font-mono text-sm">${new Date(log.timestamp).toLocaleString()}</td>
+        <td class="py-2 px-4 break-words">${log.message}</td>
+      `;
+            tbody.appendChild(tr);
+          });
+
+          renderPagination(meta);
+          updateURL();
+        } catch (err) {
+          console.error('Failed to fetch logs:', err);
+        }
+      }
+
+      // Render pagination
+      function renderPagination(meta) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        const createBtn = (text, page, disabled = false, active = false) => {
+          const btn = document.createElement('button');
+          btn.textContent = text;
+          btn.disabled = disabled;
+          btn.className = `
+      px-3 py-1 rounded
+      ${active ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}
+      ${disabled ? 'bg-gray-300 cursor-not-allowed' : ''}
+    `;
+          btn.onclick = () => {
+            currentPage = page;
+            fetchLogs();
+          };
+          return btn;
+        };
+
+        pagination.appendChild(createBtn('«', 1, meta.page === 1));
+        pagination.appendChild(createBtn('‹', meta.page - 1, meta.page === 1));
+
+        const start = Math.max(1, meta.page - 2);
+        const end = Math.min(meta.totalPages, meta.page + 2);
+        for (let i = start; i <= end; i++) {
+          pagination.appendChild(createBtn(i, i, false, i === meta.page));
+        }
+
+        pagination.appendChild(
+          createBtn('›', meta.page + 1, meta.page === meta.totalPages),
+        );
+        pagination.appendChild(
+          createBtn('»', meta.totalPages, meta.page === meta.totalPages),
+        );
+      }
+
+      // Initial load
+      fetchLogs();
+    </script>
+  </body>
+</html>

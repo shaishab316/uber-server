@@ -1,0 +1,19 @@
+model Log {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  timestamp DateTime @default(now()) @map("timestamp") @db.Date
+  level     String   @map("level")
+  message   String   @map("message")
+  metadata  Json     @map("metadata") @db.Json
+
+  @@map("app_logs")
+}
+
+model ErrorLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  timestamp DateTime @default(now()) @map("timestamp") @db.Date
+  level     String   @map("level")
+  message   String   @map("message")
+  metadata  Json     @map("metadata") @db.Json
+
+  @@map("error_logs")
+}
