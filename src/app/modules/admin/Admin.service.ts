@@ -15,6 +15,8 @@ export const AdminServices = {
   async seed() {
     const { name, email, password } = config.admin;
 
+    logger.info(colors.green('🔑 admin seed started...'));
+
     try {
       const admin = await prisma.user.findFirst({
         where: { email },
@@ -53,6 +55,8 @@ export const AdminServices = {
       logger.info(colors.green('✔ admin created successfully!'));
     } catch (error) {
       errorLogger.error(colors.red('❌ admin creation failed!'), error);
+    } finally {
+      logger.info(colors.green('🔑 admin seed completed!'));
     }
   },
 };

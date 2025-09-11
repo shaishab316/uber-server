@@ -31,6 +31,7 @@ if (mock_mail) {
 }
 
 export const verifyEmailTransporter = async () => {
+  logger.info(colors.yellow('Verifying email credentials...'));
   try {
     return await transporter.verify();
   } catch (error: any) {
@@ -38,6 +39,8 @@ export const verifyEmailTransporter = async () => {
       'Email credentials verification failed. Check your .env configuration: ' +
         error.message,
     );
+  } finally {
+    logger.info(colors.green('✔ Email credentials verified'));
   }
 };
 
