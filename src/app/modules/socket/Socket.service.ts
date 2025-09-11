@@ -18,6 +18,9 @@ export const SocketServices = {
     io.use(auth);
 
     io.on('connection', socket => {
+      //! use socket global scope
+      Object.assign(global, { socket, io });
+
       const user: TUser = socket.data.user;
 
       socket.join(user.id);

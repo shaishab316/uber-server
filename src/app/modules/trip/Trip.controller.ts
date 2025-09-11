@@ -1,16 +1,13 @@
-import { StatusCodes } from 'http-status-codes';
 import catchAsync from '../../middlewares/catchAsync';
 import serveResponse from '../../../util/server/serveResponse';
 import { TripServices } from './Trip.service';
 
 export const TripControllers = {
-  create: catchAsync(async (req, res) => {
-    const data = await TripServices.create(req.body);
+  start: catchAsync(async ({ body, user }, res) => {
+    await TripServices.start({ ...body, passenger_id: user.id });
 
     serveResponse(res, {
-      statusCode: StatusCodes.CREATED,
-      message: 'Trip created successfully!',
-      data,
+      message: 'Trip started successfully!',
     });
   }),
 };

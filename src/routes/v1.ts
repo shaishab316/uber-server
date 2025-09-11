@@ -7,6 +7,7 @@ import { StatusCodes } from 'http-status-codes';
 import { ContextPageRoutes } from '../app/modules/contextPage/ContextPage.route';
 import { fileTypes } from '../app/middlewares/capture';
 import { DriverRoutes } from '../app/modules/driver/Driver.route';
+import { TripRoutes } from '../app/modules/trip/Trip.route';
 
 const appRouter = Router();
 
@@ -34,6 +35,11 @@ export default appRouter.inject([
     path: '/profile',
     middlewares: [auth.all],
     route: UserRoutes.user,
+  },
+  {
+    path: '/trips',
+    middlewares: [auth.user],
+    route: TripRoutes.user,
   },
   {
     path: '/drivers',
