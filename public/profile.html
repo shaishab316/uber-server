@@ -12,8 +12,8 @@
     </div>
     <script>
       const container = document.getElementById('container');
-      const PROFILE_API = '/api/v1/profile';
-      const LOGOUT_API = '/api/v1/auth/logout';
+      const PROFILE_API = '/api/v1/profile?no_logger=1';
+      const LOGOUT_API = '/api/v1/auth/logout?no_logger=1';
 
       async function fetchProfile() {
         try {

@@ -22,4 +22,40 @@ export const LogControllers = {
       data: error_logs,
     });
   }),
+
+  clearLogs: catchAsync(async (_, res) => {
+    const data = await LogServices.clearLogs();
+
+    serveResponse(res, {
+      message: 'Logs cleared successfully!',
+      data,
+    });
+  }),
+
+  clearErrorLogs: catchAsync(async (_, res) => {
+    const data = await LogServices.clearErrorLogs();
+
+    serveResponse(res, {
+      message: 'Error logs cleared successfully!',
+      data,
+    });
+  }),
+
+  deleteLog: catchAsync(async ({ params }, res) => {
+    const data = await LogServices.deleteLog(params.logId);
+
+    serveResponse(res, {
+      message: 'Log deleted successfully!',
+      data,
+    });
+  }),
+
+  deleteErrorLog: catchAsync(async ({ params }, res) => {
+    const data = await LogServices.deleteErrorLog(params.errorLogId);
+
+    serveResponse(res, {
+      message: 'Error log deleted successfully!',
+      data,
+    });
+  }),
 };

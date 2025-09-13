@@ -18,7 +18,8 @@ const errorResponseFormat = `${getIpFormat()}:method :url :status - :response-ti
  * It skips requests with status codes greater than or equal to 400 and logs the request details to the console.
  */
 const successHandler = morgan(successResponseFormat, {
-  skip: (_, { statusCode }) => statusCode >= StatusCodes.BAD_REQUEST,
+  skip: (_, { statusCode, req: { url } }) =>
+    statusCode >= StatusCodes.BAD_REQUEST || url!.includes('no_logger'),
   stream: { write: (message: string) => logger.info(message.trim()) },
 });
 
@@ -29,7 +30,8 @@ const successHandler = morgan(successResponseFormat, {
  * It logs requests with status codes less than 400 to the error logger.
  */
 const errorHandler = morgan(errorResponseFormat, {
-  skip: (_, { statusCode }) => statusCode < StatusCodes.BAD_REQUEST,
+  skip: (_, { statusCode, req: { url } }) =>
+    statusCode < StatusCodes.BAD_REQUEST || url!.includes('no_logger'),
   stream: { write: (message: string) => errorLogger.error(message.trim()) },
 });
 

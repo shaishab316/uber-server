@@ -3,57 +3,150 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Uber Dashboard</title>
+    <title>Floating Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      #panel {
+        position: fixed;
+        top: 40px;
+        right: 50px;
+        width: 400px;
+        min-width: 200px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        z-index: 9999;
+        user-select: none;
+        transition:
+          width 0.2s,
+          height 0.2s;
+      }
+      #header {
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        cursor: grab;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #header button {
+        background: #0062cc;
+        border: none;
+        color: white;
+        padding: 0 6px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      #body {
+        padding: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        transition:
+          opacity 0.2s,
+          height 0.2s;
+        overflow: hidden;
+      }
+    </style>
   </head>
   <body class="bg-gray-100">
-    <!-- Buttons -->
-    <div
-      class="sticky top-4 flex flex-wrap gap-2 items-center justify-center space-x-4 mb-10"
-    >
-      <button
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/welcome.html')"
-      >
-        Home
-      </button>
-      <button
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/login.html')"
-      >
-        Login
-      </button>
-      <button
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/profile.html')"
-      >
-        Profile
-      </button>
-      <button
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/log.html')"
-      >
-        Logs
-      </button>
-      <button
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/error_log.html')"
-      >
-        Error Logs
-      </button>
+    <div id="panel">
+      <div id="header">
+        NabLinks
+        <button id="min">—</button>
+      </div>
+      <div id="body"></div>
     </div>
 
-    <!-- Iframe -->
-    <iframe
-      id="content-frame"
-      src="welcome.html"
-      class="w-full h-screen"
-    ></iframe>
+    <iframe id="content" src="" class="w-full h-screen mt-0"></iframe>
 
     <script>
-      function loadIframe(url) {
-        document.getElementById('content-frame').src = url;
-      }
+      // JSON for links
+      const links = [
+        { name: 'Home', url: '/welcome.html' },
+        { name: 'Login', url: '/login.html' },
+        { name: 'Profile', url: '/profile.html' },
+        { name: 'Logs', url: '/log.html' },
+        { name: 'Error Logs', url: '/error_log.html' },
+      ];
+
+      // Generate buttons
+      const body = document.getElementById('body');
+      links.forEach(l => {
+        const btn = document.createElement('button');
+        btn.textContent = l.name;
+        btn.className =
+          'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600';
+        btn.onclick = () => (document.getElementById('content').src = l.url);
+        body.appendChild(btn);
+      });
+
+      // Drag
+      const panel = document.getElementById('panel'),
+        header = document.getElementById('header');
+      let drag = false,
+        startX,
+        startY,
+        startR,
+        startT;
+
+      panel.dataset.fullWidth = panel.offsetWidth; // store width
+
+      header.onmousedown = e => {
+        drag = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startR = window.innerWidth - panel.offsetLeft - panel.offsetWidth;
+        startT = panel.offsetTop;
+        header.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+      };
+
+      document.onmousemove = e => {
+        if (drag) {
+          let dx = e.clientX - startX,
+            dy = e.clientY - startY;
+          let newRight = Math.min(
+            Math.max(startR - dx, 0),
+            window.innerWidth - panel.offsetWidth,
+          );
+          let newTop = Math.min(
+            Math.max(startT + dy, 0),
+            window.innerHeight - panel.offsetHeight,
+          );
+          panel.style.right = newRight + 'px';
+          panel.style.top = newTop + 'px';
+        }
+      };
+
+      document.onmouseup = () => {
+        drag = false;
+        header.style.cursor = 'grab';
+        document.body.style.userSelect = 'auto';
+      };
+
+      // Minimize toggle
+      let minimized = false;
+      document.getElementById('min').onclick = () => {
+        minimized = !minimized;
+        if (minimized) {
+          panel.style.height = '40px'; // header only
+          panel.style.width = 'auto'; // fit header
+          body.style.display = 'none';
+        } else {
+          panel.style.height = 'auto';
+          panel.style.width = panel.dataset.fullWidth + 'px';
+          body.style.display = 'flex';
+        }
+      };
+
+      // Load first link by default
+      if (links.length > 0)
+        document.getElementById('content').src = links[0].url;
     </script>
   </body>
 </html>

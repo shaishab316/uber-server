@@ -32,7 +32,7 @@ export const LogServices = {
       where,
       skip: (page - 1) * limit,
       take: limit,
-      select: { timestamp: true, message: true },
+      select: { timestamp: true, message: true, id: true },
       orderBy: { timestamp: 'desc' },
     });
 
@@ -84,6 +84,7 @@ export const LogServices = {
       select: {
         timestamp: true,
         message: true,
+        id: true,
       },
       orderBy: { timestamp: 'desc' },
     });
@@ -101,5 +102,21 @@ export const LogServices = {
       },
       error_logs,
     };
+  },
+
+  async clearLogs() {
+    return prisma.log.deleteMany({ where: {} });
+  },
+
+  async clearErrorLogs() {
+    return prisma.errorLog.deleteMany({ where: {} });
+  },
+
+  async deleteLog(id: string) {
+    return prisma.log.delete({ where: { id } });
+  },
+
+  async deleteErrorLog(id: string) {
+    return prisma.errorLog.delete({ where: { id } });
   },
 };
