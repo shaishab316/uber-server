@@ -41,23 +41,13 @@
               } catch (err) {
                 console.error('Logout error', err);
               }
-              window.location.href = '/login';
+              window.location.href = '/login.html';
             };
           } else {
-            container.innerHTML = `
-            <div class="bg-white p-6 rounded shadow-md text-center">
-              <p class="text-red-600 mb-4">Failed to load profile.</p>
-              <a href="/login" class="text-blue-600 hover:underline">Go to Login</a>
-            </div>
-          `;
+            throw new Error(data.message);
           }
         } catch (err) {
-          container.innerHTML = `
-          <div class="bg-white p-6 rounded shadow-md text-center">
-            <p class="text-red-600 mb-4">An error occurred. Please try again.</p>
-            <a href="/login" class="text-blue-600 hover:underline">Go to Login</a>
-          </div>
-        `;
+          document.body.innerHTML = `<p class="p-4">Please <a href="/login.html" class="text-blue-600 underline">Login</a> to view profile.</p>`;
         }
       }
 

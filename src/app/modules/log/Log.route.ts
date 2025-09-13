@@ -6,9 +6,6 @@ import { LogValidations } from './Log.validation';
 
 const router = Router();
 
-router.get('/info-page', LogControllers.infoPage);
-router.get('/error-page', LogControllers.errorPage);
-
 router.get(
   '/info',
   purifyRequest(QueryValidations.list, LogValidations.log),

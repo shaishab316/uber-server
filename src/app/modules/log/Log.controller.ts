@@ -22,12 +22,4 @@ export const LogControllers = {
       data: error_logs,
     });
   }),
-
-  infoPage: catchAsync(async (_, res) => {
-    res.sendFile(__dirname + '/views/log.html');
-  }),
-
-  errorPage: catchAsync(async (_, res) => {
-    res.sendFile(__dirname + '/views/error_log.html');
-  }),
 };

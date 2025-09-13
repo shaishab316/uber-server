@@ -53,7 +53,7 @@ auth.admin = auth({
     commonValidator,
     user => {
       if (!user.is_admin) {
-        throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not an admin');
+        throw new ServerError(StatusCodes.FORBIDDEN, 'You are not an admin');
       }
     },
   ],
@@ -64,7 +64,7 @@ auth.user = auth({
     commonValidator,
     user => {
       if (user.role !== EUserRole.USER) {
-        throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not a user');
+        throw new ServerError(StatusCodes.FORBIDDEN, 'You are not a user');
       }
     },
   ],
@@ -75,7 +75,7 @@ auth.driver = auth({
     commonValidator,
     user => {
       if (user.role !== EUserRole.DRIVER) {
-        throw new ServerError(StatusCodes.UNAUTHORIZED, 'You are not a driver');
+        throw new ServerError(StatusCodes.FORBIDDEN, 'You are not a driver');
       }
     },
   ],
@@ -92,13 +92,10 @@ function commonValidator({ is_admin, is_verified, is_active }: TUser) {
 
   if (!is_verified) {
     throw new ServerError(
-      StatusCodes.UNAUTHORIZED,
+      StatusCodes.FORBIDDEN,
       'Your account are not verified',
     );
   } else if (!is_active) {
-    throw new ServerError(
-      StatusCodes.UNAUTHORIZED,
-      'Your account are not active',
-    );
+    throw new ServerError(StatusCodes.FORBIDDEN, 'Your account are not active');
   }
 }

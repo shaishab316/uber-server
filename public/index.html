@@ -9,7 +9,7 @@
   <body class="bg-gray-100">
     <!-- Buttons -->
     <div
-      class="fixed top-4 md:left-[50%] transform md:-translate-x-1/2 flex flex-wrap gap-2 items-center justify-center space-x-4 mb-10"
+      class="sticky top-4 flex flex-wrap gap-2 items-center justify-center space-x-4 mb-10"
     >
       <button
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -19,25 +19,25 @@
       </button>
       <button
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/login')"
+        onclick="loadIframe('/login.html')"
       >
         Login
       </button>
       <button
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/profile')"
+        onclick="loadIframe('/profile.html')"
       >
         Profile
       </button>
       <button
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/api/v1/admin/logs/info-page')"
+        onclick="loadIframe('/log.html')"
       >
         Logs
       </button>
       <button
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onclick="loadIframe('/api/v1/admin/logs/error-page')"
+        onclick="loadIframe('/error_log.html')"
       >
         Error Logs
       </button>

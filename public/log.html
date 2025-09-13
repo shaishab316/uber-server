@@ -3,15 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Application Logs</title>
+    <title class="no-print">Uber - Application Logs</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @media print {
+        /* Hide filters and print button when printing */
+        .no-print {
+          display: none !important;
+        }
+      }
+    </style>
   </head>
   <body class="bg-gray-100 text-gray-800">
     <div class="container mx-auto py-8">
-      <h1 class="text-3xl font-bold mb-6 text-center">Application Logs</h1>
+      <h1 class="text-3xl font-bold mb-6 text-center no-print">
+        Application Logs
+      </h1>
 
-      <!-- Filters -->
-      <div class="flex flex-wrap justify-between mb-4 gap-2 items-center">
+      <!-- Filters + Print -->
+      <div
+        class="flex flex-wrap justify-between mb-4 gap-2 items-center no-print"
+      >
         <div class="flex gap-2 items-center">
           <label for="search" class="font-medium">Search:</label>
           <input
@@ -32,8 +44,19 @@
             <option value="10" selected>10</option>
             <option value="20">20</option>
             <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
           </select>
         </div>
+
+        <!-- Print button -->
+        <button
+          onclick="window.print()"
+          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          Print Logs
+        </button>
       </div>
 
       <!-- Table -->
@@ -57,14 +80,13 @@
     </div>
 
     <script>
-      const API_URL = 'http://10.10.12.48:3947/api/v1/admin/logs/info';
-      const params = new URLSearchParams(window.location.search);
+      const API_URL = '/api/v1/admin/logs/info';
 
       // Current state
-      let currentPage = parseInt(params.get('page')) || 1;
-      let limit = parseInt(params.get('limit')) || 10;
-      let search = params.get('search') || '';
-      let date = params.get('timestamp') || '';
+      let currentPage = 1;
+      let limit = 10;
+      let search = '';
+      let date = '';
 
       // Elements
       const limitSelect = document.getElementById('limit');
@@ -106,30 +128,30 @@
         fetchLogs();
       });
 
-      // Update URL query params
-      function updateURL() {
-        const url = new URL(window.location);
-        url.searchParams.set('page', currentPage);
-        url.searchParams.set('limit', limit);
-        url.searchParams.set('search', search);
-        url.searchParams.set('timestamp', date);
-        window.history.replaceState({}, '', url);
-      }
-
       // Fetch logs
       async function fetchLogs() {
         try {
-          const url = new URL(API_URL);
+          const url = new URL(API_URL, window.location.origin);
           url.searchParams.set('page', currentPage);
           url.searchParams.set('limit', limit);
           if (search) url.searchParams.set('search', search);
           if (date) url.searchParams.set('timestamp', date);
 
           const res = await fetch(url.toString());
+
           const json = await res.json();
 
+          if (!json.success) {
+            throw new Error(json.message);
+          }
+
+          // Check if API returned an error in JSON
+          if (json.success === false || json.error) {
+            throw new Error(json.message || 'Unknown API error');
+          }
+
           const logs = json.logs || json.data || [];
-          const meta = json.meta.pagination;
+          const meta = json.meta?.pagination || { page: 1, totalPages: 1 };
 
           const tbody = document.getElementById('logs-body');
           tbody.innerHTML = '';
@@ -138,16 +160,17 @@
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-gray-50';
             tr.innerHTML = `
-        <td class="py-2 px-4 font-mono text-sm">${new Date(log.timestamp).toLocaleString()}</td>
-        <td class="py-2 px-4 break-words">${log.message}</td>
-      `;
+              <td class="py-2 px-4 font-mono text-sm">${new Date(
+                log.timestamp,
+              ).toLocaleString()}</td>
+              <td class="py-2 px-4 break-words">${log.message}</td>
+            `;
             tbody.appendChild(tr);
           });
 
           renderPagination(meta);
-          updateURL();
         } catch (err) {
-          console.error('Failed to fetch logs:', err);
+          document.body.innerHTML = `<div class="p-4 text-red-600">${err}</div>`;
         }
       }
 
@@ -161,10 +184,10 @@
           btn.textContent = text;
           btn.disabled = disabled;
           btn.className = `
-      px-3 py-1 rounded
-      ${active ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}
-      ${disabled ? 'bg-gray-300 cursor-not-allowed' : ''}
-    `;
+            px-3 py-1 rounded
+            ${active ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}
+            ${disabled ? 'bg-gray-300 cursor-not-allowed' : ''}
+          `;
           btn.onclick = () => {
             currentPage = page;
             fetchLogs();
