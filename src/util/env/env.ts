@@ -67,17 +67,37 @@ export default function env<T>(
 
     if (Array.isArray(defaultValue)) value = defaultValue.join(',');
     else value = defaultValue;
+  } else {
+    const isNotSet = !value;
+
+    if (isNotSet || (options.regex && !new RegExp(options.regex).test(value))) {
+      const error = new Error(
+        `Environment variable ${colors.yellow(key)} is not ${isNotSet ? 'set' : 'valid'}`,
+      );
+
+      let lineInEnv = 'unknown';
+      if (fs.existsSync(envPath)) {
+        const envData = fs.readFileSync(envPath, 'utf8').split('\n');
+        const index = envData.findIndex(line =>
+          line.match(new RegExp(`^\\s*${key}\\s*=`)),
+        );
+        if (index >= 0) lineInEnv = (index + 1).toString();
+      }
+
+      error.stack = `${colors.yellow(key)} = "${value}" does not match /${options.regex}/
+    at env (${envPath}:${lineInEnv}:${key.length + 5})
+${new Error().stack?.split('\n')[2] ?? 'unknown'}
+    at Object.<anonymous> (${__filename}:90:13)`;
+
+      throw error;
+    }
   }
 
   if (typeof defaultValue === 'boolean')
     return (value!.toLowerCase() === 'true') as T;
 
   if (typeof defaultValue === 'number') {
-    const num = Number(value);
-    if (isNaN(num))
-      throw new Error(`Environment variable ${key} is not a valid number`);
-
-    return num as T;
+    return Number(value) as T;
   }
 
   if (Array.isArray(defaultValue))

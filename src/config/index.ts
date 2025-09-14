@@ -24,6 +24,10 @@ const support_email =
 
 const db_name = server_name.toLowerCase().replace(' ', '-');
 
+const ip_address = process.env.IP_ADDRESS ?? getIpAddress();
+
+const port = process.env.PORT ?? Math.floor(Math.random() * 1000) + 3000;
+
 /**
  * Configuration object for the application
  *
@@ -37,30 +41,30 @@ const config = {
       regex: '^(development|production)$',
     }),
     allowed_origins: env('allowed origins', ['*'], {
-      regex: '^\*$|^(https?://[^,\s]+)(,https?://[^,\s]+)*',
+      regex: '^\\*$|^$|^(https?:\\/\\/[^,\\s]+)(,https?:\\/\\/[^,\\s]+)*$',
     }),
-    ip_address: env('ip address', getIpAddress(), {
-      regex: '^(\d{1,3}\.){3}\d{1,3}$',
+    ip_address: env('ip address', ip_address, {
+      regex: '^(\\d{1,3}\\.){3}\\d{1,3}$',
     }),
-    port: env('port', Math.floor(Math.random() * 1_000) + 3_000, {
-      regex: '^\d{4,5}$',
+    port: env('port', port, {
+      regex: '^\\d{4,5}$',
     }),
     developer: env('developer', 'Shaishab Chandra Shil', {
       regex: '^.{2,100}$',
       comment: "!Don't change this",
     }),
     name: env('server name', server_name, {
-      regex: '^\w[\w\s-]{1,50}$',
+      regex: '^\\w[\\w\\s-]{1,50}$',
     }),
     isDevelopment: node_env !== 'production',
     logo: env('logo', '/images/logo.png', {
-      regex: '^\/.*\.(png|jpg|jpeg|svg)$',
+      regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
     }),
     default_avatar: env('default avatar', '/images/placeholder.png', {
-      regex: '^\/.*\.(png|jpg|jpeg|svg)$',
+      regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
     }),
     db_name: env('db name', db_name, {
-      regex: '^\w[\w\s-]{1,50}$',
+      regex: '^\\w[\\w\\s-]{1,50}$',
     }),
     mock_mail: env('mock mail', true, {
       regex: '^(true|false)$',
@@ -71,61 +75,43 @@ const config = {
   url: {
     database: env('database url', `mongodb://127.0.0.1:27017/${db_name}`, {
       up: 'Database info - start',
-      regex: '^mongodb:\/\/.*$',
+      regex: '^mongodb(\\+srv)?://.*$',
     }),
-
-    api_doc: env('api doc', '', {
-      regex: '^https?:\/\/.*$|^$',
-    }),
-    ui: env('ui url', '', {
-      regex: '^https?:\/\/.*$|^$',
+    ui: env('ui url', `http://${ip_address}:${port}`, {
+      regex: '^https?:\\/\\/.*$|^$',
       down: 'Database info - end',
     }),
   },
 
   bcrypt_salt_rounds: env('bcrypt salt rounds', 10, {
     up: 'Authentication - start',
-    regex: '^\d+$',
+    regex: '^\\d+$',
   }),
 
   otp: {
-    length: env('otp length', 6, {
-      regex: '^\d{1,2}$',
-    }),
-    exp: env<ms.StringValue>('otp expire in', '10m', {
-      regex: '^\d+[smhd]$',
-    }),
-    limit: env('otp limit', 2, {
-      regex: '^\d+$',
-    }),
-    window: env<ms.StringValue>('otp window', '10s', {
-      regex: '^\d+[smhd]$',
-    }),
+    length: env('otp length', 6, { regex: '^\\d{1,2}$' }),
+    exp: env<ms.StringValue>('otp expire in', '10m', { regex: '^\\d+[smhd]$' }),
+    limit: env('otp limit', 2, { regex: '^\\d+$' }),
+    window: env<ms.StringValue>('otp window', '10s', { regex: '^\\d+[smhd]$' }),
   },
 
   jwt: {
     access_token: {
-      secret: env('jwt access secret', genSecret(), {
-        regex: '^.{10,}$',
-      }),
+      secret: env('jwt access secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt access expire in', '1d', {
-        regex: '^\d+[smhd]$',
+        regex: '^\\d+[smhd]$',
       }),
     },
     refresh_token: {
-      secret: env('jwt refresh secret', genSecret(), {
-        regex: '^.{10,}$',
-      }),
+      secret: env('jwt refresh secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt refresh expire in', '30d', {
-        regex: '^\d+[smhd]$',
+        regex: '^\\d+[smhd]$',
       }),
     },
     reset_token: {
-      secret: env('jwt reset secret', genSecret(), {
-        regex: '^.{10,}$',
-      }),
+      secret: env('jwt reset secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt reset expire in', '10m', {
-        regex: '^\d+[smhd]$',
+        regex: '^\\d+[smhd]$',
         down: 'Authentication - end',
       }),
     },
@@ -133,32 +119,28 @@ const config = {
 
   email: {
     user: env('email user', user_email, {
-      up: 'Email credentials - start',
-      regex: '^[\w.-]+@[\w.-]+\.\w+$',
+      regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
+      up: 'Email info - start',
     }),
     from: `${server_name} <${user_email}>`,
-    port: env('email port', 587, {
-      regex: '^\d{2,5}$',
-    }),
+    port: env('email port', 587, { regex: '^\\d{2,5}$' }),
     host: env('email host', 'smtp.gmail.com', {
-      regex: '^[\w.-]+\.[a-z]{2,}$',
+      regex: '^[\\w.-]+\\.[a-z]{2,}$',
     }),
-    pass: env('email pass', genSecret(4), {
-      regex: '^.{4,}$',
-    }),
+    pass: env('email pass', genSecret(4), { regex: '^.{4,}$' }),
     support: env('support email', support_email, {
-      regex: '^[\w.-]+@[\w.-]+\.\w+$',
-      down: 'Email credentials - end',
+      regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
+      down: 'Email info - end',
     }),
   },
 
   admin: {
     name: env('admin name', 'Mr. Admin', {
-      up: 'Admin info - start',
       regex: '^.{2,100}$',
+      up: 'Admin info - start',
     }),
     email: env('admin email', admin_email, {
-      regex: '^[\w.-]+@[\w.-]+\.\w+$',
+      regex: '^[\\w.-]+@[\\w.-]+\\.\\w+$',
     }),
     password: env('admin password', genSecret(4), {
       regex: '^.{6,32}$',
@@ -166,7 +148,7 @@ const config = {
     }),
   },
 
-  google_map_key: env('google map key', '', {
+  google_map_key: env('google map key', genSecret(8), {
     regex: '^.{10,}$',
     up: 'Google map key - start',
     down: 'Google map key - end',
