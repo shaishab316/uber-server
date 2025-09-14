@@ -3,8 +3,8 @@ import config from '../../config';
 import { VehicleType } from './getNearestDriver';
 
 export default async function getDistanceAndTime(
-  origin: [long: string, lat: string],
-  destination: [long: string, lat: string],
+  origin: [long: number, lat: number],
+  destination: [long: number, lat: number],
   vehicleType: VehicleType = 'driving',
 ) {
   const { data } = await axios.get(
@@ -14,7 +14,7 @@ export default async function getDistanceAndTime(
   );
 
   return {
-    distance: data?.rows[0]?.elements[0]?.distance?.text,
-    duration: data?.rows[0]?.elements[0]?.duration?.text,
+    distance: data?.rows[0]?.elements[0]?.distance,
+    duration: data?.rows[0]?.elements[0]?.duration,
   };
 }

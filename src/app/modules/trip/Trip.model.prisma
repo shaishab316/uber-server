@@ -1,7 +1,7 @@
 model Trip {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  status       EStatus   @default(REQUESTED)
-  requested_at DateTime  @default(now())
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  status       ETripStatus @default(REQUESTED)
+  requested_at DateTime    @default(now())
   accepted_at  DateTime?
   started_at   DateTime?
   arrived_at   DateTime?
@@ -34,7 +34,7 @@ enum EVehicle {
   CAR
 }
 
-enum EStatus {
+enum ETripStatus {
   REQUESTED
   ACCEPTED
   STARTED

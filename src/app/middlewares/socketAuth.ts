@@ -6,7 +6,7 @@ import { prisma } from '../../util/db';
 import { userOmit } from '../modules/user/User.service';
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
-  const token = socket.handshake?.auth?.token ?? socket.handshake?.query?.token;
+  const token = socket.handshake?.auth?.token; //!Todo: if query auth needed ?? socket.handshake?.query?.token;
 
   try {
     const { uid } = decodeToken(token, 'access_token');
