@@ -19,7 +19,7 @@
     "new-module": "node ./src/app/modules/.builder.js",
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only --watch .env src/server.ts",
+    "dev": "set DEBUG=socket.io* && ts-node-dev --respawn --transpile-only --watch .env src/server.ts",
     "stripe": "stripe listen --forward-to http://192.168.10.132:3759/api/v1/payment/stripe/webhook",
     "lint": "eslint src --ignore-path .gitignore --ext .ts",
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",

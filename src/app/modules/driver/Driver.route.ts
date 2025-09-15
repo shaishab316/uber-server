@@ -3,6 +3,7 @@ import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 import { DriverControllers } from './Driver.controller';
 import { AvailableDriverRoutes } from '../availableDriver/AvailableDriver.route';
+import { TripRoutes } from '../trip/Trip.route';
 
 const admin = Router();
 {
@@ -28,6 +29,8 @@ const admin = Router();
 const driver = Router();
 {
   driver.use('/available-drivers', AvailableDriverRoutes.driver);
+
+  driver.use('/trips', TripRoutes.driver);
 }
 
 export const DriverRoutes = { admin, driver };

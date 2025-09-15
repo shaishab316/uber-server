@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { TripControllers } from './Trip.controller';
 import { TripValidations } from './Trip.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
+import { QueryValidations } from '../query/Query.validation';
 
 const user = Router();
 
@@ -13,4 +14,13 @@ const user = Router();
   );
 }
 
-export const TripRoutes = { user };
+const driver = Router();
+{
+  driver.post(
+    '/:tripId/reject-trip',
+    purifyRequest(QueryValidations.exists('tripId', 'trip')),
+    TripControllers.rejectTrip,
+  );
+}
+
+export const TripRoutes = { user, driver };

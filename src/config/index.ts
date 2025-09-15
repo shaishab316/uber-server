@@ -6,6 +6,8 @@ import { genSecret } from '../util/crypto/genSecret';
 import getIpAddress from '../util/server/getIpAddress';
 import path from 'path';
 
+export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
+
 const node_env = process.env.NODE_ENV ?? 'development';
 
 const server_name =
@@ -49,10 +51,10 @@ const config = {
     port: env('port', port, {
       regex: '^\\d{4,5}$',
     }),
-    developer: env('developer', 'Shaishab Chandra Shil', {
-      regex: '^.{2,100}$',
-      comment: "!Don't change this",
-    }),
+    developer: {
+      name: 'Shaishab Chandra Shil',
+      github: 'https://github.com/shaishab316',
+    },
     name: env('server name', server_name, {
       regex: '^\\w[\\w\\s-]{1,50}$',
     }),
@@ -90,28 +92,28 @@ const config = {
 
   otp: {
     length: env('otp length', 6, { regex: '^\\d{1,2}$' }),
-    exp: env<ms.StringValue>('otp expire in', '10m', { regex: '^\\d+[smhd]$' }),
+    exp: env<ms.StringValue>('otp expire in', '10m', { regex: ms_regex }),
     limit: env('otp limit', 2, { regex: '^\\d+$' }),
-    window: env<ms.StringValue>('otp window', '10s', { regex: '^\\d+[smhd]$' }),
+    window: env<ms.StringValue>('otp window', '10s', { regex: ms_regex }),
   },
 
   jwt: {
     access_token: {
       secret: env('jwt access secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt access expire in', '1d', {
-        regex: '^\\d+[smhd]$',
+        regex: ms_regex,
       }),
     },
     refresh_token: {
       secret: env('jwt refresh secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt refresh expire in', '30d', {
-        regex: '^\\d+[smhd]$',
+        regex: ms_regex,
       }),
     },
     reset_token: {
       secret: env('jwt reset secret', genSecret(), { regex: '^.{10,}$' }),
       expire_in: env<ms.StringValue>('jwt reset expire in', '10m', {
-        regex: '^\\d+[smhd]$',
+        regex: ms_regex,
         down: 'Authentication - end',
       }),
     },
@@ -153,6 +155,15 @@ const config = {
     up: 'Google map key - start',
     down: 'Google map key - end',
   }),
+
+  app: {
+    max_distance: env('max distance', 1000, {
+      regex: '^\\d+$',
+      comment: 'in meters',
+      up: 'App info - start',
+      down: 'App info - end',
+    }),
+  },
 };
 
 export default config;

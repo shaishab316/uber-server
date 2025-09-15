@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 import { Socket } from 'socket.io';
-import { socketError } from '../modules/socket/Socket.utils';
 import { decodeToken } from '../modules/auth/Auth.utils';
 import { prisma } from '../../util/db';
 import { userOmit } from '../modules/user/User.service';
@@ -16,12 +15,13 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
       omit: userOmit,
     });
 
+    if (!user) throw new Error('User not found');
+
     Object.assign(socket.data, { user });
 
     next();
-  } catch (error) {
-    socketError(socket, error as Error);
-    setTimeout(socket.disconnect, 100);
+  } catch (error: any) {
+    next(error);
   }
 };
 

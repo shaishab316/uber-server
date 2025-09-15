@@ -1,10 +1,11 @@
 import axios from 'axios';
 import config from '../../config';
 import { VehicleType } from './getNearestDriver';
+import { TLocation } from '../../../prisma';
 
 export default async function getDistanceAndTime(
-  origin: [long: number, lat: number],
-  destination: [long: number, lat: number],
+  origin: TLocation['geo'],
+  destination: TLocation['geo'],
   vehicleType: VehicleType = 'driving',
 ) {
   const { data } = await axios.get(

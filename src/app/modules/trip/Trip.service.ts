@@ -2,10 +2,11 @@
 // import { ETripStatus } from '../../../../prisma';
 // import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../util/db';
 import getDistanceAndTime from '../../../util/location/getDistanceAndTime';
 import { TTripStart } from './Trip.interface';
+import config from '../../../config';
+import { Trip as TTrip } from '../../../../prisma';
 
 export const TripServices = {
   async start({
@@ -32,36 +33,6 @@ export const TripServices = {
     //     'You have a pending trip with id ' + existingTrip.id,
     //   );
 
-    const [pickupLng, pickupLat] = pickup_address.geo;
-
-    const nearestDriver: any = await prisma.availableDriver.aggregateRaw({
-      pipeline: [
-        {
-          $geoNear: {
-            near: {
-              type: 'Point',
-              coordinates: [pickupLng, pickupLat],
-            },
-            distanceField: 'distance',
-            spherical: true,
-            maxDistance: 500000,
-            query: {},
-          },
-        },
-        { $limit: 1 },
-      ],
-    });
-
-    const driver = nearestDriver?.[0]?.driver_id?.$oid;
-
-    if (!driver)
-      throw new ServerError(StatusCodes.NOT_FOUND, 'Driver not found');
-
-    const distanceDuration = await getDistanceAndTime(
-      pickup_address.geo,
-      nearestDriver?.[0]?.location?.geo,
-    );
-
     const trip = await prisma.trip.create({
       data: {
         dropoff_address,
@@ -86,8 +57,75 @@ export const TripServices = {
         dropoff_address: true,
         stops: true,
         passenger_ages: true,
+        id: true,
       },
     });
+
+    await this.findNearestDriver(trip);
+  },
+
+  async rejectTrip(tripId: string, driverId: string) {
+    const trip = (await prisma.trip.findUnique({
+      where: { id: tripId },
+    }))!;
+
+    Object.assign(trip, {
+      exclude_driver_ids: Array.from(
+        new Set([...trip.exclude_driver_ids, driverId]),
+      ),
+    });
+
+    await prisma.trip.update({
+      where: { id: tripId },
+      data: { exclude_driver_ids: trip.exclude_driver_ids },
+    });
+
+    await this.findNearestDriver(trip);
+  },
+
+  async findNearestDriver(trip: Partial<TTrip>) {
+    const [pickupLng, pickupLat] = trip.pickup_address!.geo;
+
+    const nearestDriver: any = (
+      (await prisma.availableDriver.aggregateRaw({
+        pipeline: [
+          {
+            $geoNear: {
+              near: {
+                type: 'Point',
+                coordinates: [pickupLng, pickupLat],
+              },
+              distanceField: 'distance',
+              spherical: true,
+              maxDistance: config.app.max_distance,
+              query: {},
+            },
+          },
+          { $limit: 1 },
+        ],
+      })) as any
+    ).filter(
+      (driver: any) =>
+        !trip.exclude_driver_ids ||
+        !trip.exclude_driver_ids.includes(driver.driver_id.$oid),
+    );
+
+    const driver = nearestDriver?.[0]?.driver_id?.$oid;
+
+    if (!driver)
+      return global.io?.to(trip.passenger_id!).emit(
+        'tripInfo',
+        JSON.stringify({
+          id: trip.id,
+          status: StatusCodes.NOT_FOUND,
+          message: 'No driver found',
+        }),
+      );
+
+    const distanceDuration = await getDistanceAndTime(
+      trip.pickup_address!.geo,
+      nearestDriver?.[0]?.location?.geo,
+    );
 
     Object.assign(trip, {
       ...distanceDuration,

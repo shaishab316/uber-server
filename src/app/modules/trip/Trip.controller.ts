@@ -10,4 +10,13 @@ export const TripControllers = {
       message: 'Trip started successfully!',
     });
   }),
+
+  rejectTrip: catchAsync(async ({ params, user }, res) => {
+    const data = await TripServices.rejectTrip(params.tripId, user.id);
+
+    serveResponse(res, {
+      message: 'Trip rejected successfully!',
+      data,
+    });
+  }),
 };
