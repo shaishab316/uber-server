@@ -6,7 +6,8 @@ import { prisma } from '../../../util/db';
 import getDistanceAndTime from '../../../util/location/getDistanceAndTime';
 import { TTripStart } from './Trip.interface';
 import config from '../../../config';
-import { Trip as TTrip } from '../../../../prisma';
+import { TLocation, Trip as TTrip } from '../../../../prisma';
+import ServerError from '../../../errors/ServerError';
 
 export const TripServices = {
   async start({
@@ -133,5 +134,47 @@ export const TripServices = {
     });
 
     global.io?.to(driver).emit('receivePassenger', JSON.stringify(trip));
+  },
+
+  async updateTripLocation({
+    location,
+    tripId,
+    userId,
+  }: {
+    location: TLocation;
+    tripId: string;
+    userId: string;
+  }) {
+    // Get the trip info
+    const trip = (await prisma.trip.findUnique({
+      where: { id: tripId },
+      select: {
+        driver: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    }))!;
+
+    // Only own driver can update location
+    if (!trip.driver)
+      throw new ServerError(
+        StatusCodes.NOT_FOUND,
+        'No driver assigned for this trip',
+      );
+
+    if (trip.driver.id !== userId)
+      throw new ServerError(
+        StatusCodes.FORBIDDEN,
+        `You can't location update for ${trip.driver.name}'s trip`,
+      );
+
+    // Finally update trip location
+    await prisma.trip.update({
+      where: { id: tripId },
+      data: { vehicle_address: location },
+    });
   },
 };

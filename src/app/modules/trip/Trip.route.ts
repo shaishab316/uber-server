@@ -5,7 +5,6 @@ import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 
 const user = Router();
-
 {
   user.post(
     '/start',
@@ -20,6 +19,15 @@ const driver = Router();
     '/:tripId/reject-trip',
     purifyRequest(QueryValidations.exists('tripId', 'trip')),
     TripControllers.rejectTrip,
+  );
+
+  driver.post(
+    '/:tripId/update-location',
+    purifyRequest(
+      QueryValidations.exists('tripId', 'trip'),
+      TripValidations.updateLocation,
+    ),
+    TripControllers.updateTripLocation,
   );
 }
 

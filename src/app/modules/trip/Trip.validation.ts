@@ -18,6 +18,7 @@ export const locationSchema = z.object({
       ),
   ]),
   address: z.coerce.string(),
+  type: z.literal('Point').default('Point'),
 });
 
 export const TripValidations = {
@@ -28,6 +29,12 @@ export const TripValidations = {
       dropoff_address: locationSchema,
       stops: z.array(locationSchema).optional(),
       passenger_ages: z.array(z.coerce.number()),
+    }),
+  }),
+
+  updateLocation: z.object({
+    body: z.object({
+      location: locationSchema,
     }),
   }),
 };

@@ -28,7 +28,9 @@ const db_name = server_name.toLowerCase().replace(' ', '-');
 
 const ip_address = process.env.IP_ADDRESS ?? getIpAddress();
 
-const port = process.env.PORT ?? Math.floor(Math.random() * 1000) + 3000;
+const port = Number(
+  process.env.PORT ?? Math.floor(Math.random() * 1000) + 3000,
+);
 
 /**
  * Configuration object for the application

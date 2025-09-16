@@ -22,6 +22,7 @@ model Trip {
   vehicle         EVehicle
   pickup_address  TLocation
   dropoff_address TLocation
+  vehicle_address TLocation?
   stops           TLocation[]
 
   exclude_driver_ids String[] @default([])
