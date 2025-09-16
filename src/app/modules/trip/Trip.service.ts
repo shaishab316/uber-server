@@ -6,7 +6,7 @@ import { prisma } from '../../../util/db';
 import getDistanceAndTime from '../../../util/location/getDistanceAndTime';
 import { TTripStart } from './Trip.interface';
 import config from '../../../config';
-import { TLocation, Trip as TTrip } from '../../../../prisma';
+import { ETripStatus, TLocation, Trip as TTrip } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 
@@ -103,6 +103,53 @@ export const TripServices = {
       driver_id,
       reason,
     });
+  },
+
+  async acceptTrip({
+    trip_id,
+    driver_id,
+    location,
+  }: {
+    trip_id: string;
+    driver_id: string;
+    location: TLocation;
+  }) {
+    const trip = await prisma.trip.findUnique({
+      where: { id: trip_id },
+      select: {
+        driver: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (trip?.driver?.id)
+      throw new ServerError(
+        StatusCodes.CONFLICT,
+        `Driver ${trip.driver.name} is already assigned to this trip`,
+      );
+
+    await prisma.trip.update({
+      where: { id: trip_id },
+      data: {
+        driver_id,
+        status: ETripStatus.ACCEPTED,
+        vehicle_address: location,
+        accepted_at: new Date(),
+      },
+    });
+
+    global.io?.to(trip_id).emit(
+      'tripInfo',
+      JSON.stringify({
+        id: trip_id,
+        status: StatusCodes.OK,
+        message: 'Trip accepted successfully',
+      }),
+    );
   },
 
   async findNearestDriver(trip: Partial<TTrip>) {

@@ -16,6 +16,15 @@ const user = Router();
 const driver = Router();
 {
   driver.post(
+    '/:tripId/accept-trip',
+    purifyRequest(
+      QueryValidations.exists('tripId', 'trip'),
+      TripValidations.updateLocation,
+    ),
+    TripControllers.acceptTrip,
+  );
+
+  driver.post(
     '/:tripId/reject-trip',
     purifyRequest(
       QueryValidations.exists('tripId', 'trip'),

@@ -26,6 +26,18 @@ export const TripControllers = {
     });
   }),
 
+  acceptTrip: catchAsync(async ({ params, user, body }, res) => {
+    await TripServices.acceptTrip({
+      ...body,
+      driver_id: user.id,
+      trip_id: params.tripId,
+    });
+
+    serveResponse(res, {
+      message: 'Trip accepted successfully!',
+    });
+  }),
+
   updateTripLocation: catchAsync(async ({ params, body, user }, res) => {
     await TripServices.updateTripLocation({
       ...body,
