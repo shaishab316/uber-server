@@ -61,6 +61,7 @@ export const TripServices = {
         stops: true,
         passenger_ages: true,
         id: true,
+        status: true,
       },
     });
 
@@ -153,6 +154,8 @@ export const TripServices = {
   },
 
   async findNearestDriver(trip: Partial<TTrip>) {
+    if (trip.status !== ETripStatus.REQUESTED) return;
+
     const [pickupLng, pickupLat] = trip.pickup_address!.geo;
 
     const nearestDriver: any = (
@@ -181,8 +184,8 @@ export const TripServices = {
 
     const driver = nearestDriver?.[0]?.driver_id?.$oid;
 
-    if (!driver)
-      return global.io?.to(trip.passenger_id!).emit(
+    if (!driver) {
+      global.io?.to(trip.passenger_id!).emit(
         'tripInfo',
         JSON.stringify({
           id: trip.id,
@@ -190,6 +193,15 @@ export const TripServices = {
           message: 'No driver found',
         }),
       );
+
+      const updatedTrip = await prisma.trip.findUnique({
+        where: { id: trip.id },
+      });
+
+      setTimeout(() => this.findNearestDriver(updatedTrip!), 1000);
+
+      return;
+    }
 
     const distanceDuration = await getDistanceAndTime(
       trip.pickup_address!.geo,
