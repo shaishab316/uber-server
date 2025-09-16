@@ -17,7 +17,10 @@ const driver = Router();
 {
   driver.post(
     '/:tripId/reject-trip',
-    purifyRequest(QueryValidations.exists('tripId', 'trip')),
+    purifyRequest(
+      QueryValidations.exists('tripId', 'trip'),
+      TripValidations.reject,
+    ),
     TripControllers.rejectTrip,
   );
 

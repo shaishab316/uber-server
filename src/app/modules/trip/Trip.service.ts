@@ -8,6 +8,7 @@ import { TTripStart } from './Trip.interface';
 import config from '../../../config';
 import { TLocation, Trip as TTrip } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
+import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 
 export const TripServices = {
   async start({
@@ -18,6 +19,7 @@ export const TripServices = {
     passenger_id,
     passenger_ages,
   }: TTripStart & { passenger_id: string }) {
+    //! TODO: uncomment it
     // const existingTrip = await prisma.trip.findFirst({
     //   where: {
     //     passenger_id,
@@ -62,26 +64,45 @@ export const TripServices = {
       },
     });
 
-    await this.findNearestDriver(trip);
+    //! Don't use await for faster response
+    this.findNearestDriver(trip);
+
+    return trip;
   },
 
-  async rejectTrip(tripId: string, driverId: string) {
+  async rejectTrip({
+    driver_id,
+    trip_id,
+    reason,
+  }: {
+    trip_id: string;
+    driver_id: string;
+    reason: string;
+  }) {
     const trip = (await prisma.trip.findUnique({
-      where: { id: tripId },
+      where: { id: trip_id },
     }))!;
 
     Object.assign(trip, {
       exclude_driver_ids: Array.from(
-        new Set([...trip.exclude_driver_ids, driverId]),
+        new Set([...trip.exclude_driver_ids, driver_id]),
       ),
     });
 
     await prisma.trip.update({
-      where: { id: tripId },
+      where: { id: trip_id },
       data: { exclude_driver_ids: trip.exclude_driver_ids },
     });
 
-    await this.findNearestDriver(trip);
+    //! Don't use await for faster response
+    this.findNearestDriver(trip);
+
+    //! Track cancel trip reason
+    await CancelTripServices.cancelTrip({
+      trip_id,
+      driver_id,
+      reason,
+    });
   },
 
   async findNearestDriver(trip: Partial<TTrip>) {

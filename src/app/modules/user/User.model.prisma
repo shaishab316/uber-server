@@ -27,6 +27,7 @@ model User {
   trips_received    Trip[]            @relation("Passenger")
   trips_given       Trip[]            @relation("Driver")
   available_drivers AvailableDriver[]
+  CancelTrip        CancelTrip[]
 
   @@map("users")
 }

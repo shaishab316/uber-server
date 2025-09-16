@@ -3,6 +3,7 @@ import { UserRoutes } from '../user/User.route';
 import { ContextPageRoutes } from '../contextPage/ContextPage.route';
 import { DriverRoutes } from '../driver/Driver.route';
 import { LogRoutes } from '../log/Log.route';
+import { CancelTripRoutes } from '../cancelTrip/CancelTrip.route';
 
 export default Router().inject([
   {
@@ -20,5 +21,9 @@ export default Router().inject([
   {
     path: '/logs',
     route: LogRoutes,
+  },
+  {
+    path: '/cancel-trips',
+    route: CancelTripRoutes.admin,
   },
 ]);

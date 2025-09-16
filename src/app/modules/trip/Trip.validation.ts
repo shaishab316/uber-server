@@ -37,4 +37,12 @@ export const TripValidations = {
       location: locationSchema,
     }),
   }),
+
+  reject: z.object({
+    body: z.object({
+      reason: z
+        .string({ error: 'Reason is missing' })
+        .nonempty('Reason is required'),
+    }),
+  }),
 };

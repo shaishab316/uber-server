@@ -25,7 +25,8 @@ model Trip {
   vehicle_address TLocation?
   stops           TLocation[]
 
-  exclude_driver_ids String[] @default([])
+  exclude_driver_ids String[]     @default([])
+  CancelTrip         CancelTrip[]
 
   @@map("trips")
 }

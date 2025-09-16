@@ -4,19 +4,25 @@ import { TripServices } from './Trip.service';
 
 export const TripControllers = {
   start: catchAsync(async ({ body, user }, res) => {
-    await TripServices.start({ ...body, passenger_id: user.id });
+    const trip = await TripServices.start({ ...body, passenger_id: user.id });
 
     serveResponse(res, {
       message: 'Trip started successfully!',
+      data: {
+        trip_id: trip.id,
+      },
     });
   }),
 
-  rejectTrip: catchAsync(async ({ params, user }, res) => {
-    const data = await TripServices.rejectTrip(params.tripId, user.id);
+  rejectTrip: catchAsync(async ({ params, user, body }, res) => {
+    await TripServices.rejectTrip({
+      ...body,
+      driver_id: user.id,
+      trip_id: params.tripId,
+    });
 
     serveResponse(res, {
       message: 'Trip rejected successfully!',
-      data,
     });
   }),
 
