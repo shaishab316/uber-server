@@ -28,6 +28,10 @@ model User {
   trips_given       Trip[]            @relation("Driver")
   available_drivers AvailableDriver[]
   CancelTrip        CancelTrip[]
+  driver_chat       Chat[]            @relation("DriverChat")
+  user_chat         Chat[]            @relation("UserChat")
+  driver_message    Message[]         @relation("DriverMessage")
+  user_message      Message[]         @relation("UserMessage")
 
   @@map("users")
 }
