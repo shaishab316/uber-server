@@ -1,3 +1,23 @@
+# [1.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.0.0...v1.1.0) (2025-09-25)
+
+
+### Bug Fixes
+
+* do html more awesome ([95c4fbd](https://github.com/Alpha-Bytes-Department/uber-server/commit/95c4fbd982362e23dff6a76b1d9086e3874de544))
+
+
+### Features
+
+* Add driver trip location update functionality ([f80fabf](https://github.com/Alpha-Bytes-Department/uber-server/commit/f80fabf44af36518ed2cbd204c377b7661cc6976))
+* Add route to retrieve messages for a specific chat ([dd39900](https://github.com/Alpha-Bytes-Department/uber-server/commit/dd399005cee115a74441727aacb597f36efed621))
+* Implement Chat and Message features ([30217a8](https://github.com/Alpha-Bytes-Department/uber-server/commit/30217a81d2196406de22ece63cc4a2112b9c29cb))
+* Implement chat inbox, retrieval and deletion ([cb82ab1](https://github.com/Alpha-Bytes-Department/uber-server/commit/cb82ab176ced48c8d009152b8f48e0734d1a091b))
+* Implement driver trip acceptance ([b64cf6b](https://github.com/Alpha-Bytes-Department/uber-server/commit/b64cf6b43444bcccf528ddf1bf8199099198507b))
+* Implement log management UI and API endpoints ([063e1ff](https://github.com/Alpha-Bytes-Department/uber-server/commit/063e1ff524d2112f14f7b1524f2d2da9cdc9fa36))
+* Implement message retrieval and management ([adfdbf2](https://github.com/Alpha-Bytes-Department/uber-server/commit/adfdbf2c8cdf45aa78b0fd468778197b04b2e343))
+* Implement trip rejection and cancellation tracking ([d9dc2c2](https://github.com/Alpha-Bytes-Department/uber-server/commit/d9dc2c2718db5f654ce94a767d7a6abbd6791d4d))
+* Retry finding driver if initially not found ([68b1459](https://github.com/Alpha-Bytes-Department/uber-server/commit/68b1459bfe1bfde0474d247c97b95efc9f7e5646))
+
 # 1.0.0 (2025-09-13)
 
 
