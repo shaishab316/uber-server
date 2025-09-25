@@ -3,6 +3,7 @@ import { ChatControllers } from './Chat.controller';
 import { ChatValidations } from './Chat.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
+import { MessageControllers } from '../message/Message.controller';
 
 const user = Router();
 {
@@ -16,6 +17,15 @@ const user = Router();
     '/chat',
     purifyRequest(ChatValidations.getChat),
     ChatControllers.getChat,
+  );
+
+  user.get(
+    '/:chatId/messages',
+    purifyRequest(
+      QueryValidations.exists('chatId', 'chat'),
+      QueryValidations.list,
+    ),
+    MessageControllers.getChatMessages,
   );
 
   user.delete(
