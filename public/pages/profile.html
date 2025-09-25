@@ -53,13 +53,13 @@
               } catch (err) {
                 console.error('Logout error', err);
               }
-              window.location.href = '/login.html';
+              window.location.href = '/pages/login.html';
             };
           } else {
             throw new Error(data.message);
           }
         } catch (err) {
-          document.body.innerHTML = `<p class="p-4">Please <a href="/login.html" class="text-blue-600 underline">Login</a> to view profile.</p>`;
+          document.body.innerHTML = `<p class="p-4">Please <a href="/pages/login.html" class="text-blue-600 underline">Login</a> to view profile.</p>`;
         }
       }
 
