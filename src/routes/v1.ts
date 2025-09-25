@@ -8,6 +8,7 @@ import { ContextPageRoutes } from '../app/modules/contextPage/ContextPage.route'
 import { fileTypes } from '../app/middlewares/capture';
 import { DriverRoutes } from '../app/modules/driver/Driver.route';
 import { TripRoutes } from '../app/modules/trip/Trip.route';
+import { ChatRoutes } from '../app/modules/chat/Chat.route';
 
 const appRouter = Router();
 
@@ -35,6 +36,11 @@ export default appRouter.inject([
     path: '/profile',
     middlewares: [auth.all],
     route: UserRoutes.user,
+  },
+  {
+    path: '/chats',
+    middlewares: [auth.all],
+    route: ChatRoutes.user,
   },
   {
     path: '/trips',

@@ -1,20 +1,27 @@
 import { StatusCodes } from 'http-status-codes';
-import { Prisma, Chat as TChat } from '../../../../prisma';
+import { Prisma } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../util/db';
 import { TList } from '../query/Query.interface';
 import { messageSearchableFields as searchableFields } from '../message/Message.constant';
 import { TPagination } from '../../../util/server/serveResponse';
+import { TGetChat } from './Chat.interface';
 
 export const ChatServices = {
-  async getChat(chatData: TChat) {
+  async getChat({ driver_id, user_id }: Required<TGetChat>) {
     return (
       (await prisma.chat.findFirst({
         where: {
-          user_id: chatData.user_id,
-          driver_id: chatData.driver_id,
+          user_id,
+          driver_id,
         },
-      })) ?? (await prisma.chat.create({ data: chatData }))
+      })) ??
+      (await prisma.chat.create({
+        data: {
+          driver_id,
+          user_id,
+        },
+      }))
     );
   },
 
@@ -24,7 +31,7 @@ export const ChatServices = {
     search,
     driver_id,
     user_id,
-  }: { user_id: string; driver_id: string } & TList) {
+  }: TGetChat & TList) {
     const where: Prisma.ChatWhereInput = {};
     const include: Prisma.ChatInclude = {
       last_message: true,
@@ -82,10 +89,14 @@ export const ChatServices = {
     };
   },
 
-  async deleteChat(chatData: TChat) {
+  async deleteChat({
+    chatId,
+    driver_id,
+    user_id,
+  }: TGetChat & { chatId: string }) {
     const chat = await prisma.chat.findFirst({
       where: {
-        id: chatData.id,
+        id: chatId,
       },
       include: {
         driver: {
@@ -101,16 +112,13 @@ export const ChatServices = {
       },
     });
 
-    if (
-      chat?.driver_id !== chatData.driver_id &&
-      chat?.user_id !== chatData.user_id
-    ) {
+    if (chat?.driver_id !== driver_id && chat?.user_id !== user_id) {
       throw new ServerError(
         StatusCodes.FORBIDDEN,
         `Only user ${chat?.user?.name} or driver ${chat?.driver?.name} can delete this chat`,
       );
     }
 
-    return prisma.chat.delete({ where: { id: chatData.id } });
+    return prisma.chat.delete({ where: { id: chatId } });
   },
 };

@@ -2,13 +2,27 @@ import { Router } from 'express';
 import { ChatControllers } from './Chat.controller';
 import { ChatValidations } from './Chat.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
+import { QueryValidations } from '../query/Query.validation';
 
-const router = Router();
+const user = Router();
+{
+  user.get(
+    '/',
+    purifyRequest(QueryValidations.list),
+    ChatControllers.getInboxChats,
+  );
 
-router.post(
-  '/create',
-  purifyRequest(ChatValidations.create),
-  ChatControllers.create,
-);
+  user.get(
+    '/chat',
+    purifyRequest(ChatValidations.getChat),
+    ChatControllers.getChat,
+  );
 
-export const ChatRoutes = router;
+  user.delete(
+    '/:chatId/delete',
+    purifyRequest(QueryValidations.exists('chatId', 'chat')),
+    ChatControllers.deleteChat,
+  );
+}
+
+export const ChatRoutes = { user };
