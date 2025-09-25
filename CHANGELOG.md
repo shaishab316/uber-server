@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.1.0...v1.2.0) (2025-09-25)
+
+
+### Features
+
+* **release:** Disable success/fail comments on GitHub releases ([3d0eee3](https://github.com/Alpha-Bytes-Department/uber-server/commit/3d0eee3229737c4e2bc09d9d9de9d7226981eed9))
+
 # [1.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.0.0...v1.1.0) (2025-09-25)
 
 
