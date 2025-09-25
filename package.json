@@ -4,7 +4,7 @@
     "repository": "https://github.com/shaishab316/express-it.git"
   },
   "name": "uber",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A driver management platform for Uber-like services",
   "main": "dist/server.js",
   "author": {
