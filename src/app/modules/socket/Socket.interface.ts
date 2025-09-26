@@ -1,7 +1,11 @@
 /* eslint-disable no-unused-vars */
-import { DefaultEventsMap, Server, Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
+import { User as TUser } from '../../../../prisma';
 
-export type TSocketHandler = (
-  io: Server,
-  socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-) => void;
+export type TSocketHandler = (io: Server, socket: TAuthenticatedSocket) => void;
+
+export interface TAuthenticatedSocket extends Socket {
+  data: {
+    user: TUser;
+  };
+}

@@ -3,8 +3,7 @@ import { Server, Socket } from 'socket.io';
 import config from '../../../config';
 import auth from '../../middlewares/socketAuth';
 import { socketError, socketInfo } from './Socket.utils';
-import { User as TUser } from '../../../../prisma';
-import { TSocketHandler } from './Socket.interface';
+import { TAuthenticatedSocket, TSocketHandler } from './Socket.interface';
 import { initSocketHandlers } from './Socket.plugin';
 
 let io: Server | null = null;
@@ -20,8 +19,8 @@ export const SocketServices = {
       cors: { origin: config.server.allowed_origins },
     })
       .use(auth)
-      .on('connection', socket => {
-        const user: TUser = socket.data.user;
+      .on('connection', (socket: TAuthenticatedSocket) => {
+        const { user } = socket.data;
 
         socket.join(user.id);
         this.online(user.id);
