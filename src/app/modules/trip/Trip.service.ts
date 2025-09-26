@@ -9,6 +9,7 @@ import config from '../../../config';
 import { ETripStatus, TLocation, Trip as TTrip } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
+import { SocketServices } from '../socket/Socket.service';
 
 export const TripServices = {
   async start({
@@ -143,14 +144,16 @@ export const TripServices = {
       },
     });
 
-    global.io?.to(trip_id).emit(
-      'tripInfo',
-      JSON.stringify({
-        id: trip_id,
-        status: StatusCodes.OK,
-        message: 'Trip accepted successfully',
-      }),
-    );
+    SocketServices.getIO()
+      ?.to(trip_id)
+      .emit(
+        'tripInfo',
+        JSON.stringify({
+          id: trip_id,
+          status: StatusCodes.OK,
+          message: 'Trip accepted successfully',
+        }),
+      );
   },
 
   async findNearestDriver(trip: Partial<TTrip>) {
@@ -185,14 +188,16 @@ export const TripServices = {
     const driver = nearestDriver?.[0]?.driver_id?.$oid;
 
     if (!driver) {
-      global.io?.to(trip.passenger_id!).emit(
-        'tripInfo',
-        JSON.stringify({
-          id: trip.id,
-          status: StatusCodes.NOT_FOUND,
-          message: 'No driver found',
-        }),
-      );
+      SocketServices.getIO()
+        ?.to(trip.passenger_id!)
+        .emit(
+          'tripInfo',
+          JSON.stringify({
+            id: trip.id,
+            status: StatusCodes.NOT_FOUND,
+            message: 'No driver found',
+          }),
+        );
 
       const updatedTrip = await prisma.trip.findUnique({
         where: { id: trip.id },
@@ -213,7 +218,9 @@ export const TripServices = {
       passenger_count: trip.passenger_ages?.length,
     });
 
-    global.io?.to(driver).emit('receivePassenger', JSON.stringify(trip));
+    SocketServices.getIO()
+      ?.to(driver)
+      .emit('receivePassenger', JSON.stringify(trip));
   },
 
   async updateTripLocation({

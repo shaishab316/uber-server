@@ -3,61 +3,61 @@ import { Server, Socket } from 'socket.io';
 import config from '../../../config';
 import auth from '../../middlewares/socketAuth';
 import { socketError, socketInfo } from './Socket.utils';
-import { socketHandlers } from './Socket.plugin';
 import { User as TUser } from '../../../../prisma';
+import { TSocketHandler } from './Socket.interface';
+import { initSocketHandlers } from './Socket.plugin';
 
-export let io: Server | null = null;
+let io: Server | null = null;
+const handlers: TSocketHandler[] = [];
 const onlineUsers = new Set<string>();
 
 export const SocketServices = {
-  init(server: http.Server) {
+  async init(server: http.Server) {
+    //! use socket plugin
+    if (!handlers.length) handlers.push(...(await initSocketHandlers()));
+
     io ??= new Server(server, {
       cors: { origin: config.server.allowed_origins },
-    });
+    })
+      .use(auth)
+      .on('connection', socket => {
+        const user: TUser = socket.data.user;
 
-    io.use(auth);
+        socket.join(user.id);
+        this.online(user.id);
 
-    io.on('connection', socket => {
-      //! use socket global scope
-      Object.assign(global, { socket, io });
-
-      const user: TUser = socket.data.user;
-
-      socket.join(user.id);
-      this.online(user.id);
-
-      socketInfo(
-        socket,
-        `👤 User (${user?.name}) connected to room: (${user.id})`,
-      );
-
-      socket.on('leave', (chatId: string) => {
         socketInfo(
           socket,
-          `👤 User (${user?.name}) left from room: (${chatId})`,
+          `👤 User (${user?.name}) connected to room: (${user.id})`,
         );
-        socket.leave(chatId);
-      });
 
-      socket.on('disconnect', () => {
-        socketInfo(
-          socket,
-          `👤 User (${user?.name}) disconnected from room: (${user.id})`,
-        );
-        this.offline(user.id);
-        socket.leave(user.id);
-      });
+        socket.on('leave', (chatId: string) => {
+          socketInfo(
+            socket,
+            `👤 User (${user?.name}) left from room: (${chatId})`,
+          );
+          socket.leave(chatId);
+        });
 
-      socket.on('error', error => {
-        socketError(socket, error);
-      });
+        socket.on('disconnect', () => {
+          socketInfo(
+            socket,
+            `👤 User (${user?.name}) disconnected from room: (${user.id})`,
+          );
+          this.offline(user.id);
+          socket.leave(user.id);
+        });
 
-      this.plugin(io!, socket);
-    });
+        socket.on('error', error => {
+          socketError(socket, error);
+        });
+
+        this.plugin(io!, socket);
+      });
   },
 
   updateOnlineState() {
-    io?.emit('onlineUsers', Array.from(onlineUsers));
+    this.getIO()?.emit('onlineUsers', Array.from(onlineUsers));
   },
 
   online(userId: string) {
@@ -71,12 +71,16 @@ export const SocketServices = {
   },
 
   plugin(io: Server, socket: Socket) {
-    for (const handler of socketHandlers) {
+    for (const handler of handlers) {
       try {
         handler(io, socket);
       } catch (error: any) {
         socketError(socket, error.message);
       }
     }
+  },
+
+  getIO() {
+    return io;
   },
 };

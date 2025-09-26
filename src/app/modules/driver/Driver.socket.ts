@@ -1,3 +1,7 @@
 import { TSocketHandler } from '../socket/Socket.interface';
 
-export const DriverSocket: TSocketHandler = (io, socket) => {};
+const DriverSocket: TSocketHandler = (io, socket) => {
+  console.log('Driver Socket');
+};
+
+export default DriverSocket;
