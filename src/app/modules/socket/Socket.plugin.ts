@@ -1,27 +1,31 @@
-import path from 'path';
 import fg from 'fast-glob';
 import { TSocketHandler } from './Socket.interface';
-
-const handlers: TSocketHandler[] = [];
+import { errorLogger } from '../../../util/logger/logger';
 
 export const initSocketHandlers = async (): Promise<TSocketHandler[]> => {
-  try {
-    const files = await fg('src/app/modules/**/*.socket.ts', {
-      cwd: process.cwd(),
-      ignore: ['node_modules'],
-      absolute: true,
-    });
+  const files = await fg('src/app/modules/**/*.socket.{ts,js}', {
+    cwd: process.cwd(),
+    ignore: ['node_modules', '**/*.test.*', '**/*.spec.*'],
+    absolute: true,
+  });
 
-    for (const file of files) {
-      const module = await import(path.resolve(process.cwd(), file));
+  const importPromises = files.map(
+    async (file): Promise<TSocketHandler | null> => {
+      try {
+        const module = await import(file);
 
-      if (module.default) {
-        handlers.push(module.default as TSocketHandler);
+        if (module.default) {
+          return module.default as TSocketHandler;
+        }
+      } catch (error) {
+        errorLogger.error(`Failed to load socket handler from ${file}:`, error);
       }
-    }
+      return null;
+    },
+  );
 
-    return handlers;
-  } catch {
-    return [];
-  }
+  const results = await Promise.all(importPromises);
+  return results.filter(
+    (handler): handler is TSocketHandler => handler !== null,
+  );
 };

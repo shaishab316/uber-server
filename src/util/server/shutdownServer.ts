@@ -2,6 +2,7 @@ import colors from 'colors';
 import { Server } from 'http';
 import { errorLogger, logger } from '../logger/logger';
 import config from '../../config';
+import { SocketServices } from '../../app/modules/socket/Socket.service';
 
 /**
  * Shuts down the server
@@ -21,6 +22,8 @@ export default async function shutdownServer(
   logger.info(colors.magenta(`🔴 Shutting down server due to ${signal}...`));
 
   server.close(shutdownErr => {
+    SocketServices.cleanup();
+
     if (shutdownErr) {
       errorLogger.error(
         colors.red('❌ Error during server shutdown'),

@@ -82,4 +82,13 @@ export const SocketServices = {
   getIO() {
     return io;
   },
+
+  cleanup() {
+    if (io) {
+      io.close();
+      io = null;
+    }
+    onlineUsers.clear();
+    handlers.length = 0;
+  },
 };
