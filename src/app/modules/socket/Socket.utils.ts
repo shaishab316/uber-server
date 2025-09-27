@@ -1,18 +1,14 @@
 import { Socket } from 'socket.io';
 import colors from 'colors';
 import { errorLogger, logger } from '../../../util/logger/logger';
-import { ZodError } from 'zod';
-import handleZodError from '../../../errors/handleZodError';
-import { defaultError } from '../../middlewares/globalErrorHandler';
+import { formatError } from '../../middlewares/globalErrorHandler';
 
 export const socketError = (socket: Socket, error: Error) => {
-  const errorObj = defaultError;
+  const formattedError = formatError(error);
 
-  if (error instanceof ZodError) Object.assign(errorObj, handleZodError(error));
+  socket.emit('socket_error', JSON.stringify(formattedError));
 
-  socket.emit('socket_error', JSON.stringify(errorObj));
-
-  errorLogger.error(colors.red(errorObj.message));
+  errorLogger.error(colors.red(formattedError.message));
 };
 
 export const socketInfo = (socket: Socket, message: string) => {

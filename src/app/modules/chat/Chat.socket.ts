@@ -6,6 +6,7 @@ import catchAsync from '../../middlewares/catchAsync';
 import { MessageValidations } from '../message/Message.validation';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { MessageServices } from '../message/Message.service';
+import { TDeleteMsg } from '../message/Message.interface';
 
 const ChatSocket: TSocketHandler = (io, socket) => {
   socket.on(
@@ -35,7 +36,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
   socket.on(
     'send_message',
     catchAsync.socket(async (payload: Prisma.MessageCreateArgs['data']) => {
-      payload = await MessageValidations.create.parseAsync(payload);
+      payload = await MessageValidations.createMsg.parseAsync(payload);
 
       const chat = await prisma.chat.findUnique({
         where: {
@@ -59,6 +60,24 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       const message = await MessageServices.createMsg(payload);
 
       io.to(payload.chat_id).emit('new_message', JSON.stringify(message));
+    }, socket),
+  );
+
+  socket.on(
+    'delete_message',
+    catchAsync.socket(async (payload: TDeleteMsg) => {
+      payload = await MessageValidations.deleteMsg.parseAsync(payload);
+
+      if (socket.data.user.role === EUserRole.USER)
+        payload.user_id = socket.data.user.id;
+      else payload.driver_id = socket.data.user.id;
+
+      const message = await MessageServices.deleteMsg(payload);
+
+      io.to(message.chat_id).emit(
+        'delete_message',
+        JSON.stringify({ message_id: message.id }),
+      );
     }, socket),
   );
 };

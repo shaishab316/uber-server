@@ -3,7 +3,7 @@ import { exists } from '../../../util/db/exists';
 import { EMessageMediaType } from '../../../../prisma';
 
 export const MessageValidations = {
-  create: z
+  createMsg: z
     .object({
       chat_id: z.string().refine(exists('chat'), {
         error: ({ input }) => `Chat not found with id: ${input}`,
@@ -56,4 +56,11 @@ export const MessageValidations = {
         }
       }
     }),
+
+  deleteMsg: z.object({
+    message_id: z.string().refine(exists('message'), {
+      error: ({ input }) => `Message not found with id: ${input}`,
+      path: ['message_id'],
+    }),
+  }),
 };

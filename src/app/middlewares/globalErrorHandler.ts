@@ -43,7 +43,7 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
 
 export default globalErrorHandler;
 
-const formatError = (error: any): TErrorHandler => {
+export const formatError = (error: any): TErrorHandler => {
   if (error instanceof multer.MulterError) return handleMulterError(error);
   if (error instanceof ZodError) return handleZodError(error);
   if (error instanceof Prisma.PrismaClientKnownRequestError)

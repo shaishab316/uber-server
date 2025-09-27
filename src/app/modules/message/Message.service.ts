@@ -1,6 +1,7 @@
 import { Prisma } from '../../../../prisma';
 import { prisma } from '../../../util/db';
 import { TPagination } from '../../../util/server/serveResponse';
+import { deleteFile } from '../../middlewares/capture';
 import { TList } from '../query/Query.interface';
 import { messageSearchableFields as searchableFields } from './Message.constant';
 import { TDeleteMsg, TSeenMsg } from './Message.interface';
@@ -58,6 +59,9 @@ export const MessageServices = {
         `You cannot delete ${message?.user?.name ?? message?.driver?.name}'s message.`,
       );
     }
+
+    //Cleanup
+    message?.media_url?.__pipes(deleteFile);
 
     return prisma.message.delete({ where: { id: message_id } });
   },

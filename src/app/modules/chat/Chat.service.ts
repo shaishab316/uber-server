@@ -3,12 +3,18 @@ import { Prisma } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../util/db';
 import { TList } from '../query/Query.interface';
-import { messageSearchableFields as searchableFields } from '../message/Message.constant';
 import { TPagination } from '../../../util/server/serveResponse';
 import { TGetChat } from './Chat.interface';
+import { deleteFile } from '../../middlewares/capture';
 
 export const ChatServices = {
   async getChat({ driver_id, user_id }: Required<TGetChat>) {
+    if (driver_id === user_id)
+      throw new ServerError(
+        StatusCodes.BAD_REQUEST,
+        'You cannot chat with yourself.',
+      );
+
     return (
       (await prisma.chat.findFirst({
         where: {
@@ -25,13 +31,7 @@ export const ChatServices = {
     );
   },
 
-  async getInboxChats({
-    page,
-    limit,
-    search,
-    driver_id,
-    user_id,
-  }: TGetChat & TList) {
+  async getInboxChats({ page, limit, driver_id, user_id }: TGetChat & TList) {
     const where: Prisma.ChatWhereInput = {};
     const include: Prisma.ChatInclude = {
       last_message: true,
@@ -58,14 +58,6 @@ export const ChatServices = {
         },
       };
     }
-
-    if (search)
-      where.OR = searchableFields.map(field => ({
-        [field]: {
-          contains: search,
-          mode: 'insensitive',
-        },
-      }));
 
     const chats = await prisma.chat.findMany({
       where,
@@ -118,6 +110,13 @@ export const ChatServices = {
         `Only user ${chat?.user?.name} or driver ${chat?.driver?.name} can delete this chat`,
       );
     }
+
+    const messages = await prisma.message.findMany({
+      where: { chat_id: chatId, media_url: { not: null } },
+      select: { media_url: true },
+    });
+
+    Promise.all(messages.map(({ media_url }) => deleteFile(media_url!)));
 
     return prisma.chat.delete({ where: { id: chatId } });
   },
