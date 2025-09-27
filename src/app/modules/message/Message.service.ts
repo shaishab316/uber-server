@@ -1,4 +1,6 @@
+import { StatusCodes } from 'http-status-codes';
 import { Prisma } from '../../../../prisma';
+import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../util/db';
 import { TPagination } from '../../../util/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
@@ -37,33 +39,18 @@ export const MessageServices = {
     });
   },
 
-  async deleteMsg({ message_id, driver_id, user_id }: TDeleteMsg) {
+  async deleteMsg({ message_id, user_id }: TDeleteMsg) {
     const message = await prisma.message.findUnique({
-      where: { id: message_id },
-      include: {
-        driver: {
-          select: {
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            name: true,
-          },
-        },
-      },
+      where: { id: message_id, OR: [{ user_id }, { driver_id: user_id }] },
     });
 
-    if (message?.driver_id !== driver_id && message?.user_id !== user_id) {
-      throw new Error(
-        `You cannot delete ${message?.user?.name ?? message?.driver?.name}'s message.`,
-      );
-    }
+    if (!message)
+      throw new ServerError(StatusCodes.NOT_FOUND, 'Message not found');
 
     //Cleanup
-    message?.media_url?.__pipes(deleteFile);
+    if (message.media_url) deleteFile(message.media_url);
 
-    return prisma.message.delete({ where: { id: message_id } });
+    return prisma.message.delete({ where: { id: message.id } });
   },
 
   async getChatMessages({

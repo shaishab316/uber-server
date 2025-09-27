@@ -1,7 +1,6 @@
-import { TGetChat } from '../chat/Chat.interface';
-
-export type TDeleteMsg = TGetChat & {
+export type TDeleteMsg = {
   message_id: string;
+  user_id: string;
 };
 
 export type TSeenMsg = {

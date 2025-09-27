@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { EVehicle } from '../../../../prisma';
 import { enum_encode } from '../../../util/transform/enum';
+import { exists } from '../../../util/db/exists';
 
 export const locationSchema = z.object({
   geo: z.tuple([
@@ -22,7 +23,7 @@ export const locationSchema = z.object({
 });
 
 export const TripValidations = {
-  start: z.object({
+  startTrip: z.object({
     body: z.object({
       vehicle: z.string().transform(enum_encode).pipe(z.enum(EVehicle)),
       pickup_address: locationSchema,
@@ -43,6 +44,12 @@ export const TripValidations = {
       reason: z
         .string({ error: 'Reason is missing' })
         .nonempty('Reason is required'),
+    }),
+  }),
+
+  joinTrip: z.object({
+    trip_id: z.string().refine(exists('trip'), {
+      error: ({ input }) => `Trip not found with id: ${input}`,
     }),
   }),
 };

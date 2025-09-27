@@ -8,7 +8,7 @@ const user = Router();
 {
   user.post(
     '/start',
-    purifyRequest(TripValidations.start),
+    purifyRequest(TripValidations.startTrip),
     TripControllers.start,
   );
 }
