@@ -56,7 +56,7 @@ export const SocketServices = {
   },
 
   updateOnlineState() {
-    this.getIO()?.emit('onlineUsers', Array.from(onlineUsers));
+    this.getIO()?.emit('online_users', Array.from(onlineUsers));
   },
 
   online(userId: string) {

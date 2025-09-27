@@ -10,7 +10,23 @@ export const MessageServices = {
     if (messageData.user_id) messageData.seen_by_user = true;
     else messageData.seen_by_driver = true;
 
-    return prisma.message.create({ data: messageData });
+    return prisma.message.create({
+      data: messageData,
+      include: {
+        user: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+        driver: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    });
   },
 
   async seenMsg({ message_id, who }: TSeenMsg) {
