@@ -4,7 +4,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../../util/db';
 import getDistanceAndTime from '../../../util/location/getDistanceAndTime';
-import { TTripStart } from './Trip.interface';
+import { TRequestForTrip } from './Trip.interface';
 import config from '../../../config';
 import { ETripStatus, TLocation, Trip as TTrip } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
@@ -12,14 +12,14 @@ import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 import { SocketServices } from '../socket/Socket.service';
 
 export const TripServices = {
-  async start({
+  async requestForTrip({
     dropoff_address,
     pickup_address,
     vehicle,
     stops,
     passenger_id,
     passenger_ages,
-  }: TTripStart & { passenger_id: string }) {
+  }: TRequestForTrip) {
     //! TODO: uncomment it
     // const existingTrip = await prisma.trip.findFirst({
     //   where: {
@@ -225,16 +225,16 @@ export const TripServices = {
 
   async updateTripLocation({
     location,
-    tripId,
-    userId,
+    trip_id,
+    user_id,
   }: {
     location: TLocation;
-    tripId: string;
-    userId: string;
+    trip_id: string;
+    user_id: string;
   }) {
     // Get the trip info
     const trip = (await prisma.trip.findUnique({
-      where: { id: tripId },
+      where: { id: trip_id },
       select: {
         driver: {
           select: {
@@ -252,7 +252,7 @@ export const TripServices = {
         'No driver assigned for this trip',
       );
 
-    if (trip.driver.id !== userId)
+    if (trip.driver.id !== user_id)
       throw new ServerError(
         StatusCodes.FORBIDDEN,
         `You can't location update for ${trip.driver.name}'s trip`,
@@ -260,8 +260,27 @@ export const TripServices = {
 
     // Finally update trip location
     await prisma.trip.update({
-      where: { id: tripId },
+      where: { id: trip_id },
       data: { vehicle_address: location },
+    });
+  },
+
+  async startTrip({
+    passenger_id,
+    trip_id,
+  }: {
+    trip_id: string;
+    passenger_id: string;
+  }) {
+    const trip = await prisma.trip.findUnique({
+      where: { id: trip_id, passenger_id, status: ETripStatus.ACCEPTED },
+    });
+
+    if (!trip) throw new ServerError(StatusCodes.NOT_FOUND, 'Trip not found');
+
+    return prisma.trip.update({
+      where: { id: trip_id },
+      data: { status: ETripStatus.STARTED, started_at: new Date() },
     });
   },
 };

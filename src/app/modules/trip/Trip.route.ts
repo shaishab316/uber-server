@@ -7,9 +7,9 @@ import { QueryValidations } from '../query/Query.validation';
 const user = Router();
 {
   user.post(
-    '/start',
-    purifyRequest(TripValidations.startTrip),
-    TripControllers.start,
+    '/request-for-trip',
+    purifyRequest(TripValidations.requestForTrip),
+    TripControllers.requestForTrip,
   );
 }
 

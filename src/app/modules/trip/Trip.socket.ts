@@ -4,7 +4,9 @@ import { prisma } from '../../../util/db';
 import catchAsync from '../../middlewares/catchAsync';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
-import { TTripJoin } from './Trip.interface';
+import { TStartTrip, TTripJoin, TUpdateTripLocation } from './Trip.interface';
+import { TripServices } from './Trip.service';
+import { socketInfo } from '../socket/Socket.utils';
 
 const TripSocket: TSocketHandler = (io, socket) => {
   socket.on(
@@ -25,10 +27,42 @@ const TripSocket: TSocketHandler = (io, socket) => {
           throw new ServerError(StatusCodes.NOT_FOUND, 'Trip not found');
 
         socket.join(trip.id);
+        socketInfo(socket, `Joined trip room: ${trip.id}`);
       },
       socket,
       TripValidations.joinTrip,
     ),
+  );
+
+  socket.on(
+    'update_trip_location',
+    catchAsync.socket(
+      async (payload: TUpdateTripLocation) => {
+        await TripServices.updateTripLocation({
+          user_id: socket.data.user.id,
+          trip_id: payload.trip_id,
+          location: payload.location,
+        });
+
+        socket
+          .to(payload.trip_id)
+          .emit('update_trip_location', JSON.stringify(payload));
+      },
+      socket,
+      TripValidations.updateTripLocation,
+    ),
+  );
+
+  socket.on(
+    'start_trip',
+    catchAsync.socket(async (payload: TStartTrip) => {
+      const trip = await TripServices.startTrip({
+        trip_id: payload.trip_id,
+        passenger_id: socket.data.user.id,
+      });
+
+      socket.to(trip.id).emit('start_trip', JSON.stringify(payload));
+    }, socket),
   );
 };
 

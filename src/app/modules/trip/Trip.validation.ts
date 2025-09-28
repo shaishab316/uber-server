@@ -23,7 +23,7 @@ export const locationSchema = z.object({
 });
 
 export const TripValidations = {
-  startTrip: z.object({
+  requestForTrip: z.object({
     body: z.object({
       vehicle: z.string().transform(enum_encode).pipe(z.enum(EVehicle)),
       pickup_address: locationSchema,
@@ -47,9 +47,24 @@ export const TripValidations = {
     }),
   }),
 
+  //! socket validations..........
   joinTrip: z.object({
     trip_id: z.string().refine(exists('trip'), {
       error: ({ input }) => `Trip not found with id: ${input}`,
+    }),
+  }),
+
+  startTrip: z.object({
+    trip_id: z.string().refine(exists('trip'), {
+      error: ({ input }) => `Trip not found with id: ${input}`,
+    }),
+  }),
+
+  updateTripLocation: z.object({
+    location: locationSchema,
+    trip_id: z.string().refine(exists('trip'), {
+      error: ({ input }) => `Trip not found with id: ${input}`,
+      path: ['trip_id'],
     }),
   }),
 };

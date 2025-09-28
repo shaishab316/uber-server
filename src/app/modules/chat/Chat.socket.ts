@@ -6,6 +6,7 @@ import catchAsync from '../../middlewares/catchAsync';
 import { MessageValidations } from '../message/Message.validation';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { MessageServices } from '../message/Message.service';
+import { socketInfo } from '../socket/Socket.utils';
 
 const ChatSocket: TSocketHandler = (io, socket) => {
   socket.on(
@@ -28,6 +29,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       if (!chat) throw new ServerError(StatusCodes.NOT_FOUND, 'Chat not found');
 
       socket.join(payload.chat_id);
+      socketInfo(socket, `Joined chat room: ${payload.chat_id}`);
     }, socket),
   );
 
