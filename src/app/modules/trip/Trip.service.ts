@@ -10,6 +10,8 @@ import { ETripStatus, TLocation, Trip as TTrip } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 import { SocketServices } from '../socket/Socket.service';
+import { TAuthenticatedSocket } from '../socket/Socket.interface';
+import { Server as IOServer } from 'socket.io';
 
 export const TripServices = {
   async requestForTrip({
@@ -282,5 +284,28 @@ export const TripServices = {
       where: { id: trip_id },
       data: { status: ETripStatus.STARTED, started_at: new Date() },
     });
+  },
+
+  async launchStartedTrip({
+    socket,
+    io,
+  }: {
+    socket: TAuthenticatedSocket;
+    io: IOServer | null;
+  }) {
+    const trip = await prisma.trip.findFirst({
+      where: {
+        OR: [
+          { driver_id: socket.data.user.id },
+          { passenger_id: socket.data.user.id },
+        ],
+        status: ETripStatus.STARTED,
+      },
+    });
+
+    if (trip) {
+      socket.join(trip.id);
+      io?.to(trip.id).emit('start_trip', JSON.stringify(trip));
+    }
   },
 };

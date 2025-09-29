@@ -2,7 +2,9 @@ import { StatusCodes } from 'http-status-codes';
 import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../util/db';
 import catchAsync from '../../middlewares/catchAsync';
-import { TSocketHandler } from '../socket/Socket.interface';
+import {
+  TSocketHandler,
+} from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
 import { TStartTrip, TTripJoin, TUpdateTripLocation } from './Trip.interface';
 import { TripServices } from './Trip.service';
@@ -61,7 +63,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
         passenger_id: socket.data.user.id,
       });
 
-      socket.to(trip.id).emit('start_trip', JSON.stringify(payload));
+      socket.to(trip.id).emit('start_trip', JSON.stringify(trip));
     }, socket),
   );
 };

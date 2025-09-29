@@ -1,12 +1,13 @@
 import http from 'http';
-import { Server, Socket } from 'socket.io';
+import { Server as IOServer, Socket } from 'socket.io';
 import config from '../../../config';
 import auth from '../../middlewares/socketAuth';
 import { socketError, socketInfo } from './Socket.utils';
 import { TAuthenticatedSocket, TSocketHandler } from './Socket.interface';
 import { initSocketHandlers } from './Socket.plugin';
+import { TripServices } from '../trip/Trip.service';
 
-let io: Server | null = null;
+let io: IOServer | null = null;
 const handlers: TSocketHandler[] = [];
 const onlineUsers = new Set<string>();
 
@@ -15,12 +16,15 @@ export const SocketServices = {
     //! use socket plugin
     if (!handlers.length) handlers.push(...(await initSocketHandlers()));
 
-    io ??= new Server(server, {
+    io ??= new IOServer(server, {
       cors: { origin: config.server.allowed_origins },
     })
       .use(auth)
       .on('connection', (socket: TAuthenticatedSocket) => {
         const { user } = socket.data;
+
+        //! Launch started trip quickly
+        TripServices.launchStartedTrip({ io, socket });
 
         socket.join(user.id);
         this.online(user.id);
@@ -69,7 +73,7 @@ export const SocketServices = {
     this.updateOnlineState();
   },
 
-  plugin(io: Server, socket: Socket) {
+  plugin(io: IOServer, socket: Socket) {
     for (const handler of handlers) {
       try {
         handler(io, socket);
