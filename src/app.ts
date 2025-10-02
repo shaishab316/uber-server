@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import config from './config';
 import { notFoundError } from './errors';
 import { fileRetriever, fileTypes } from './app/middlewares/capture';
+import serveResponse from './util/server/serveResponse';
 
 /**
  * The main application instance
@@ -40,16 +41,33 @@ app.use(
   cookieParser(),
 );
 
+app.get('/', ({ headers }, res) => {
+  res.redirect(
+    headers['accept']?.includes('text/html') ? '/pages/index.html' : '/health',
+  );
+});
+
 // Health check
 app.get('/health', (_, res) => {
-  res.status(200).json({ status: 'ok' });
+  serveResponse(res, {
+    message: 'Server is healthy!',
+    meta: {
+      timestamp: new Date(),
+      version: process.env.npm_package_version,
+      env: process.env.NODE_ENV,
+    },
+  });
 });
 
 // API routes
 app.use('/api/v1', RoutesV1);
 
 // 404 handler
-app.use(({ originalUrl }, _, next) => {
+app.use(({ originalUrl, headers }, res, next) => {
+  //! if browser is requesting show 404 page
+  if (headers['accept']?.includes('text/html'))
+    return res.redirect('/pages/404.html');
+
   next(notFoundError(originalUrl));
 });
 

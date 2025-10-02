@@ -94,17 +94,15 @@ export default capture;
 /**
  * Universal file retriever
  */
-export const fileRetriever = catchAsync(async (req, res) => {
+export const fileRetriever = catchAsync(async (req, res, next) => {
   if (!getBucket())
-    throw new ServerError(
-      StatusCodes.SERVICE_UNAVAILABLE,
-      'Files not available',
+    next(
+      new ServerError(StatusCodes.SERVICE_UNAVAILABLE, 'Files not available'),
     );
 
   const filename = req.params.filename.replace(/[^\w.-]/g, '');
   const fileExists = await getBucket()!.find({ filename }).hasNext();
-  if (!fileExists)
-    throw new ServerError(StatusCodes.NOT_FOUND, 'File not found');
+  if (!fileExists) next();
 
   return new Promise((resolve, reject) => {
     const stream = getBucket()!
