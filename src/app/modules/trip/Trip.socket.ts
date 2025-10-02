@@ -12,6 +12,8 @@ const TripSocket: TSocketHandler = (io, socket) => {
   //! Launch started trip quickly
   TripServices.launchStartedTrip({ io, socket });
 
+  const { user } = socket.data;
+
   socket.on(
     'join_trip_room',
     catchAsync.socket(
@@ -19,10 +21,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
         const trip = await prisma.trip.findFirst({
           where: {
             id: payload.trip_id,
-            OR: [
-              { passenger_id: socket.data.user.id },
-              { driver_id: socket.data.user.id },
-            ],
+            OR: [{ passenger_id: user.id }, { driver_id: user.id }],
           },
         });
 
@@ -42,7 +41,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
     catchAsync.socket(
       async (payload: TUpdateTripLocation) => {
         await TripServices.updateTripLocation({
-          user_id: socket.data.user.id,
+          user_id: user.id,
           trip_id: payload.trip_id,
           location: payload.location,
         });
@@ -59,12 +58,12 @@ const TripSocket: TSocketHandler = (io, socket) => {
   socket.on(
     'start_trip',
     catchAsync.socket(async (payload: TStartTrip) => {
-      const trip = await TripServices.startTrip({
+      await TripServices.startTrip({
         trip_id: payload.trip_id,
-        passenger_id: socket.data.user.id,
+        passenger_id: user.id,
       });
 
-      socket.to(trip.id).emit('start_trip', JSON.stringify(trip));
+      TripServices.launchStartedTrip({ io, socket });
     }, socket),
   );
 };

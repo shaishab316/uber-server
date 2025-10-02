@@ -6,7 +6,13 @@ import { prisma } from '../../../util/db';
 import getDistanceAndTime from '../../../util/location/getDistanceAndTime';
 import { TRequestForTrip } from './Trip.interface';
 import config from '../../../config';
-import { ETripStatus, TLocation, Trip as TTrip } from '../../../../prisma';
+import {
+  ETripStatus,
+  EUserRole,
+  Prisma,
+  TLocation,
+  Trip as TTrip,
+} from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 import { SocketServices } from '../socket/Socket.service';
@@ -283,6 +289,9 @@ export const TripServices = {
     return prisma.trip.update({
       where: { id: trip_id },
       data: { status: ETripStatus.STARTED, started_at: new Date() },
+      select: {
+        id: true,
+      },
     });
   },
 
@@ -293,14 +302,25 @@ export const TripServices = {
     socket: TAuthenticatedSocket;
     io: IOServer | null;
   }) {
+    const { user } = socket.data;
+    const userSelectableField = { select: { name: true, avatar: true } };
+    const where: Prisma.TripWhereInput = {
+      status: ETripStatus.STARTED,
+    };
+
+    if (user.role === EUserRole.DRIVER) {
+      where.driver_id = user.id;
+    } else {
+      where.passenger_id = user.id;
+    }
+
     const trip = await prisma.trip.findFirst({
-      where: {
-        OR: [
-          { driver_id: socket.data.user.id },
-          { passenger_id: socket.data.user.id },
-        ],
-        status: ETripStatus.STARTED,
+      where,
+      include: {
+        driver: userSelectableField,
+        passenger: userSelectableField,
       },
+      omit: { exclude_driver_ids: true },
     });
 
     if (trip) {
