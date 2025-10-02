@@ -5,7 +5,6 @@ import auth from '../../middlewares/socketAuth';
 import { socketError, socketInfo } from './Socket.utils';
 import { TAuthenticatedSocket, TSocketHandler } from './Socket.interface';
 import { initSocketHandlers } from './Socket.plugin';
-import { TripServices } from '../trip/Trip.service';
 
 let io: IOServer | null = null;
 const handlers: TSocketHandler[] = [];
@@ -13,6 +12,8 @@ const onlineUsers = new Set<string>();
 
 export const SocketServices = {
   async init(server: http.Server) {
+    server.on('close', this.cleanup);
+
     //! use socket plugin
     if (!handlers.length) handlers.push(...(await initSocketHandlers()));
 
@@ -23,9 +24,6 @@ export const SocketServices = {
       .on('connection', (socket: TAuthenticatedSocket) => {
         const { user } = socket.data;
 
-        //! Launch started trip quickly
-        TripServices.launchStartedTrip({ io, socket });
-
         socket.join(user.id);
         this.online(user.id);
 
@@ -34,12 +32,12 @@ export const SocketServices = {
           `👤 User (${user?.name}) connected to room: (${user.id})`,
         );
 
-        socket.on('leave', (chatId: string) => {
+        socket.on('leave', (roomId: string) => {
           socketInfo(
             socket,
-            `👤 User (${user?.name}) left from room: (${chatId})`,
+            `👤 User (${user?.name}) left from room: (${roomId})`,
           );
-          socket.leave(chatId);
+          socket.leave(roomId);
         });
 
         socket.on('disconnect', () => {
@@ -55,7 +53,7 @@ export const SocketServices = {
           socketError(socket, error);
         });
 
-        this.plugin(io!, socket);
+        this.plugin(socket);
       });
   },
 
@@ -73,10 +71,10 @@ export const SocketServices = {
     this.updateOnlineState();
   },
 
-  plugin(io: IOServer, socket: Socket) {
+  plugin(socket: Socket) {
     for (const handler of handlers) {
       try {
-        handler(io, socket);
+        handler(this.getIO()!, socket);
       } catch (error: any) {
         socketError(socket, error.message);
       }
@@ -88,10 +86,7 @@ export const SocketServices = {
   },
 
   cleanup() {
-    if (io) {
-      io.close();
-      io = null;
-    }
+    this.getIO()?.close();
     onlineUsers.clear();
     handlers.length = 0;
   },

@@ -2,15 +2,16 @@ import { StatusCodes } from 'http-status-codes';
 import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../util/db';
 import catchAsync from '../../middlewares/catchAsync';
-import {
-  TSocketHandler,
-} from '../socket/Socket.interface';
+import { TSocketHandler } from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
 import { TStartTrip, TTripJoin, TUpdateTripLocation } from './Trip.interface';
 import { TripServices } from './Trip.service';
 import { socketInfo } from '../socket/Socket.utils';
 
 const TripSocket: TSocketHandler = (io, socket) => {
+  //! Launch started trip quickly
+  TripServices.launchStartedTrip({ io, socket });
+
   socket.on(
     'join_trip_room',
     catchAsync.socket(
