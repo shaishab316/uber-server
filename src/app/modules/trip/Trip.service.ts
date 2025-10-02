@@ -267,7 +267,7 @@ export const TripServices = {
       );
 
     // Finally update trip location
-    await prisma.trip.update({
+    return prisma.trip.update({
       where: { id: trip_id },
       data: { vehicle_address: location },
     });
