@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars, no-console */
 import { ErrorRequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import colors from 'colors';
+import chalk from 'chalk';
 import { ZodError } from 'zod';
 import config from '../../config';
 import ServerError from '../../errors/ServerError';
@@ -28,8 +28,8 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
   req.tempFiles?.forEach(deleteFile);
 
   if (config.server.isDevelopment)
-    console.log(colors.red('🚨 globalErrorHandler ~~ '), error);
-  else errorLogger.error(colors.red('🚨 globalErrorHandler ~~ '), error);
+    console.log(chalk.red('🚨 globalErrorHandler ~~ '), error);
+  else errorLogger.error(chalk.red('🚨 globalErrorHandler ~~ '), error);
 
   const { statusCode, message, errorMessages } = formatError(error);
 

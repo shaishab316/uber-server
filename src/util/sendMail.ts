@@ -3,7 +3,7 @@ import config from '../config';
 import { errorLogger, logger } from './logger/logger';
 import { StatusCodes } from 'http-status-codes';
 import ServerError from '../errors/ServerError';
-import colors from 'colors';
+import chalk from 'chalk';
 const { host, port, user, pass, from } = config.email;
 const { mock_mail } = config.server;
 
@@ -18,10 +18,10 @@ let transporter = nodemailer.createTransport({
 });
 
 if (mock_mail) {
-  logger.info(colors.yellow('Mock mail enabled'));
+  logger.info(chalk.yellow('Mock mail enabled'));
   transporter = {
     sendMail: ({ to = 'mock_mail' }) => {
-      logger.info(colors.green('Mock mail sent'));
+      logger.info(chalk.green('Mock mail sent'));
       return {
         accepted: [to],
       };
@@ -31,7 +31,7 @@ if (mock_mail) {
 }
 
 export const verifyEmailTransporter = async () => {
-  logger.info(colors.yellow('Verifying email credentials...'));
+  logger.info(chalk.yellow('Verifying email credentials...'));
   try {
     return await transporter.verify();
   } catch (error: any) {
@@ -40,7 +40,7 @@ export const verifyEmailTransporter = async () => {
         error.message,
     );
   } finally {
-    logger.info(colors.green('✔ Email credentials verified'));
+    logger.info(chalk.green('✔ Email credentials verified'));
   }
 };
 
@@ -58,7 +58,7 @@ export const sendEmail = async ({
   subject: string;
   html: string;
 }) => {
-  logger.info(colors.yellow('Sending email...'), to);
+  logger.info(chalk.yellow('Sending email...'), to);
   try {
     const { accepted } = await transporter.sendMail({
       from,
@@ -70,9 +70,9 @@ export const sendEmail = async ({
     if (!accepted.length)
       throw new ServerError(StatusCodes.SERVICE_UNAVAILABLE, 'Mail not sent');
 
-    logger.info(colors.green(`✔ Mail send successfully. On: ${accepted[0]}`));
+    logger.info(chalk.green(`✔ Mail send successfully. On: ${accepted[0]}`));
   } catch (error: any) {
-    errorLogger.error(colors.red('❌ Email send failed'), error.message);
+    errorLogger.error(chalk.red('❌ Email send failed'), error.message);
     throw new ServerError(StatusCodes.SERVICE_UNAVAILABLE, error.message);
   }
 };

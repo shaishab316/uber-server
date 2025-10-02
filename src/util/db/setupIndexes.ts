@@ -1,4 +1,4 @@
-import colors from 'colors';
+import chalk from 'chalk';
 import { logger } from '../logger/logger';
 import { getDB } from '../server/connectDB';
 import { Db } from 'mongodb';
@@ -8,7 +8,7 @@ let db: Db | null = null;
 export async function setupIndexes() {
   db ??= getDB();
 
-  logger.info(colors.green('🔑 DB Indexes setup started...'));
+  logger.info(chalk.green('🔑 DB Indexes setup started...'));
   try {
     {
       await db
@@ -51,6 +51,6 @@ export async function setupIndexes() {
         );
     }
   } finally {
-    logger.info(colors.green('✅ DB Indexes setup successfully'));
+    logger.info(chalk.green('✅ DB Indexes setup successfully'));
   }
 }

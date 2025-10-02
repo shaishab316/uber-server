@@ -1,5 +1,5 @@
 import { Db, GridFSBucket, MongoClient } from 'mongodb';
-import colors from 'colors';
+import chalk from 'chalk';
 import config from '../../config';
 import { logger } from '../logger/logger';
 
@@ -10,9 +10,9 @@ let db: Db | null = null;
 export default async function connectDB() {
   client ??= new MongoClient(config.url.database);
 
-  logger.info(colors.green('🚀 Database connecting...'));
+  logger.info(chalk.green('🚀 Database connecting...'));
   await client.connect();
-  logger.info(colors.green('🚀 Database connected successfully'));
+  logger.info(chalk.green('🚀 Database connected successfully'));
 
   db ??= client.db(config.server.db_name);
   bucket ??= new GridFSBucket(client.db(), { bucketName: 'files' });

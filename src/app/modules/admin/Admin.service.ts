@@ -1,4 +1,4 @@
-import colors from 'colors';
+import chalk from 'chalk';
 import { errorLogger } from '../../../util/logger/logger';
 import { logger } from '../../../util/logger/logger';
 import config from '../../../config';
@@ -15,7 +15,7 @@ export const AdminServices = {
   async seed() {
     const { name, email, password } = config.admin;
 
-    logger.info(colors.green('🔑 admin seed started...'));
+    logger.info(chalk.green('🔑 admin seed started...'));
 
     try {
       const admin = await prisma.user.findFirst({
@@ -24,7 +24,7 @@ export const AdminServices = {
 
       if (admin?.is_admin && admin?.is_active && admin?.is_verified) return;
 
-      logger.info(colors.green('🔑 admin creation started...'));
+      logger.info(chalk.green('🔑 admin creation started...'));
 
       if (admin) {
         await prisma.user.update({
@@ -52,11 +52,11 @@ export const AdminServices = {
         });
       }
 
-      logger.info(colors.green('✔ admin created successfully!'));
+      logger.info(chalk.green('✔ admin created successfully!'));
     } catch (error) {
-      errorLogger.error(colors.red('❌ admin creation failed!'), error);
+      errorLogger.error(chalk.red('❌ admin creation failed!'), error);
     } finally {
-      logger.info(colors.green('🔑 admin seed completed!'));
+      logger.info(chalk.green('🔑 admin seed completed!'));
     }
   },
 };

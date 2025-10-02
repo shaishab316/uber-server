@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import { envPath } from '../../config/configure';
-import colors from 'colors';
+import chalk from 'chalk';
 
 /**
  * Retrieves an environment variable with type checking, error handling, and appending to .env if not found
@@ -35,13 +35,13 @@ export default function env<T>(
 
   if (value === undefined) {
     console.log(
-      colors.yellow(
+      chalk.yellow(
         `⚠️ Environment variable ${key} is not set, setting to ${defaultValue}`,
       ),
     );
 
     if (defaultValue === undefined)
-      console.error(colors.red(`❌ Environment variable ${key} is required`));
+      console.error(chalk.red(`❌ Environment variable ${key} is required`));
 
     if (fs.existsSync(envPath)) {
       const envData = fs.readFileSync(envPath, 'utf8');
@@ -62,7 +62,7 @@ export default function env<T>(
       );
 
     console.log(
-      colors.green(`✅ Environment variable ${key} set to ${defaultValue}`),
+      chalk.green(`✅ Environment variable ${key} set to ${defaultValue}`),
     );
 
     if (Array.isArray(defaultValue)) value = defaultValue.join(',');
@@ -72,7 +72,7 @@ export default function env<T>(
 
     if (isNotSet || (options.regex && !new RegExp(options.regex).test(value))) {
       const error = new Error(
-        `Environment variable ${colors.yellow(key)} is not ${isNotSet ? 'set' : 'valid'}`,
+        `Environment variable ${chalk.yellow(key)} is not ${isNotSet ? 'set' : 'valid'}`,
       );
 
       let lineInEnv = 'unknown';
@@ -84,7 +84,7 @@ export default function env<T>(
         if (index >= 0) lineInEnv = (index + 1).toString();
       }
 
-      error.stack = `${colors.yellow(key)} = "${value}" does not match /${options.regex}/
+      error.stack = `${chalk.yellow(key)} = "${value}" does not match /${options.regex}/
     at env (${envPath}:${lineInEnv}:${key.length + 5})
 ${new Error().stack?.split('\n')[2] ?? 'unknown'}
     at Object.<anonymous> (${__filename}:90:13)`;

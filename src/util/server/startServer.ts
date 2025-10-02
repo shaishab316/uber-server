@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import colors from 'colors';
+import chalk from 'chalk';
 import { createServer } from 'http';
 import app from '../../app';
 import config from '../../config';
@@ -38,7 +38,7 @@ export default async function startServer() {
 
     {
       process.stdout.write('\x1Bc');
-      console.log(colors.gray('[console cleared]'));
+      console.log(chalk.gray('[console cleared]'));
     }
 
     await new Promise<void>(resolve => {
@@ -46,7 +46,7 @@ export default async function startServer() {
     });
 
     logger.info(
-      colors.yellow(`🚀 ${name} is running on http://${ip_address}:${port}`),
+      chalk.yellow(`🚀 ${name} is running on http://${ip_address}:${port}`),
     );
 
     ['SIGTERM', 'SIGINT', 'unhandledRejection', 'uncaughtException'].forEach(
@@ -58,7 +58,7 @@ export default async function startServer() {
 
     return server;
   } catch (error) {
-    errorLogger.error(colors.red('❌ Server startup failed!'), error);
+    errorLogger.error(chalk.red('❌ Server startup failed!'), error);
     process.exit(1);
   }
 }

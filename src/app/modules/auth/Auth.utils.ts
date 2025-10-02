@@ -3,7 +3,7 @@ import config from '../../../config';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { errorLogger } from '../../../util/logger/logger';
-import colors from 'colors';
+import chalk from 'chalk';
 import bcrypt from 'bcryptjs';
 import { enum_decode } from '../../../util/transform/enum';
 
@@ -29,7 +29,7 @@ export const encodeToken = (payload: TTokenPayload, token_type: TToken) => {
       expiresIn: config.jwt[token_type].expire_in,
     });
   } catch (error: any) {
-    errorLogger.error(colors.red('🔑 Failed to create token'), error);
+    errorLogger.error(chalk.red('🔑 Failed to create token'), error);
     throw new ServerError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       'Failed to create token ::=> ' + error.message,

@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import colors from 'colors';
+import chalk from 'chalk';
 import { errorLogger, logger } from '../../../util/logger/logger';
 import { formatError } from '../../middlewares/globalErrorHandler';
 
@@ -8,10 +8,10 @@ export const socketError = (socket: Socket, error: Error) => {
 
   socket.emit('socket_error', JSON.stringify(formattedError));
 
-  errorLogger.error(colors.red(formattedError.message));
+  errorLogger.error(chalk.red(formattedError.message));
 };
 
 export const socketInfo = (socket: Socket, message: string) => {
   socket.emit('socket_log', message);
-  logger.info(colors.green(message));
+  logger.info(chalk.green(message));
 };

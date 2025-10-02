@@ -6,7 +6,7 @@ import ServerError from '../../errors/ServerError';
 import catchAsync from './catchAsync';
 import config from '../../config';
 import { errorLogger, logger } from '../../util/logger/logger';
-import colors from 'colors';
+import chalk from 'chalk';
 import { json } from '../../util/transform/json';
 import { getBucket } from '../../util/server/connectDB';
 import path from 'path';
@@ -128,7 +128,7 @@ export const deleteFile = async (filename: string) => {
   try {
     if (!getBucket()) return;
 
-    logger.info(colors.yellow(`🗑️ Deleting file: '${filename}'`));
+    logger.info(chalk.yellow(`🗑️ Deleting file: '${filename}'`));
 
     const result = await Promise.all(
       (await getBucket()!.find({ filename }).toArray()).map(({ _id }) =>
@@ -137,13 +137,13 @@ export const deleteFile = async (filename: string) => {
     );
 
     if (result.length)
-      logger.info(colors.green(`✔ file '${filename}' deleted successfully!`));
-    else errorLogger.error(colors.red(`❌ file '${filename}' not deleted!`));
+      logger.info(chalk.green(`✔ file '${filename}' deleted successfully!`));
+    else errorLogger.error(chalk.red(`❌ file '${filename}' not deleted!`));
 
     return result;
   } catch (error: any) {
     errorLogger.error(
-      colors.red(`❌ file '${filename}' not deleted!`),
+      chalk.red(`❌ file '${filename}' not deleted!`),
       error?.stack ?? error,
     );
   }

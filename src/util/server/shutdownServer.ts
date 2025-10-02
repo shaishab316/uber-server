@@ -1,4 +1,4 @@
-import colors from 'colors';
+import chalk from 'chalk';
 import { Server } from 'http';
 import { errorLogger, logger } from '../logger/logger';
 import config from '../../config';
@@ -14,22 +14,22 @@ export default async function shutdownServer(
   signal: string,
   err?: Error,
 ) {
-  if (err) errorLogger.error(colors.red(`${signal} occurred: `), err);
+  if (err) errorLogger.error(chalk.red(`${signal} occurred: `), err);
 
   if (signal === 'uncaughtException' && !config.server.isDevelopment) return;
 
-  logger.info(colors.magenta(`🔴 Shutting down server due to ${signal}...`));
+  logger.info(chalk.magenta(`🔴 Shutting down server due to ${signal}...`));
 
   server.close(shutdownErr => {
     if (shutdownErr) {
       errorLogger.error(
-        colors.red('❌ Error during server shutdown'),
+        chalk.red('❌ Error during server shutdown'),
         shutdownErr,
       );
       process.exit(1);
     }
 
-    logger.info(colors.magenta('✅ Server closed.'));
+    logger.info(chalk.magenta('✅ Server closed.'));
     process.exit(0);
   });
 }
