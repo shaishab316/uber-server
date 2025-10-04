@@ -4,7 +4,7 @@ import { prisma } from '../../../util/db';
 import catchAsync from '../../middlewares/catchAsync';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
-import { TStartTrip, TTripJoin, TUpdateTripLocation } from './Trip.interface';
+import { TTripJoin, TUpdateTripLocation } from './Trip.interface';
 import { TripServices } from './Trip.service';
 import { socketInfo } from '../socket/Socket.utils';
 import { getDistance, TLocationGeo } from '../../../util/location';
@@ -73,18 +73,6 @@ const TripSocket: TSocketHandler = (io, socket) => {
       socket,
       TripValidations.updateTripLocation,
     ),
-  );
-
-  socket.on(
-    'start_trip',
-    catchAsync.socket(async (payload: TStartTrip) => {
-      await TripServices.startTrip({
-        trip_id: payload.trip_id,
-        passenger_id: user.id,
-      });
-
-      TripServices.launchStartedTrip({ io, socket });
-    }, socket),
   );
 };
 

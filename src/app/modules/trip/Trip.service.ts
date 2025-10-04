@@ -135,12 +135,10 @@ export const TripServices = {
     trip_id,
     driver_id,
     location,
-    sOtp,
   }: {
     trip_id: string;
     driver_id: string;
     location: TLocation;
-    sOtp: string;
   }) {
     const trip = await prisma.trip.findUnique({
       where: { id: trip_id },
@@ -158,9 +156,6 @@ export const TripServices = {
         StatusCodes.CONFLICT,
         `Driver ${trip.driver?.name} is already assigned to this trip`,
       );
-
-    if (trip?.sOtp !== sOtp)
-      throw new ServerError(StatusCodes.FORBIDDEN, 'Trip start otp is invalid');
 
     const updatedTrip = await prisma.trip.update({
       where: { id: trip_id },
@@ -183,6 +178,76 @@ export const TripServices = {
           data: updatedTrip,
         }),
       );
+  },
+
+  async startTrip({
+    trip_id,
+    driver_id,
+    sOtp,
+  }: {
+    trip_id: string;
+    driver_id: string;
+    location: TLocation;
+    sOtp: string;
+  }) {
+    const trip = await prisma.trip.findUnique({
+      where: { id: trip_id },
+      include: {
+        driver: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (trip?.driver_id !== driver_id)
+      throw new ServerError(
+        StatusCodes.CONFLICT,
+        `You can't start ${trip?.driver?.name}'s trip`,
+      );
+
+    if (trip.status !== ETripStatus.ACCEPTED)
+      throw new ServerError(StatusCodes.CONFLICT, 'Trip is not accepted yet');
+
+    if (trip?.sOtp !== sOtp)
+      throw new ServerError(
+        StatusCodes.FORBIDDEN,
+        'Trip start otp is incorrect',
+      );
+
+    const updatedTrip = await prisma.trip.update({
+      where: { id: trip_id },
+      data: {
+        driver_id,
+        status: ETripStatus.STARTED,
+        started_at: new Date(),
+      },
+      include: {
+        passenger: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+      omit: tripOmit,
+    });
+
+    SocketServices.getIO()
+      ?.to(trip_id)
+      .emit(
+        'trip_info',
+        JSON.stringify({
+          status: StatusCodes.OK,
+          message: 'Trip started successfully',
+          data: updatedTrip,
+        }),
+      );
+
+    SocketServices.getIO()
+      ?.to(updatedTrip.passenger_id)
+      .emit('start_trip', JSON.stringify(updatedTrip));
   },
 
   async completeTrip({
@@ -234,7 +299,7 @@ export const TripServices = {
         'trip_info',
         JSON.stringify({
           status: StatusCodes.OK,
-          message: 'Trip accepted successfully',
+          message: 'Trip completed successfully',
           data: updatedTrip,
         }),
       );
@@ -351,28 +416,6 @@ export const TripServices = {
       where: { id: trip_id },
       data: { vehicle_address: location },
       omit: tripOmit,
-    });
-  },
-
-  async startTrip({
-    passenger_id,
-    trip_id,
-  }: {
-    trip_id: string;
-    passenger_id: string;
-  }) {
-    const trip = await prisma.trip.findUnique({
-      where: { id: trip_id, passenger_id, status: ETripStatus.ACCEPTED },
-    });
-
-    if (!trip) throw new ServerError(StatusCodes.NOT_FOUND, 'Trip not found');
-
-    return prisma.trip.update({
-      where: { id: trip_id },
-      data: { status: ETripStatus.STARTED, started_at: new Date() },
-      select: {
-        id: true,
-      },
     });
   },
 

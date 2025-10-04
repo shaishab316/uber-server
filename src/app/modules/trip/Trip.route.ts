@@ -25,6 +25,15 @@ const driver = Router();
   );
 
   driver.post(
+    '/:tripId/start-trip',
+    purifyRequest(
+      QueryValidations.exists('tripId', 'trip'),
+      TripValidations.startTrip,
+    ),
+    TripControllers.startTrip,
+  );
+
+  driver.post(
     '/:tripId/reject-trip',
     purifyRequest(
       QueryValidations.exists('tripId', 'trip'),

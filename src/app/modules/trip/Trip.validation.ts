@@ -43,6 +43,11 @@ export const TripValidations = {
   acceptTrip: z.object({
     body: z.object({
       location: locationSchema,
+    }),
+  }),
+
+  startTrip: z.object({
+    body: z.object({
       sOtp: z.coerce
         .string({
           error: 'Start Otp is missing',
@@ -77,12 +82,6 @@ export const TripValidations = {
 
   //! socket validations..........
   joinTrip: z.object({
-    trip_id: z.string().refine(exists('trip'), {
-      error: ({ input }) => `Trip not found with id: ${input}`,
-    }),
-  }),
-
-  startTrip: z.object({
     trip_id: z.string().refine(exists('trip'), {
       error: ({ input }) => `Trip not found with id: ${input}`,
     }),
