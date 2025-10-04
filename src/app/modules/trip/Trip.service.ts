@@ -151,10 +151,6 @@ export const TripServices = {
           },
         },
       },
-      omit: {
-        ...tripOmit,
-        sOtp: undefined,
-      },
     });
 
     if (trip?.driver_id)
@@ -166,7 +162,7 @@ export const TripServices = {
     if (trip?.sOtp !== sOtp)
       throw new ServerError(StatusCodes.FORBIDDEN, 'Trip start otp is invalid');
 
-    await prisma.trip.update({
+    const updatedTrip = await prisma.trip.update({
       where: { id: trip_id },
       data: {
         driver_id,
@@ -174,6 +170,7 @@ export const TripServices = {
         vehicle_address: location,
         accepted_at: new Date(),
       },
+      omit: tripOmit,
     });
 
     SocketServices.getIO()
@@ -183,7 +180,7 @@ export const TripServices = {
         JSON.stringify({
           status: StatusCodes.OK,
           message: 'Trip accepted successfully',
-          data: trip,
+          data: updatedTrip,
         }),
       );
   },
@@ -221,13 +218,14 @@ export const TripServices = {
     if (trip?.eOtp !== eOtp)
       throw new ServerError(StatusCodes.FORBIDDEN, 'Trip end otp is invalid');
 
-    await prisma.trip.update({
+    const updatedTrip = await prisma.trip.update({
       where: { id: trip_id },
       data: {
         driver_id,
         status: ETripStatus.COMPLETED,
         completed_at: new Date(),
       },
+      omit: tripOmit,
     });
 
     SocketServices.getIO()
@@ -237,7 +235,7 @@ export const TripServices = {
         JSON.stringify({
           status: StatusCodes.OK,
           message: 'Trip accepted successfully',
-          data: trip,
+          data: updatedTrip,
         }),
       );
   },
