@@ -19,7 +19,7 @@ const driver = Router();
     '/:tripId/accept-trip',
     purifyRequest(
       QueryValidations.exists('tripId', 'trip'),
-      TripValidations.updateLocation,
+      TripValidations.acceptTrip,
     ),
     TripControllers.acceptTrip,
   );
@@ -28,9 +28,18 @@ const driver = Router();
     '/:tripId/reject-trip',
     purifyRequest(
       QueryValidations.exists('tripId', 'trip'),
-      TripValidations.reject,
+      TripValidations.rejectTrip,
     ),
     TripControllers.rejectTrip,
+  );
+
+  driver.post(
+    '/:tripId/complete-trip',
+    purifyRequest(
+      QueryValidations.exists('tripId', 'trip'),
+      TripValidations.completeTrip,
+    ),
+    TripControllers.completeTrip,
   );
 
   driver.post(

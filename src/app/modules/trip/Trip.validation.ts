@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { EVehicle } from '../../../../prisma';
 import { enum_encode } from '../../../util/transform/enum';
 import { exists } from '../../../util/db/exists';
+import config from '../../../config';
 
 export const locationSchema = z.object({
   geo: z.tuple([
@@ -39,11 +40,38 @@ export const TripValidations = {
     }),
   }),
 
-  reject: z.object({
+  acceptTrip: z.object({
+    body: z.object({
+      location: locationSchema,
+      sOtp: z.coerce
+        .string({
+          error: 'Start Otp is missing',
+        })
+        .length(
+          config.otp.length,
+          `Start Otp must be ${config.otp.length} digits`,
+        ),
+    }),
+  }),
+
+  rejectTrip: z.object({
     body: z.object({
       reason: z
         .string({ error: 'Reason is missing' })
         .nonempty('Reason is required'),
+    }),
+  }),
+
+  completeTrip: z.object({
+    body: z.object({
+      eOtp: z.coerce
+        .string({
+          error: 'End Otp is missing',
+        })
+        .length(
+          config.otp.length,
+          `End Otp must be ${config.otp.length} digits`,
+        ),
     }),
   }),
 

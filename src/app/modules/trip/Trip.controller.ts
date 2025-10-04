@@ -11,9 +11,7 @@ export const TripControllers = {
 
     serveResponse(res, {
       message: 'Trip started successfully!',
-      data: {
-        trip_id: trip.id,
-      },
+      data: trip,
     });
   }),
 
@@ -50,6 +48,18 @@ export const TripControllers = {
 
     serveResponse(res, {
       message: 'Trip location updated successfully!',
+    });
+  }),
+
+  completeTrip: catchAsync(async ({ params, user, body }, res) => {
+    await TripServices.completeTrip({
+      ...body,
+      driver_id: user.id,
+      trip_id: params.tripId,
+    });
+
+    serveResponse(res, {
+      message: 'Trip completed successfully!',
     });
   }),
 };

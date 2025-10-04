@@ -47,6 +47,9 @@ export const TripServices = {
     //     'You have a pending trip with id ' + existingTrip.id,
     //   );
 
+    const sOtp = otpGenerator(config.otp.length);
+    const eOtp = otpGenerator(config.otp.length);
+
     const trip = await prisma.trip.create({
       data: {
         dropoff_address,
@@ -55,8 +58,9 @@ export const TripServices = {
         stops,
         passenger_ages,
         passenger_id,
-        sOtp: otpGenerator(config.otp.length),
-        eOtp: otpGenerator(config.otp.length),
+        status: ETripStatus.REQUESTED,
+        sOtp,
+        eOtp,
       },
       select: {
         passenger: {
@@ -81,7 +85,11 @@ export const TripServices = {
     //! Don't use await for faster response
     this.findNearestDriver(trip);
 
-    return trip;
+    return {
+      trip_id: trip.id,
+      start_otp: sOtp,
+      end_otp: eOtp,
+    };
   },
 
   async rejectTrip({
@@ -127,28 +135,36 @@ export const TripServices = {
     trip_id,
     driver_id,
     location,
+    sOtp,
   }: {
     trip_id: string;
     driver_id: string;
     location: TLocation;
+    sOtp: string;
   }) {
     const trip = await prisma.trip.findUnique({
       where: { id: trip_id },
-      select: {
+      include: {
         driver: {
           select: {
-            id: true,
             name: true,
           },
         },
       },
+      omit: {
+        ...tripOmit,
+        sOtp: undefined,
+      },
     });
 
-    if (trip?.driver?.id)
+    if (trip?.driver_id)
       throw new ServerError(
         StatusCodes.CONFLICT,
-        `Driver ${trip.driver.name} is already assigned to this trip`,
+        `Driver ${trip.driver?.name} is already assigned to this trip`,
       );
+
+    if (trip?.sOtp !== sOtp)
+      throw new ServerError(StatusCodes.FORBIDDEN, 'Trip start otp is invalid');
 
     await prisma.trip.update({
       where: { id: trip_id },
@@ -165,9 +181,63 @@ export const TripServices = {
       .emit(
         'trip_info',
         JSON.stringify({
-          id: trip_id,
           status: StatusCodes.OK,
           message: 'Trip accepted successfully',
+          data: trip,
+        }),
+      );
+  },
+
+  async completeTrip({
+    trip_id,
+    driver_id,
+    eOtp,
+  }: {
+    trip_id: string;
+    driver_id: string;
+    eOtp: string;
+  }) {
+    const trip = await prisma.trip.findUnique({
+      where: { id: trip_id },
+      include: {
+        driver: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      omit: {
+        ...tripOmit,
+        eOtp: undefined,
+      },
+    });
+
+    if (trip?.driver_id !== driver_id)
+      throw new ServerError(
+        StatusCodes.CONFLICT,
+        `You can't complete ${trip?.driver?.name}'s trip`,
+      );
+
+    if (trip?.eOtp !== eOtp)
+      throw new ServerError(StatusCodes.FORBIDDEN, 'Trip end otp is invalid');
+
+    await prisma.trip.update({
+      where: { id: trip_id },
+      data: {
+        driver_id,
+        status: ETripStatus.COMPLETED,
+        completed_at: new Date(),
+      },
+    });
+
+    SocketServices.getIO()
+      ?.to(trip_id)
+      .emit(
+        'trip_info',
+        JSON.stringify({
+          status: StatusCodes.OK,
+          message: 'Trip accepted successfully',
+          data: trip,
         }),
       );
   },
@@ -209,9 +279,9 @@ export const TripServices = {
         .emit(
           'trip_info',
           JSON.stringify({
-            id: trip.id,
             status: StatusCodes.NOT_FOUND,
             message: 'No driver found',
+            data: trip,
           }),
         );
 
