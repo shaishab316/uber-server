@@ -5,12 +5,12 @@ export const ContextPageValidations = {
     body: z.object({
       pageName: z
         .string({
-          required_error: 'Page name is missing',
+          error: 'Page name is missing',
         })
         .min(1, "Page name can't be empty"),
       content: z
         .string({
-          required_error: 'Content is missing',
+          error: 'Content is missing',
         })
         .min(1, "Content can't be empty"),
     }),

@@ -3,12 +3,11 @@ import './configure';
 import env from '../util/env/env';
 import type ms from 'ms';
 import { genSecret } from '../util/crypto/genSecret';
-import getIpAddress from '../util/server/getIpAddress';
 import path from 'path';
 
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
 
-const node_env = process.env.NODE_ENV ?? 'development';
+const node_env = process.env.NODE_ENV?.trim() ?? 'development';
 
 const server_name =
   process.env.SERVER_NAME ??
@@ -25,8 +24,6 @@ const support_email =
   process.env.EMAIL_SUPPORT ?? `support@${server_name.toLocaleLowerCase()}.com`;
 
 const db_name = server_name.toLowerCase().replace(' ', '-');
-
-const ip_address = process.env.IP_ADDRESS ?? getIpAddress();
 
 const port = Number(
   process.env.PORT ?? Math.floor(Math.random() * 1000) + 3000,
@@ -46,9 +43,6 @@ const config = {
     }),
     allowed_origins: env('allowed origins', ['*'], {
       regex: '^\\*$|^$|^(https?:\\/\\/[^,\\s]+)(,https?:\\/\\/[^,\\s]+)*$',
-    }),
-    ip_address: env('ip address', ip_address, {
-      regex: '^(\\d{1,3}\\.){3}\\d{1,3}$',
     }),
     port: env('port', port, {
       regex: '^\\d{4,5}$',
@@ -81,7 +75,7 @@ const config = {
       up: 'Database info - start',
       regex: '^mongodb(\\+srv)?://.*$',
     }),
-    ui: env('ui url', `http://${ip_address}:${port}`, {
+    ui: env('ui url', `http://localhost:${port}`, {
       regex: '^https?:\\/\\/.*$|^$',
       down: 'Database info - end',
     }),

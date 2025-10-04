@@ -7,12 +7,13 @@ import { errorLogger, logger } from '../logger/logger';
 import shutdownServer from './shutdownServer';
 import connectDB from './connectDB';
 import { AdminServices } from '../../app/modules/admin/Admin.service';
-import killPort from 'kill-port';
 import { verifyEmailTransporter } from '../sendMail';
 import { setupIndexes } from '../db/setupIndexes';
 
+const server = createServer(app);
+
 const {
-  server: { port, ip_address, name },
+  server: { port, name },
 } = config;
 
 /**
@@ -23,30 +24,17 @@ const {
  */
 export default async function startServer() {
   try {
-    try {
-      await killPort(port);
-    } catch (error) {
-      console.log(error);
-    }
-
     await connectDB();
     await setupIndexes();
     await AdminServices.seed();
     await verifyEmailTransporter();
 
-    const server = createServer(app);
+    await new Promise<void>(resolve => server.listen(port, resolve));
 
-    {
-      process.stdout.write('\x1Bc');
-      console.log(chalk.gray('[console cleared]'));
-    }
-
-    await new Promise<void>(resolve => {
-      server.listen(port, ip_address, resolve);
-    });
-
+    process.stdout.write('\x1Bc');
+    console.log(chalk.gray('[console cleared]'));
     logger.info(
-      chalk.yellow(`🚀 ${name} is running on http://${ip_address}:${port}`),
+      chalk.yellow(`🚀 ${name} is running on http://localhost:${port}`),
     );
 
     ['SIGTERM', 'SIGINT', 'unhandledRejection', 'uncaughtException'].forEach(

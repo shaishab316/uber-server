@@ -3,19 +3,15 @@ import { Server as IOServer, Socket } from 'socket.io';
 import config from '../../../config';
 import auth from '../../middlewares/socketAuth';
 import { socketError, socketInfo } from './Socket.utils';
-import { TAuthenticatedSocket, TSocketHandler } from './Socket.interface';
-import { initSocketHandlers } from './Socket.plugin';
+import { TAuthenticatedSocket } from './Socket.interface';
+import socketPlugins from './Socket.plugin';
 
 let io: IOServer | null = null;
-const handlers: TSocketHandler[] = [];
 const onlineUsers = new Set<string>();
 
 export const SocketServices = {
   async init(server: http.Server) {
     server.on('close', this.cleanup);
-
-    //! use socket plugin
-    if (!handlers.length) handlers.push(...(await initSocketHandlers()));
 
     io ??= new IOServer(server, {
       cors: { origin: config.server.allowed_origins },
@@ -72,7 +68,7 @@ export const SocketServices = {
   },
 
   plugin(socket: Socket) {
-    for (const handler of handlers) {
+    for (const handler of socketPlugins) {
       try {
         handler(this.getIO()!, socket);
       } catch (error: any) {
@@ -88,6 +84,5 @@ export const SocketServices = {
   cleanup() {
     this.getIO()?.close();
     onlineUsers.clear();
-    handlers.length = 0;
   },
 };
