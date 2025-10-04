@@ -18,6 +18,8 @@ import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 import { SocketServices } from '../socket/Socket.service';
 import { TAuthenticatedSocket } from '../socket/Socket.interface';
 import { Server as IOServer } from 'socket.io';
+import { tripOmit } from './Trip.constant';
+import { otpGenerator } from '../../../util/crypto/otpGenerator';
 
 export const TripServices = {
   async requestForTrip({
@@ -53,6 +55,8 @@ export const TripServices = {
         stops,
         passenger_ages,
         passenger_id,
+        sOtp: otpGenerator(config.otp.length),
+        eOtp: otpGenerator(config.otp.length),
       },
       select: {
         passenger: {
@@ -91,6 +95,10 @@ export const TripServices = {
   }) {
     const trip = (await prisma.trip.findUnique({
       where: { id: trip_id },
+      omit: {
+        ...tripOmit,
+        exclude_driver_ids: undefined,
+      },
     }))!;
 
     Object.assign(trip, {
@@ -155,7 +163,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(trip_id)
       .emit(
-        'tripInfo',
+        'trip_info',
         JSON.stringify({
           id: trip_id,
           status: StatusCodes.OK,
@@ -199,7 +207,7 @@ export const TripServices = {
       SocketServices.getIO()
         ?.to(trip.passenger_id!)
         .emit(
-          'tripInfo',
+          'trip_info',
           JSON.stringify({
             id: trip.id,
             status: StatusCodes.NOT_FOUND,
@@ -209,6 +217,10 @@ export const TripServices = {
 
       const updatedTrip = await prisma.trip.findUnique({
         where: { id: trip.id },
+        omit: {
+          ...tripOmit,
+          exclude_driver_ids: undefined,
+        },
       });
 
       setTimeout(() => this.findNearestDriver(updatedTrip!), 1000);
@@ -228,7 +240,7 @@ export const TripServices = {
 
     SocketServices.getIO()
       ?.to(driver)
-      .emit('receivePassenger', JSON.stringify(trip));
+      .emit('request_for_trip', JSON.stringify(trip));
   },
 
   async updateTripLocation({
@@ -270,6 +282,7 @@ export const TripServices = {
     return prisma.trip.update({
       where: { id: trip_id },
       data: { vehicle_address: location },
+      omit: tripOmit,
     });
   },
 
@@ -320,7 +333,7 @@ export const TripServices = {
         driver: userSelectableField,
         passenger: userSelectableField,
       },
-      omit: { exclude_driver_ids: true },
+      omit: tripOmit,
     });
 
     if (trip) {

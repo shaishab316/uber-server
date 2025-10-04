@@ -2,6 +2,7 @@ import { Prisma } from '../../../../prisma';
 import { prisma } from '../../../util/db';
 import { TPagination } from '../../../util/server/serveResponse';
 import { TList } from '../query/Query.interface';
+import { tripOmit } from '../trip/Trip.constant';
 import { userOmit } from '../user/User.service';
 
 export const CancelTripServices = {
@@ -55,9 +56,7 @@ export const CancelTripServices = {
           omit: userOmit,
         },
         trip: {
-          omit: {
-            exclude_driver_ids: true,
-          },
+          omit: tripOmit,
         },
       },
     });

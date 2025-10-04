@@ -28,6 +28,9 @@ model Trip {
   exclude_driver_ids String[]     @default([])
   CancelTrip         CancelTrip[]
 
+  sOtp String
+  eOtp String
+
   @@map("trips")
 }
 
