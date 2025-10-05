@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.3.0...v2.0.0) (2025-10-05)
+
+
+### Features
+
+* **socket:** refactor for namespaces and plugin-based architecture ✨ ([78d8cb7](https://github.com/Alpha-Bytes-Department/uber-server/commit/78d8cb73b6e263bbefbf0af4a7d891f66315642d))
+
+
+### BREAKING CHANGES
+
+* **socket:** - Socket.IO now requires connecting to a valid namespace; connections to the default namespace '/' are rejected.
+- Online user tracking is now namespace-specific.
+- Socket plugin system introduced; handlers now receive the Namespace instance instead of the Server.
+- Event emissions for modules (e.g., Trip) must use their corresponding namespace.
+- Type definitions updated to reflect the new structure.
+
+This restructuring improves modularity, scalability, and separation of concerns.
+
 # [1.3.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.2.0...v1.3.0) (2025-10-05)
 
 
