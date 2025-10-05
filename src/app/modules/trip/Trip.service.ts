@@ -17,9 +17,10 @@ import ServerError from '../../../errors/ServerError';
 import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 import { SocketServices } from '../socket/Socket.service';
 import { TAuthenticatedSocket } from '../socket/Socket.interface';
-import { Server as IOServer } from 'socket.io';
+import { Namespace } from 'socket.io';
 import { tripOmit } from './Trip.constant';
 import { otpGenerator } from '../../../util/crypto/otpGenerator';
+import { TServeResponse } from '../../../util/server/serveResponse';
 
 export const TripServices = {
   async requestForTrip({
@@ -424,7 +425,7 @@ export const TripServices = {
     io,
   }: {
     socket: TAuthenticatedSocket;
-    io: IOServer | null;
+    io: Namespace | null;
   }) {
     const { user } = socket.data;
     const userSelectableField = { select: { name: true, avatar: true } };
@@ -449,7 +450,15 @@ export const TripServices = {
 
     if (trip) {
       socket.join(trip.id);
-      io?.to(trip.id).emit('start_trip', JSON.stringify(trip));
+      io?.to(trip.id).emit(
+        'start_trip',
+        JSON.stringify({
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: 'Trip started successfully',
+          data: trip,
+        } as TServeResponse<typeof trip>),
+      );
     }
   },
 };

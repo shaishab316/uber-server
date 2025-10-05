@@ -1,81 +1,106 @@
 import http from 'http';
 import { Server as IOServer, Socket } from 'socket.io';
 import config from '../../../config';
+import SocketPlugin from './Socket.plugin';
 import auth from '../../middlewares/socketAuth';
 import { TAuthenticatedSocket } from './Socket.interface';
-import socketPlugins from './Socket.plugin';
 import { logger } from '../../../util/logger/logger';
+import { notFoundError } from '../../../errors';
+import { formatError } from '../../middlewares/globalErrorHandler';
+
+type OnlineMap = Record<string, Set<string>>;
 
 let io: IOServer | null = null;
-const onlineUsers = new Set<string>();
+const onlineUsers: OnlineMap = {};
 
 export const SocketServices = {
-  async init(server: http.Server) {
+  init(server: http.Server) {
+    if (io) return;
+
+    io = new IOServer(server, {
+      cors: { origin: config.server.allowed_origins },
+    });
+
+    // Reject connections on the default namespace '/'
+    io.on('connection', (socket: Socket) => {
+      socket.emit('error', JSON.stringify(formatError(notFoundError('/'))));
+      setTimeout(() => {
+        socket.disconnect(true);
+      }, 50);
+    });
+
+    // Attach cleanup on server close
     server.on('close', this.cleanup);
 
-    io ??= new IOServer(server, {
-      cors: { origin: config.server.allowed_origins },
-    })
-      .use(auth)
-      .on('connection', (socket: TAuthenticatedSocket) => {
+    // Initialize each namespace
+    Object.entries(SocketPlugin).forEach(([namespace, handler]) => {
+      const nsp = io!.of(namespace);
+      onlineUsers[namespace] = new Set();
+
+      nsp.use(auth);
+      nsp.on('connection', (socket: TAuthenticatedSocket) => {
         const { user } = socket.data;
 
+        // Join private room
         socket.join(user.id);
-        this.online(user.id);
+        this.markOnline(namespace, user.id);
 
-        logger.info(`👤 User (${user?.name}) connected to room: (${user.id})`);
+        logger.info(
+          `👤 User (${user.name}) connected to namespace: ${namespace}`,
+        );
 
+        // Event: leave room
         socket.on('leave', (roomId: string) => {
-          logger.info(`👤 User (${user?.name}) left from room: (${roomId})`);
           socket.leave(roomId);
+          logger.info(`👤 User (${user.name}) left room: ${roomId}`);
         });
 
+        // Event: disconnect
         socket.on('disconnect', () => {
-          logger.info(
-            `👤 User (${user?.name}) disconnected from room: (${user.id})`,
-          );
-          this.offline(user.id);
           socket.leave(user.id);
+          this.markOffline(namespace, user.id);
+          logger.info(
+            `👤 User (${user.name}) disconnected from namespace: ${namespace}`,
+          );
         });
 
-        socket.on('error', error => {
-          logger.error(error);
+        // Event: error
+        socket.on('error', err => {
+          logger.error(err);
         });
 
-        this.plugin(socket);
+        // Call module-specific handler
+        try {
+          handler(nsp, socket);
+        } catch (err) {
+          logger.error(`Namespace "${namespace}" handler error:`, err);
+        }
       });
+    });
   },
 
-  updateOnlineState() {
-    this.getIO()?.emit('online_users', Array.from(onlineUsers));
+  markOnline(namespace: string, userId: string) {
+    onlineUsers[namespace].add(userId);
+    this.emitOnline(namespace);
   },
 
-  online(userId: string) {
-    onlineUsers.add(userId);
-    this.updateOnlineState();
+  markOffline(namespace: string, userId: string) {
+    onlineUsers[namespace].delete(userId);
+    this.emitOnline(namespace);
   },
 
-  offline(userId: string) {
-    onlineUsers.delete(userId);
-    this.updateOnlineState();
+  emitOnline(namespace: string) {
+    io?.of(namespace).emit('online_users', Array.from(onlineUsers[namespace]));
   },
 
-  plugin(socket: Socket) {
-    for (const handler of socketPlugins) {
-      try {
-        handler(this.getIO()!, socket);
-      } catch (error: any) {
-        logger.error(error);
-      }
-    }
-  },
-
-  getIO() {
+  getIO(): IOServer | null {
     return io;
   },
 
   cleanup() {
-    this.getIO()?.close();
-    onlineUsers.clear();
+    if (!io) return;
+    Object.keys(onlineUsers).forEach(ns => onlineUsers[ns].clear());
+    io.close(() => logger.info('Socket.IO server closed.'));
+    io = null;
   },
 };

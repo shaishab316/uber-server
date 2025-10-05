@@ -1,8 +1,11 @@
 /* eslint-disable no-unused-vars */
-import { Server, Socket } from 'socket.io';
+import { Namespace, Socket } from 'socket.io';
 import { User as TUser } from '../../../../prisma';
 
-export type TSocketHandler = (io: Server, socket: TAuthenticatedSocket) => void;
+export type TSocketHandler = (io: Namespace, socket: Socket) => void;
+export type TSocketPlugin = {
+  [namespace: string]: TSocketHandler;
+};
 
 export interface TAuthenticatedSocket extends Socket {
   data: {
