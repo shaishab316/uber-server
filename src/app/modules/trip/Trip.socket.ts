@@ -9,6 +9,7 @@ import { TripServices } from './Trip.service';
 import { getDistance, TLocationGeo } from '../../../util/location';
 import { tripNotificationMaps } from './Trip.util';
 import { tripOmit } from './Trip.constant';
+import serveResponse from '../../../util/server/serveResponse';
 
 const TripSocket: TSocketHandler = (io, socket) => {
   //! Launch started trip quickly
@@ -63,12 +64,20 @@ const TripSocket: TSocketHandler = (io, socket) => {
       const notification = closestNotification?.message;
 
       if (notification) {
-        socket
-          .to(trip.passenger_id)
-          .emit('trip_notification', JSON.stringify({ notification }));
+        socket.to(trip.passenger_id).emit(
+          'trip_notification',
+          serveResponse.socket({
+            message: notification,
+            data: {
+              distance,
+            },
+          }),
+        );
       }
 
-      return {};
+      return {
+        data: payload.location,
+      };
     }, TripValidations.updateTripLocation),
   );
 };

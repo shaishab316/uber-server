@@ -6,8 +6,11 @@ import catchAsync from '../../middlewares/catchAsync';
 import { MessageValidations } from '../message/Message.validation';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { MessageServices } from '../message/Message.service';
+import serveResponse from '../../../util/server/serveResponse';
 
 const ChatSocket: TSocketHandler = (io, socket) => {
+  const { user } = socket.data;
+
   socket.on(
     'join_chat_room',
     catchAsync.socket(async (payload: { chat_id: string }) => {
@@ -30,6 +33,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       socket.join(payload.chat_id);
 
       return {
+        message: 'Joined chat successfully',
         data: chat,
       };
     }),
@@ -61,9 +65,21 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
       const message = await MessageServices.createMsg(payload);
 
-      io.to(payload.chat_id).emit('new_message', JSON.stringify(message));
+      io.to(
+        user.role === EUserRole.USER ? chat?.driver_id : chat?.user_id,
+      ).emit(
+        'new_message',
+        serveResponse.socket({
+          message: `New message from ${user.name}`,
+          data: message,
+        }),
+      );
 
-      return { data: message };
+      return {
+        statusCode: StatusCodes.CREATED,
+        message: 'Message sent successfully',
+        data: message,
+      };
     }),
   );
 
@@ -75,12 +91,30 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         user_id: socket.data.user.id,
       });
 
-      io.to(message.chat_id).emit(
+      const chat = (await prisma.chat.findUnique({
+        where: {
+          id: message.chat_id,
+        },
+        select: {
+          driver_id: true,
+          user_id: true,
+        },
+      }))!;
+
+      io.to(
+        user.role === EUserRole.USER ? chat?.driver_id : chat?.user_id,
+      ).emit(
         'delete_message',
-        JSON.stringify({ message_id: message.id }),
+        serveResponse.socket({
+          message: `Message deleted by ${user.name}`,
+          data: message,
+        }),
       );
 
-      return { data: message };
+      return {
+        message: 'Message deleted successfully',
+        data: message,
+      };
     }, MessageValidations.deleteMsg),
   );
 };

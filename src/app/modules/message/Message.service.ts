@@ -45,12 +45,17 @@ export const MessageServices = {
     });
 
     if (!message)
-      throw new ServerError(StatusCodes.NOT_FOUND, 'Message not found');
+      throw new ServerError(
+        StatusCodes.FORBIDDEN,
+        'You are not allowed to delete this message',
+      );
 
     //Cleanup
     if (message.media_url) deleteFile(message.media_url);
 
-    return prisma.message.delete({ where: { id: message.id } });
+    return prisma.message.delete({
+      where: { id: message.id },
+    });
   },
 
   async getChatMessages({
