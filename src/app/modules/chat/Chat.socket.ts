@@ -17,14 +17,17 @@ const ChatSocket: TSocketHandler = (io, socket) => {
     'join_chat_room',
     catchAsync.socket(async ({ chat_id }) => {
       const chat = await prisma.chat.findFirst({
-        where: {
-          id: chat_id,
-          OR: [{ user_id: user.id }, { driver_id: user.id }],
-        },
+        where: { id: chat_id },
       });
 
-      if (!chat) throw new ServerError(StatusCodes.NOT_FOUND, 'Chat not found');
+      if (chat?.driver_id !== user.id && chat?.user_id !== user.id) {
+        throw new ServerError(
+          StatusCodes.FORBIDDEN,
+          'You are not allowed to join this chat',
+        );
+      }
 
+      // Join room
       socket.join(chat_id);
 
       return {
@@ -38,9 +41,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
     'send_message',
     catchAsync.socket(async ({ chat_id, content, media_type, media_url }) => {
       const chat = await prisma.chat.findUnique({
-        where: {
-          id: chat_id,
-        },
+        where: { id: chat_id },
       });
 
       const error = new ServerError(
@@ -65,7 +66,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
       const message = await MessageServices.createMsg(msgData);
 
-      io.to(isUser ? chat?.driver_id : chat?.user_id).emit(
+      io.to((isUser ? chat?.driver_id : chat?.user_id) ?? chat_id).emit(
         'new_message',
         serveResponse.socket({
           message: `New message from ${user.name}`,
