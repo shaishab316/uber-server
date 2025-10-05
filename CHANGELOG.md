@@ -1,3 +1,11 @@
+# [2.2.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.1.0...v2.2.0) (2025-10-05)
+
+
+### Features
+
+* Rename 'trip_info' socket event to 'trip_notification' ([a309452](https://github.com/Alpha-Bytes-Department/uber-server/commit/a309452138ed39186fc87342787583263de3de38))
+* Update chat's last message on message creation/deletion ([35fbc50](https://github.com/Alpha-Bytes-Department/uber-server/commit/35fbc5064c791a6e792db113581dbed81cdd9c0a))
+
 # [2.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.0.0...v2.1.0) (2025-10-05)
 
 
