@@ -1,7 +1,8 @@
 import ChatSocket from '../chat/Chat.socket';
 import TripSocket from '../trip/Trip.socket';
-import { TSocketHandler } from './Socket.interface';
+import { TSocketPlugin } from './Socket.interface';
 
-const socketPlugins: TSocketHandler[] = [ChatSocket, TripSocket];
-
-export default socketPlugins;
+export default {
+  chat: ChatSocket,
+  trip: TripSocket,
+} as TSocketPlugin;
