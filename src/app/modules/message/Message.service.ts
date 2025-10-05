@@ -13,7 +13,7 @@ export const MessageServices = {
     if (messageData.user_id) messageData.seen_by_user = true;
     else messageData.seen_by_driver = true;
 
-    return prisma.message.create({
+    const msg = await prisma.message.create({
       data: messageData,
       include: {
         user: {
@@ -30,6 +30,14 @@ export const MessageServices = {
         },
       },
     });
+
+    // update chat last msg
+    prisma.chat.update({
+      where: { id: messageData.chat_id },
+      data: { last_message_id: messageData.id },
+    });
+
+    return msg;
   },
 
   async seenMsg({ message_id, who }: TSeenMsg) {
@@ -53,9 +61,25 @@ export const MessageServices = {
     //Cleanup
     if (message.media_url) deleteFile(message.media_url);
 
-    return prisma.message.delete({
+    const msg = await prisma.message.delete({
       where: { id: message.id },
     });
+
+    const lastMsg = await prisma.message.findFirst({
+      where: { chat_id: message.chat_id },
+      orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+      },
+    });
+
+    // update chat last msg
+    prisma.chat.update({
+      where: { id: message.chat_id },
+      data: { last_message_id: lastMsg?.id },
+    });
+
+    return msg;
   },
 
   async getChatMessages({
