@@ -85,7 +85,7 @@ export const UserServices = {
     }
 
     body.avatar ||= undefined;
-    if (body.avatar) user?.avatar?.__pipes(deleteFile);
+    if (body.avatar && user?.avatar) await deleteFile(user.avatar);
 
     return prisma.user.update({
       where: { id: user.id },
@@ -162,7 +162,7 @@ export const UserServices = {
   async delete(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    user?.avatar?.__pipes(deleteFile); // delete avatar
+    if (user?.avatar) await deleteFile(user.avatar);
 
     return prisma.user.delete({ where: { id: userId } });
   },

@@ -39,6 +39,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
       return {
         message: 'Joined trip successfully',
         data: trip,
+        meta: { trip_id },
       };
     }, TripValidations.joinTrip),
   );
@@ -52,11 +53,12 @@ const TripSocket: TSocketHandler = (io, socket) => {
         location,
       });
 
-      socket.to((isUser ? trip.driver_id : trip.passenger_id) ?? trip_id).emit(
+      socket.to(trip_id).emit(
         'update_trip_location',
         serveResponse.socket({
           message: `${user.name} updated trip's location`,
           data: location,
+          meta: { trip_id },
         }),
       );
 
@@ -80,6 +82,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
             data: {
               distance,
             },
+            meta: { trip_id },
           }),
         );
       }
@@ -87,6 +90,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
       return {
         message: "Trip's location updated successfully!",
         data: location,
+        meta: { trip_id },
       };
     }, TripValidations.updateTripLocation),
   );

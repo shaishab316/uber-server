@@ -25,7 +25,7 @@ export const defaultError: TErrorHandler = {
 
 const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
   /** delete uploaded files */
-  req.tempFiles?.forEach(deleteFile);
+  if (req.tempFiles) Promise.all(req.tempFiles.map(deleteFile));
 
   if (config.server.isDevelopment)
     console.log(chalk.red('🚨 globalErrorHandler ~~ '), error);

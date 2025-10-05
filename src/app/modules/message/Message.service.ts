@@ -32,9 +32,9 @@ export const MessageServices = {
     });
 
     // update chat last msg
-    prisma.chat.update({
+    await prisma.chat.update({
       where: { id: messageData.chat_id },
-      data: { last_message_id: messageData.id },
+      data: { last_message_id: msg.id },
     });
 
     return msg;
@@ -59,7 +59,7 @@ export const MessageServices = {
       );
 
     //Cleanup
-    if (message.media_url) deleteFile(message.media_url);
+    if (message.media_url) await deleteFile(message.media_url);
 
     const msg = await prisma.message.delete({
       where: { id: message.id },
@@ -74,7 +74,7 @@ export const MessageServices = {
     });
 
     // update chat last msg
-    prisma.chat.update({
+    await prisma.chat.update({
       where: { id: message.chat_id },
       data: { last_message_id: lastMsg?.id },
     });

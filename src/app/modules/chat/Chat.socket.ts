@@ -33,6 +33,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       return {
         message: 'Joined chat successfully',
         data: chat,
+        meta: { chat_id },
       };
     }, ChatValidations.joinChat),
   );
@@ -66,11 +67,12 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
       const message = await MessageServices.createMsg(msgData);
 
-      io.to((isUser ? chat?.driver_id : chat?.user_id) ?? chat_id).emit(
+      io.to(chat_id).emit(
         'new_message',
         serveResponse.socket({
           message: `New message from ${user.name}`,
           data: message,
+          meta: { chat_id },
         }),
       );
 
@@ -78,6 +80,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         statusCode: StatusCodes.CREATED,
         message: 'Message sent successfully',
         data: message,
+        meta: { chat_id },
       };
     }, MessageValidations.createMsg),
   );
@@ -95,12 +98,14 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         serveResponse.socket({
           message: `Message deleted by ${user.name}`,
           data: message,
+          meta: { chat_id: message.chat_id },
         }),
       );
 
       return {
         message: 'Message deleted successfully',
         data: message,
+        meta: { chat_id: message.chat_id },
       };
     }, MessageValidations.deleteMsg),
   );

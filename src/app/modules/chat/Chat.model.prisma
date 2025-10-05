@@ -7,7 +7,7 @@ model Chat {
 
   driver       User     @relation("DriverChat", fields: [driver_id], references: [id], onDelete: Cascade)
   user         User     @relation("UserChat", fields: [user_id], references: [id], onDelete: Cascade)
-  last_message Message? @relation(fields: [last_message_id], references: [id], onDelete: Cascade)
+  last_message Message? @relation(fields: [last_message_id], references: [id])
 
   @@map("chats")
 }
