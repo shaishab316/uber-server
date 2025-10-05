@@ -172,7 +172,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(trip_id)
       .emit(
-        'trip_info',
+        'trip_notification',
         JSON.stringify({
           status: StatusCodes.OK,
           message: 'Trip accepted successfully',
@@ -238,7 +238,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(trip_id)
       .emit(
-        'trip_info',
+        'trip_notification',
         JSON.stringify({
           status: StatusCodes.OK,
           message: 'Trip started successfully',
@@ -297,7 +297,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(trip_id)
       .emit(
-        'trip_info',
+        'trip_notification',
         JSON.stringify({
           status: StatusCodes.OK,
           message: 'Trip completed successfully',
@@ -341,7 +341,7 @@ export const TripServices = {
       SocketServices.getIO()
         ?.to(trip.passenger_id!)
         .emit(
-          'trip_info',
+          'trip_notification',
           JSON.stringify({
             status: StatusCodes.NOT_FOUND,
             message: 'No driver found',
@@ -457,6 +457,9 @@ export const TripServices = {
           statusCode: StatusCodes.OK,
           message: 'Trip started successfully',
           data: trip,
+          meta: {
+            trip_id: trip.id,
+          },
         } as TServeResponse<typeof trip>),
       );
     }
