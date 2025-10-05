@@ -1,3 +1,11 @@
+# [2.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.0.0...v2.1.0) (2025-10-05)
+
+
+### Features
+
+* Enhance chat and trip socket events with structured responses and notifications ([d0e4e82](https://github.com/Alpha-Bytes-Department/uber-server/commit/d0e4e8242a883d8131ec3c842e199a8322bae9af))
+* Enhance socket event handling with Zod validation and specific error messages ([2fe8b5f](https://github.com/Alpha-Bytes-Department/uber-server/commit/2fe8b5fe489e5754f0102ad0caa7a26bb4f2c4a3))
+
 # [2.0.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.3.0...v2.0.0) (2025-10-05)
 
 
