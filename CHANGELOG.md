@@ -1,3 +1,24 @@
+# [1.3.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.2.0...v1.3.0) (2025-10-05)
+
+
+### Features
+
+* Add OTP fields to Trip model and refactor trip omission ([d36460a](https://github.com/Alpha-Bytes-Department/uber-server/commit/d36460a45ee00be028acd480cee44e29e9c84d20))
+* Enhance Socket handling with user authentication ([c178f8b](https://github.com/Alpha-Bytes-Department/uber-server/commit/c178f8b751d28794724af2bfbfc56ce983f56a04))
+* Enhance socket handling, add trip socket, and refine message deletion ([fa50bad](https://github.com/Alpha-Bytes-Department/uber-server/commit/fa50bad0e431e7b0d8767e09532e0ebbb0d7feb1))
+* Exclude OTP fields from trip responses ([bb24c7f](https://github.com/Alpha-Bytes-Department/uber-server/commit/bb24c7f4318749938b23bfa5d8583ab30ef880e8))
+* Implement chat and message deletion, enhance validation ([7dbf6d5](https://github.com/Alpha-Bytes-Department/uber-server/commit/7dbf6d5396077bc5d3c7e635446cb8cfca26e46f))
+* Implement chat socket and message handling ([cf77a1f](https://github.com/Alpha-Bytes-Department/uber-server/commit/cf77a1f5b7245ab1ce9b8a746072a338b1a37c69))
+* Implement driver trip completion flow ([3f0fc9f](https://github.com/Alpha-Bytes-Department/uber-server/commit/3f0fc9f51f3c3aa5159ad3d722e8baf09e5a6f72))
+* Implement driver trip start functionality ([40c743d](https://github.com/Alpha-Bytes-Department/uber-server/commit/40c743d15cd26970c29d35fc4ccba247f5d118cd))
+* Implement Socket Plugin & Driver Socket ([4b6d28b](https://github.com/Alpha-Bytes-Department/uber-server/commit/4b6d28be5beb66a399f9bc68f4235ac0951ceb27))
+* Implement trip proximity notifications ([3a736fe](https://github.com/Alpha-Bytes-Department/uber-server/commit/3a736fe40b8206b1480282483f582f179f8c4068))
+* Implement trip request, location update and start trip functionalities ([c7d0a45](https://github.com/Alpha-Bytes-Department/uber-server/commit/c7d0a455f1e84670703a0cdba8d3089a6c789126))
+* Launch started trip on socket connect and fix trip socket emit ([ac9f293](https://github.com/Alpha-Bytes-Department/uber-server/commit/ac9f2935243af6b2d767ad3620183a3096c59708))
+* Refactor socket plugin and update dependencies ([1f77c95](https://github.com/Alpha-Bytes-Department/uber-server/commit/1f77c952d74c5b5bbe74b9b2a6e7d2a707aede99))
+* Replace `colors` with `chalk` for terminal styling ([dccc742](https://github.com/Alpha-Bytes-Department/uber-server/commit/dccc74236f21e189823583e3da53ebd506245ac5))
+* serve static 404 page and update health endpoint ([13f5e61](https://github.com/Alpha-Bytes-Department/uber-server/commit/13f5e61e956c6f92d36518318727d40ad5c88185))
+
 # [1.2.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v1.1.0...v1.2.0) (2025-09-25)
 
 
