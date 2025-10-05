@@ -20,4 +20,12 @@ export const ChatValidations = {
         .optional(),
     }),
   }),
+
+  //! socket validation
+  joinChat: z.object({
+    chat_id: z.string().refine(exists('chat'), {
+      error: ({ input }) => `Chat not found with id: ${input}`,
+      path: ['chat_id'],
+    }),
+  }),
 };

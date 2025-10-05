@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { ErrorRequestHandler, RequestHandler } from 'express';
-import { ZodType } from 'zod';
+import z, { ZodType } from 'zod';
 import { formatError } from './globalErrorHandler';
 import { errorLogger } from '../../util/logger/logger';
 import chalk from 'chalk';
@@ -27,23 +27,25 @@ const catchAsync =
     }
   };
 
-catchAsync.socket =
-  <T>(
-    fn: (data: T) => Promise<Partial<TServeResponse<any>>>,
-    validator?: ZodType<T>,
-  ) =>
-  async (payload: any, ack?: (response: any) => void) => {
+catchAsync.socket = <S extends ZodType>(
+  fn: (data: z.infer<S>) => Promise<Partial<TServeResponse<any>>>,
+  validator: S,
+) => {
+  return async (
+    payload: unknown,
+    ack?: (response: any) => void,
+  ): Promise<void> => {
     const response: any = {};
     try {
-      payload = JSON.parse(payload);
-
-      if (validator) payload = await validator.parseAsync(payload);
+      const parsed = await validator.parseAsync(
+        typeof payload === 'string' ? JSON.parse(payload) : payload,
+      );
 
       Object.assign(response, {
         success: true,
         statusCode: StatusCodes.OK,
         message: 'Success',
-        ...(await fn(payload as T)),
+        ...(await fn(parsed)),
       });
     } catch (error: any) {
       Object.assign(response, formatError(error));
@@ -52,5 +54,6 @@ catchAsync.socket =
       ack?.(JSON.stringify(response));
     }
   };
+};
 
 export default catchAsync;

@@ -7,46 +7,39 @@ import { MessageValidations } from '../message/Message.validation';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { MessageServices } from '../message/Message.service';
 import serveResponse from '../../../util/server/serveResponse';
+import { ChatValidations } from './Chat.validation';
 
 const ChatSocket: TSocketHandler = (io, socket) => {
   const { user } = socket.data;
+  const isUser = user.role === EUserRole.USER;
 
   socket.on(
     'join_chat_room',
-    catchAsync.socket(async (payload: { chat_id: string }) => {
+    catchAsync.socket(async ({ chat_id }) => {
       const chat = await prisma.chat.findFirst({
         where: {
-          id: payload.chat_id,
-          OR: [
-            {
-              user_id: socket.data.user.id,
-            },
-            {
-              driver_id: socket.data.user.id,
-            },
-          ],
+          id: chat_id,
+          OR: [{ user_id: user.id }, { driver_id: user.id }],
         },
       });
 
       if (!chat) throw new ServerError(StatusCodes.NOT_FOUND, 'Chat not found');
 
-      socket.join(payload.chat_id);
+      socket.join(chat_id);
 
       return {
         message: 'Joined chat successfully',
         data: chat,
       };
-    }),
+    }, ChatValidations.joinChat),
   );
 
   socket.on(
     'send_message',
-    catchAsync.socket(async (payload: Prisma.MessageCreateArgs['data']) => {
-      payload = await MessageValidations.createMsg.parseAsync(payload);
-
+    catchAsync.socket(async ({ chat_id, content, media_type, media_url }) => {
       const chat = await prisma.chat.findUnique({
         where: {
-          id: payload.chat_id,
+          id: chat_id,
         },
       });
 
@@ -55,19 +48,24 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         'You are not allowed to send message to this chat',
       );
 
-      if (socket.data.user.role === EUserRole.USER) {
-        payload.user_id = socket.data.user.id;
-        if (chat?.user_id !== socket.data.user.id) throw error;
+      const msgData: Prisma.MessageCreateArgs['data'] = {
+        chat_id,
+        content,
+        media_type,
+        media_url,
+      };
+
+      if (isUser) {
+        msgData.user_id = user.id;
+        if (chat?.user_id !== user.id) throw error;
       } else {
-        payload.driver_id = socket.data.user.id;
-        if (chat?.driver_id !== socket.data.user.id) throw error;
+        msgData.driver_id = user.id;
+        if (chat?.driver_id !== user.id) throw error;
       }
 
-      const message = await MessageServices.createMsg(payload);
+      const message = await MessageServices.createMsg(msgData);
 
-      io.to(
-        user.role === EUserRole.USER ? chat?.driver_id : chat?.user_id,
-      ).emit(
+      io.to(isUser ? chat?.driver_id : chat?.user_id).emit(
         'new_message',
         serveResponse.socket({
           message: `New message from ${user.name}`,
@@ -80,30 +78,18 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         message: 'Message sent successfully',
         data: message,
       };
-    }),
+    }, MessageValidations.createMsg),
   );
 
   socket.on(
     'delete_message',
-    catchAsync.socket(async (payload: { message_id: string }) => {
+    catchAsync.socket(async ({ message_id }) => {
       const message = await MessageServices.deleteMsg({
-        message_id: payload.message_id,
-        user_id: socket.data.user.id,
+        message_id,
+        user_id: user.id,
       });
 
-      const chat = (await prisma.chat.findUnique({
-        where: {
-          id: message.chat_id,
-        },
-        select: {
-          driver_id: true,
-          user_id: true,
-        },
-      }))!;
-
-      io.to(
-        user.role === EUserRole.USER ? chat?.driver_id : chat?.user_id,
-      ).emit(
+      io.to(message.chat_id).emit(
         'delete_message',
         serveResponse.socket({
           message: `Message deleted by ${user.name}`,

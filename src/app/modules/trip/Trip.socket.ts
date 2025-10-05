@@ -4,35 +4,40 @@ import { prisma } from '../../../util/db';
 import catchAsync from '../../middlewares/catchAsync';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
-import { TTripJoin, TUpdateTripLocation } from './Trip.interface';
 import { TripServices } from './Trip.service';
 import { getDistance, TLocationGeo } from '../../../util/location';
 import { tripNotificationMaps } from './Trip.util';
 import { tripOmit } from './Trip.constant';
 import serveResponse from '../../../util/server/serveResponse';
+import { EUserRole } from '../../../../prisma';
 
 const TripSocket: TSocketHandler = (io, socket) => {
   //! Launch started trip quickly
   TripServices.launchStartedTrip({ io, socket });
 
   const { user } = socket.data;
+  const isUser = user.role === EUserRole.USER;
 
   socket.on(
     'join_trip_room',
-    catchAsync.socket(async (payload: TTripJoin) => {
-      const trip = await prisma.trip.findFirst({
-        where: {
-          id: payload.trip_id,
-          OR: [{ passenger_id: user.id }, { driver_id: user.id }],
-        },
+    catchAsync.socket(async ({ trip_id }) => {
+      const trip = (await prisma.trip.findFirst({
+        where: { id: trip_id },
         omit: tripOmit,
-      });
+      }))!;
 
-      if (!trip) throw new ServerError(StatusCodes.NOT_FOUND, 'Trip not found');
+      if (trip.passenger_id !== user.id && trip.driver_id !== user.id) {
+        throw new ServerError(
+          StatusCodes.UNAUTHORIZED,
+          `You are not ${isUser ? 'passenger' : 'driver'} of this trip`,
+        );
+      }
 
+      // Join room
       socket.join(trip.id);
 
       return {
+        message: 'Joined trip successfully',
         data: trip,
       };
     }, TripValidations.joinTrip),
@@ -40,16 +45,20 @@ const TripSocket: TSocketHandler = (io, socket) => {
 
   socket.on(
     'update_trip_location',
-    catchAsync.socket(async (payload: TUpdateTripLocation) => {
+    catchAsync.socket(async ({ location, trip_id }) => {
       const trip = await TripServices.updateTripLocation({
         user_id: user.id,
-        trip_id: payload.trip_id,
-        location: payload.location,
+        trip_id,
+        location,
       });
 
-      socket
-        .to(payload.trip_id)
-        .emit('update_trip_location', JSON.stringify(payload));
+      socket.to((isUser ? trip.driver_id : trip.passenger_id) ?? trip_id).emit(
+        'update_trip_location',
+        serveResponse.socket({
+          message: `${user.name} updated trip's location`,
+          data: location,
+        }),
+      );
 
       //! notification job
       const distance = getDistance(
@@ -76,7 +85,8 @@ const TripSocket: TSocketHandler = (io, socket) => {
       }
 
       return {
-        data: payload.location,
+        message: "Trip's location updated successfully!",
+        data: location,
       };
     }, TripValidations.updateTripLocation),
   );
