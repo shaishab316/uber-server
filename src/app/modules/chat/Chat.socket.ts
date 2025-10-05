@@ -6,7 +6,6 @@ import catchAsync from '../../middlewares/catchAsync';
 import { MessageValidations } from '../message/Message.validation';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { MessageServices } from '../message/Message.service';
-import { socketInfo } from '../socket/Socket.utils';
 
 const ChatSocket: TSocketHandler = (io, socket) => {
   socket.on(
@@ -29,8 +28,11 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       if (!chat) throw new ServerError(StatusCodes.NOT_FOUND, 'Chat not found');
 
       socket.join(payload.chat_id);
-      socketInfo(socket, `Joined chat room: ${payload.chat_id}`);
-    }, socket),
+
+      return {
+        data: chat,
+      };
+    }),
   );
 
   socket.on(
@@ -60,26 +62,26 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       const message = await MessageServices.createMsg(payload);
 
       io.to(payload.chat_id).emit('new_message', JSON.stringify(message));
-    }, socket),
+
+      return { data: message };
+    }),
   );
 
   socket.on(
     'delete_message',
-    catchAsync.socket(
-      async (payload: { message_id: string }) => {
-        const message = await MessageServices.deleteMsg({
-          message_id: payload.message_id,
-          user_id: socket.data.user.id,
-        });
+    catchAsync.socket(async (payload: { message_id: string }) => {
+      const message = await MessageServices.deleteMsg({
+        message_id: payload.message_id,
+        user_id: socket.data.user.id,
+      });
 
-        io.to(message.chat_id).emit(
-          'delete_message',
-          JSON.stringify({ message_id: message.id }),
-        );
-      },
-      socket,
-      MessageValidations.deleteMsg,
-    ),
+      io.to(message.chat_id).emit(
+        'delete_message',
+        JSON.stringify({ message_id: message.id }),
+      );
+
+      return { data: message };
+    }, MessageValidations.deleteMsg),
   );
 };
 

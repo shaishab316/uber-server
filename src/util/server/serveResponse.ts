@@ -8,7 +8,7 @@ export type TPagination = {
   total: number;
 };
 
-type TServeResponse<T> = {
+export type TServeResponse<T> = {
   success: boolean;
   statusCode: number;
   message: string;

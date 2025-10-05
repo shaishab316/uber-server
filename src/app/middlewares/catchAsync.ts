@@ -1,7 +1,11 @@
+/* eslint-disable no-unused-vars */
 import { ErrorRequestHandler, RequestHandler } from 'express';
-import { socketError } from '../modules/socket/Socket.utils';
-import { Socket } from 'socket.io';
 import { ZodType } from 'zod';
+import { formatError } from './globalErrorHandler';
+import { errorLogger } from '../../util/logger/logger';
+import chalk from 'chalk';
+import { StatusCodes } from 'http-status-codes';
+import { TServeResponse } from '../../util/server/serveResponse';
 
 /**
  * Wraps an Express request handler to catch and handle async errors
@@ -25,20 +29,27 @@ const catchAsync =
 
 catchAsync.socket =
   <T>(
-    // eslint-disable-next-line no-unused-vars
-    fn: (data: T) => Promise<void>,
-    socket: Socket,
-    payloadValidator?: ZodType<T>,
+    fn: (data: T) => Promise<Partial<TServeResponse<any>>>,
+    validator?: ZodType<T>,
   ) =>
-  async (data: string) => {
+  async (payload: any, ack?: (response: any) => void) => {
+    const response: any = {};
     try {
-      const payload = payloadValidator
-        ? await payloadValidator.parseAsync(JSON.parse(data))
-        : JSON.parse(data);
+      payload = JSON.parse(payload);
 
-      await fn(payload as T);
+      if (validator) payload = await validator.parseAsync(payload);
+
+      Object.assign(response, {
+        success: true,
+        statusCode: StatusCodes.OK,
+        message: 'Success',
+        ...(await fn(payload as T)),
+      });
     } catch (error: any) {
-      socketError(socket, error);
+      Object.assign(response, formatError(error));
+      errorLogger.error(chalk.red(response.message));
+    } finally {
+      ack?.(JSON.stringify(response));
     }
   };
 

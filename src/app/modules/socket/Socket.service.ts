@@ -2,9 +2,9 @@ import http from 'http';
 import { Server as IOServer, Socket } from 'socket.io';
 import config from '../../../config';
 import auth from '../../middlewares/socketAuth';
-import { socketError, socketInfo } from './Socket.utils';
 import { TAuthenticatedSocket } from './Socket.interface';
 import socketPlugins from './Socket.plugin';
+import { logger } from '../../../util/logger/logger';
 
 let io: IOServer | null = null;
 const onlineUsers = new Set<string>();
@@ -23,22 +23,15 @@ export const SocketServices = {
         socket.join(user.id);
         this.online(user.id);
 
-        socketInfo(
-          socket,
-          `👤 User (${user?.name}) connected to room: (${user.id})`,
-        );
+        logger.info(`👤 User (${user?.name}) connected to room: (${user.id})`);
 
         socket.on('leave', (roomId: string) => {
-          socketInfo(
-            socket,
-            `👤 User (${user?.name}) left from room: (${roomId})`,
-          );
+          logger.info(`👤 User (${user?.name}) left from room: (${roomId})`);
           socket.leave(roomId);
         });
 
         socket.on('disconnect', () => {
-          socketInfo(
-            socket,
+          logger.info(
             `👤 User (${user?.name}) disconnected from room: (${user.id})`,
           );
           this.offline(user.id);
@@ -46,7 +39,7 @@ export const SocketServices = {
         });
 
         socket.on('error', error => {
-          socketError(socket, error);
+          logger.error(error);
         });
 
         this.plugin(socket);
@@ -72,7 +65,7 @@ export const SocketServices = {
       try {
         handler(this.getIO()!, socket);
       } catch (error: any) {
-        socketError(socket, error.message);
+        logger.error(error);
       }
     }
   },
