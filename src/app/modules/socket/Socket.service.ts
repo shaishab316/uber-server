@@ -1,12 +1,10 @@
 import { Server } from 'http';
-import { Server as IOServer, Socket } from 'socket.io';
+import { Server as IOServer } from 'socket.io';
 import config from '../../../config';
 import { SocketRoutes } from './Socket.route';
 import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
 import { logger } from '../../../utils/logger/logger';
-import { notFoundError } from '../../../errors';
-import { formatError } from '../../middlewares/globalErrorHandler';
 
 type OnlineMap = Record<string, Set<string>>;
 
@@ -21,13 +19,8 @@ export const SocketServices = {
       cors: { origin: config.server.allowed_origins },
     });
 
-    // Reject connections on the default namespace '/'
-    io.on('connection', (socket: Socket) => {
-      socket.emit('error', JSON.stringify(formatError(notFoundError('/'))));
-      setTimeout(() => {
-        socket.disconnect(true);
-      }, 50);
-    });
+    // Disable default namespace
+    io.of('/').on('connection', socket => socket.disconnect(true));
 
     // Attach cleanup on server close
     server.on('close', this.cleanup);
