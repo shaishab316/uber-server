@@ -23,6 +23,7 @@ import { TServeResponse } from '../../../utils/server/serveResponse';
 import { socketResponse } from '../socket/Socket.utils';
 import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
 import chalk from 'chalk';
+import { AvailableDriverServices } from '../availableDriver/AvailableDriver.service';
 
 export const TripServices = {
   async requestForTrip({
@@ -144,6 +145,9 @@ export const TripServices = {
     driver_id: string;
     location: TLocation;
   }) {
+    //! Delete driver from availableDriver
+    await AvailableDriverServices.leave({ driver_id });
+
     const trip = await prisma.trip.findUnique({
       where: { id: trip_id },
       include: {

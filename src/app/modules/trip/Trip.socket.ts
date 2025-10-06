@@ -9,12 +9,20 @@ import { tripNotificationMaps } from './Trip.utils';
 import { tripOmit } from './Trip.constant';
 import { EUserRole } from '../../../../prisma';
 import { catchAsyncSocket, socketResponse } from '../socket/Socket.utils';
+import { AvailableDriverServices } from '../availableDriver/AvailableDriver.service';
 
-const TripSocket: TSocketHandler = (io, socket) => {
-  //! Launch started trip quickly
-  TripServices.launchStartedTrip({ io, socket });
-
+const TripSocket: TSocketHandler = async (io, socket) => {
   const { user } = socket.data;
+
+  //! Launch started trip quickly
+  await TripServices.launchStartedTrip({ io, socket });
+
+  //! delete offline driver from availableDriver
+  socket.on(
+    'disconnect',
+    async () => await AvailableDriverServices.leave({ driver_id: user.id }),
+  );
+
   const isUser = user.role === EUserRole.USER;
 
   socket.on(
