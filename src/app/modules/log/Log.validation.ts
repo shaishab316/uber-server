@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { date } from '../../../util/transform/date';
+import { date } from '../../../utils/transform/date';
 
 export const LogValidations = {
   log: z.object({

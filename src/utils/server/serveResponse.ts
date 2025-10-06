@@ -31,12 +31,4 @@ const serveResponse = <T>(
   }: Partial<TServeResponse<T>> = {},
 ) => res.status(statusCode).json({ success, statusCode, message, meta, data });
 
-serveResponse.socket = <T>(response: Partial<TServeResponse<T>>): string =>
-  JSON.stringify({
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: 'Success',
-    ...response,
-  } as TServeResponse<T>);
-
 export default serveResponse;

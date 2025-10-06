@@ -1,5 +1,5 @@
 import { AvailableDriver as TAvailableDriver } from '../../../../prisma';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 
 export const AvailableDriverServices = {
   async join({ driver_id, location, vehicle }: TAvailableDriver) {

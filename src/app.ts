@@ -2,12 +2,12 @@ import cors from 'cors';
 import express from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import RoutesV1 from './routes/v1';
-import { Morgan } from './util/logger/morgen';
+import { Morgan } from './utils/logger/morgen';
 import cookieParser from 'cookie-parser';
 import config from './config';
 import { notFoundError } from './errors';
 import { fileRetriever, fileTypes } from './app/middlewares/capture';
-import serveResponse from './util/server/serveResponse';
+import serveResponse from './utils/server/serveResponse';
 
 /**
  * The main application instance

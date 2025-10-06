@@ -6,9 +6,6 @@ export type TSocketHandler = (
   io: Namespace,
   socket: TAuthenticatedSocket,
 ) => void;
-export type TSocketPlugin = {
-  [namespace: string]: TSocketHandler;
-};
 
 export interface TAuthenticatedSocket extends Socket {
   data: {

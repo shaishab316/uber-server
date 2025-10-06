@@ -2,10 +2,10 @@ import jwt from 'jsonwebtoken';
 import config from '../../../config';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import { errorLogger } from '../../../util/logger/logger';
+import { errorLogger } from '../../../utils/logger/logger';
 import chalk from 'chalk';
 import bcrypt from 'bcryptjs';
-import { enum_decode } from '../../../util/transform/enum';
+import { enum_decode } from '../../../utils/transform/enum';
 
 export type TToken = keyof typeof config.jwt;
 

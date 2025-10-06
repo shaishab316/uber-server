@@ -1,8 +1,8 @@
 import chalk from 'chalk';
-import { errorLogger } from '../../../util/logger/logger';
-import { logger } from '../../../util/logger/logger';
+import { errorLogger } from '../../../utils/logger/logger';
+import { logger } from '../../../utils/logger/logger';
 import config from '../../../config';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 
 export const AdminServices = {
   /**

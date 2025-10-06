@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { exists } from '../../../util/db/exists';
-import { TModels } from '../../../util/db';
+import { exists } from '../../../utils/db/exists';
+import { TModels } from '../../../utils/db';
 
 export const QueryValidations = {
   list: z.object({

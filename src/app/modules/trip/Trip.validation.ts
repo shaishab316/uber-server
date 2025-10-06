@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { EVehicle } from '../../../../prisma';
-import { enum_encode } from '../../../util/transform/enum';
-import { exists } from '../../../util/db/exists';
+import { enum_encode } from '../../../utils/transform/enum';
+import { exists } from '../../../utils/db/exists';
 import config from '../../../config';
 
 export const locationSchema = z.object({

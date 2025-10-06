@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { exists } from '../../../util/db/exists';
+import { exists } from '../../../utils/db/exists';
 
 export const ChatValidations = {
   getChat: z.object({

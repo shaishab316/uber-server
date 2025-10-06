@@ -1,19 +1,19 @@
 import { TList } from '../query/Query.interface';
 import { userSearchableFields as searchFields } from './User.constant';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 import { EUserRole, Prisma, User as TUser } from '../../../../prisma';
-import { TPagination } from '../../../util/server/serveResponse';
+import { TPagination } from '../../../utils/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
 import { TApplyForDriver, TUserEdit, TUserRegister } from './User.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { errorLogger } from '../../../util/logger/logger';
-import { otpGenerator } from '../../../util/crypto/otpGenerator';
+import { errorLogger } from '../../../utils/logger/logger';
+import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import config from '../../../config';
 import { otp_send_template } from '../../../templates';
 import ms from 'ms';
-import { sendEmail } from '../../../util/sendMail';
+import { sendEmail } from '../../../utils/sendMail';
 
 export const userOmit = {
   location: true,

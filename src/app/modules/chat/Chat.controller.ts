@@ -1,5 +1,5 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
+import serveResponse from '../../../utils/server/serveResponse';
 import { ChatServices } from './Chat.service';
 import { EUserRole } from '../../../../prisma';
 import { ZodError } from 'zod';

@@ -1,10 +1,10 @@
 import http from 'http';
 import { Server as IOServer, Socket } from 'socket.io';
 import config from '../../../config';
-import SocketPlugin from './Socket.plugin';
+import { SocketRoutes } from './Socket.route';
 import auth from '../../middlewares/socketAuth';
 import { TAuthenticatedSocket } from './Socket.interface';
-import { logger } from '../../../util/logger/logger';
+import { logger } from '../../../utils/logger/logger';
 import { notFoundError } from '../../../errors';
 import { formatError } from '../../middlewares/globalErrorHandler';
 
@@ -33,7 +33,7 @@ export const SocketServices = {
     server.on('close', this.cleanup);
 
     // Initialize each namespace
-    Object.entries(SocketPlugin).forEach(([namespace, handler]) => {
+    SocketRoutes.forEach((handler, namespace) => {
       const nsp = io!.of(namespace);
       onlineUsers[namespace] = new Set();
 

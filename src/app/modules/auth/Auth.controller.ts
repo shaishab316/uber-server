@@ -1,6 +1,6 @@
 import { AuthServices } from './Auth.service';
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
+import serveResponse from '../../../utils/server/serveResponse';
 import { TToken, verifyPassword } from './Auth.utils';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';

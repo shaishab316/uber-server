@@ -1,5 +1,5 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
+import serveResponse from '../../../utils/server/serveResponse';
 import { TripServices } from './Trip.service';
 
 export const TripControllers = {

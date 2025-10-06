@@ -1,13 +1,12 @@
 import { StatusCodes } from 'http-status-codes';
 import { EUserRole, Prisma } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
-import { prisma } from '../../../util/db';
-import catchAsync from '../../middlewares/catchAsync';
+import { prisma } from '../../../utils/db';
 import { MessageValidations } from '../message/Message.validation';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { MessageServices } from '../message/Message.service';
-import serveResponse from '../../../util/server/serveResponse';
 import { ChatValidations } from './Chat.validation';
+import { catchAsyncSocket, socketResponse } from '../socket/Socket.utils';
 
 const ChatSocket: TSocketHandler = (io, socket) => {
   const { user } = socket.data;
@@ -15,7 +14,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
   socket.on(
     'join_chat_room',
-    catchAsync.socket(async ({ chat_id }) => {
+    catchAsyncSocket(async ({ chat_id }) => {
       const chat = await prisma.chat.findFirst({
         where: { id: chat_id },
       });
@@ -40,7 +39,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
   socket.on(
     'send_message',
-    catchAsync.socket(async ({ chat_id, content, media_type, media_url }) => {
+    catchAsyncSocket(async ({ chat_id, content, media_type, media_url }) => {
       const chat = await prisma.chat.findUnique({
         where: { id: chat_id },
       });
@@ -69,7 +68,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
       io.to(chat_id).emit(
         'new_message',
-        serveResponse.socket({
+        socketResponse({
           message: `New message from ${user.name}`,
           data: message,
           meta: { chat_id },
@@ -87,7 +86,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
   socket.on(
     'delete_message',
-    catchAsync.socket(async ({ message_id }) => {
+    catchAsyncSocket(async ({ message_id }) => {
       const message = await MessageServices.deleteMsg({
         message_id,
         user_id: user.id,
@@ -95,7 +94,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
       io.to(message.chat_id).emit(
         'delete_message',
-        serveResponse.socket({
+        socketResponse({
           message: `Message deleted by ${user.name}`,
           data: message,
           meta: { chat_id: message.chat_id },

@@ -1,5 +1,5 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
+import serveResponse from '../../../utils/server/serveResponse';
 import { LogServices } from './Log.service';
 
 export const LogControllers = {

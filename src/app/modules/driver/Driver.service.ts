@@ -1,9 +1,9 @@
 import { EUserRole, Prisma } from '../../../../prisma';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 import { TList } from '../query/Query.interface';
 import { userOmit } from '../user/User.service';
 import { userSearchableFields as searchFields } from '../user/User.constant';
-import { TPagination } from '../../../util/server/serveResponse';
+import { TPagination } from '../../../utils/server/serveResponse';
 
 export const DriverServices = {
   async superGetPendingDriver({ page, limit, search }: TList) {

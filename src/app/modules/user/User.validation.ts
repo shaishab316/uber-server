@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EUserRole } from '../../../../prisma';
-import { enum_encode } from '../../../util/transform/enum';
+import { enum_encode } from '../../../utils/transform/enum';
 import { locationSchema } from '../trip/Trip.validation';
 
 export const UserValidations = {

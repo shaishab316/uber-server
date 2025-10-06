@@ -1,8 +1,8 @@
 /* eslint-disable no-useless-escape */
 import './configure';
-import env from '../util/env/env';
+import env from '../utils/env/env';
 import type ms from 'ms';
-import { genSecret } from '../util/crypto/genSecret';
+import { genSecret } from '../utils/crypto/genSecret';
 import path from 'path';
 
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';

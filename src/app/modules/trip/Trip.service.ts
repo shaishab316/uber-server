@@ -2,8 +2,8 @@
 // import { ETripStatus } from '../../../../prisma';
 // import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import { prisma } from '../../../util/db';
-import getDistanceAndTime from '../../../util/location/getDistanceAndTime';
+import { prisma } from '../../../utils/db';
+import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
 import { TRequestForTrip } from './Trip.interface';
 import config from '../../../config';
 import {
@@ -19,8 +19,8 @@ import { SocketServices } from '../socket/Socket.service';
 import { TAuthenticatedSocket } from '../socket/Socket.interface';
 import { Namespace } from 'socket.io';
 import { tripOmit } from './Trip.constant';
-import { otpGenerator } from '../../../util/crypto/otpGenerator';
-import { TServeResponse } from '../../../util/server/serveResponse';
+import { otpGenerator } from '../../../utils/crypto/otpGenerator';
+import { TServeResponse } from '../../../utils/server/serveResponse';
 
 export const TripServices = {
   async requestForTrip({

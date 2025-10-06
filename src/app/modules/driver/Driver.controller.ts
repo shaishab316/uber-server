@@ -1,4 +1,4 @@
-import serveResponse from '../../../util/server/serveResponse';
+import serveResponse from '../../../utils/server/serveResponse';
 import catchAsync from '../../middlewares/catchAsync';
 import { DriverServices } from './Driver.service';
 

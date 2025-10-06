@@ -1,5 +1,5 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
+import serveResponse from '../../../utils/server/serveResponse';
 import { CancelTripServices } from './CancelTrip.service';
 
 export const CancelTripControllers = {

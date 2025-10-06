@@ -1,6 +1,6 @@
 import { Prisma } from '../../../../prisma';
-import { prisma } from '../../../util/db';
-import { TPagination } from '../../../util/server/serveResponse';
+import { prisma } from '../../../utils/db';
+import { TPagination } from '../../../utils/server/serveResponse';
 import { TList } from '../query/Query.interface';
 import { logSearchableFields as searchableFields } from './Log.constant';
 

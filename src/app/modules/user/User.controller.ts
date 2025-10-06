@@ -1,10 +1,10 @@
 import { UserServices } from './User.service';
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../util/server/serveResponse';
+import serveResponse from '../../../utils/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
 import { EUserRole, User as TUser } from '../../../../prisma';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 import ServerError from '../../../errors/ServerError';
 
 export const UserControllers = {

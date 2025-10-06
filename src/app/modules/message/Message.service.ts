@@ -1,8 +1,8 @@
 import { StatusCodes } from 'http-status-codes';
 import { Prisma } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
-import { prisma } from '../../../util/db';
-import { TPagination } from '../../../util/server/serveResponse';
+import { prisma } from '../../../utils/db';
+import { TPagination } from '../../../utils/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
 import { TList } from '../query/Query.interface';
 import { messageSearchableFields as searchableFields } from './Message.constant';

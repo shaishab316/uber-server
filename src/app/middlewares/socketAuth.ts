@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { Socket } from 'socket.io';
 import { decodeToken } from '../modules/auth/Auth.utils';
-import { prisma } from '../../util/db';
+import { prisma } from '../../utils/db';
 import { userOmit } from '../modules/user/User.service';
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {

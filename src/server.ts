@@ -1,8 +1,8 @@
-import './util/prototype'; //! must be first
-import startServer from './util/server/startServer';
+import './utils/prototype'; //! must be first
+import startServer from './utils/server/startServer';
 import { SocketServices } from './app/modules/socket/Socket.service';
 import chalk from 'chalk';
-import { logger } from './util/logger/logger';
+import { logger } from './utils/logger/logger';
 
 startServer().then(server => {
   SocketServices.init(server);

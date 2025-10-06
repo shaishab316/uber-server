@@ -1,5 +1,5 @@
 import { ContextPage as TContextPage } from '../../../../prisma';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 
 export const ContextPageServices = {
   async modify({ pageName, content }: TContextPage) {

@@ -1,15 +1,14 @@
 import { StatusCodes } from 'http-status-codes';
 import ServerError from '../../../errors/ServerError';
-import { prisma } from '../../../util/db';
-import catchAsync from '../../middlewares/catchAsync';
+import { prisma } from '../../../utils/db';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
 import { TripServices } from './Trip.service';
-import { getDistance, TLocationGeo } from '../../../util/location';
-import { tripNotificationMaps } from './Trip.util';
+import { getDistance, TLocationGeo } from '../../../utils/location';
+import { tripNotificationMaps } from './Trip.utils';
 import { tripOmit } from './Trip.constant';
-import serveResponse from '../../../util/server/serveResponse';
 import { EUserRole } from '../../../../prisma';
+import { catchAsyncSocket, socketResponse } from '../socket/Socket.utils';
 
 const TripSocket: TSocketHandler = (io, socket) => {
   //! Launch started trip quickly
@@ -20,7 +19,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
 
   socket.on(
     'join_trip_room',
-    catchAsync.socket(async ({ trip_id }) => {
+    catchAsyncSocket(async ({ trip_id }) => {
       const trip = (await prisma.trip.findFirst({
         where: { id: trip_id },
         omit: tripOmit,
@@ -46,7 +45,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
 
   socket.on(
     'update_trip_location',
-    catchAsync.socket(async ({ location, trip_id }) => {
+    catchAsyncSocket(async ({ location, trip_id }) => {
       const trip = await TripServices.updateTripLocation({
         user_id: user.id,
         trip_id,
@@ -55,7 +54,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
 
       socket.to(trip_id).emit(
         'update_trip_location',
-        serveResponse.socket({
+        socketResponse({
           message: `${user.name} updated trip's location`,
           data: location,
           meta: { trip_id },
@@ -77,7 +76,7 @@ const TripSocket: TSocketHandler = (io, socket) => {
       if (notification) {
         socket.to(trip.passenger_id).emit(
           'trip_notification',
-          serveResponse.socket({
+          socketResponse({
             message: notification,
             data: {
               distance,

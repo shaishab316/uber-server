@@ -1,9 +1,9 @@
 import { StatusCodes } from 'http-status-codes';
 import { Prisma } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 import { TList } from '../query/Query.interface';
-import { TPagination } from '../../../util/server/serveResponse';
+import { TPagination } from '../../../utils/server/serveResponse';
 import { TGetChat } from './Chat.interface';
 import { deleteFile } from '../../middlewares/capture';
 

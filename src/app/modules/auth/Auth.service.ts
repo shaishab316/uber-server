@@ -8,14 +8,14 @@ import {
 } from './Auth.interface';
 import { encodeToken, TToken, verifyPassword } from './Auth.utils';
 import { ZodError } from 'zod';
-import { prisma } from '../../../util/db';
+import { prisma } from '../../../utils/db';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import { otpGenerator } from '../../../util/crypto/otpGenerator';
+import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import config from '../../../config';
-import { sendEmail } from '../../../util/sendMail';
+import { sendEmail } from '../../../utils/sendMail';
 import { otp_send_template } from '../../../templates';
-import { errorLogger } from '../../../util/logger/logger';
+import { errorLogger } from '../../../utils/logger/logger';
 import ms from 'ms';
 import { userOmit } from '../user/User.service';
 import { Response } from 'express';
