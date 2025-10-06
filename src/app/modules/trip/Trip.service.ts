@@ -3,7 +3,6 @@
 // import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../../utils/db';
-import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
 import { TRequestForTrip } from './Trip.interface';
 import config from '../../../config';
 import {
@@ -21,6 +20,9 @@ import { Namespace } from 'socket.io';
 import { tripOmit } from './Trip.constant';
 import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import { TServeResponse } from '../../../utils/server/serveResponse';
+import { socketResponse } from '../socket/Socket.utils';
+import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
+import chalk from 'chalk';
 
 export const TripServices = {
   async requestForTrip({
@@ -80,6 +82,7 @@ export const TripServices = {
         passenger_ages: true,
         id: true,
         status: true,
+        requested_at: true,
       },
     });
 
@@ -166,17 +169,27 @@ export const TripServices = {
         vehicle_address: location,
         accepted_at: new Date(),
       },
+      include: {
+        passenger: {
+          select: {
+            name: true,
+          },
+        },
+      },
       omit: tripOmit,
     });
 
     SocketServices.getIO()
+      ?.of('/trip')
       ?.to(trip_id)
       .emit(
         'trip_notification',
-        JSON.stringify({
-          status: StatusCodes.OK,
-          message: 'Trip accepted successfully',
+        socketResponse({
+          message: `${updatedTrip?.passenger?.name} accepted your trip request`,
           data: updatedTrip,
+          meta: {
+            trip_id,
+          },
         }),
       );
   },
@@ -236,19 +249,32 @@ export const TripServices = {
     });
 
     SocketServices.getIO()
+      ?.of('/trip')
       ?.to(trip_id)
       .emit(
         'trip_notification',
-        JSON.stringify({
-          status: StatusCodes.OK,
-          message: 'Trip started successfully',
+        socketResponse({
+          message: `${updatedTrip?.passenger?.name} started your trip`,
           data: updatedTrip,
+          meta: {
+            trip_id,
+          },
         }),
       );
 
     SocketServices.getIO()
+      ?.of('/trip')
       ?.to(updatedTrip.passenger_id)
-      .emit('start_trip', JSON.stringify(updatedTrip));
+      .emit(
+        'start_trip',
+        socketResponse({
+          message: 'Trip started',
+          data: updatedTrip,
+          meta: {
+            trip_id,
+          },
+        }),
+      );
   },
 
   async completeTrip({
@@ -291,90 +317,194 @@ export const TripServices = {
         status: ETripStatus.COMPLETED,
         completed_at: new Date(),
       },
+      include: {
+        passenger: {
+          select: {
+            name: true,
+          },
+        },
+      },
       omit: tripOmit,
     });
 
     SocketServices.getIO()
+      ?.of('/trip')
       ?.to(trip_id)
       .emit(
         'trip_notification',
-        JSON.stringify({
-          status: StatusCodes.OK,
-          message: 'Trip completed successfully',
+        socketResponse({
+          message: `${updatedTrip?.passenger?.name} completed your trip`,
           data: updatedTrip,
+          meta: {
+            trip_id,
+          },
         }),
       );
   },
 
-  async findNearestDriver(trip: Partial<TTrip>) {
+  async findNearestDriver(trip: Partial<TTrip>): Promise<void> {
+    // Early return to prevent unnecessary processing
     if (trip.status !== ETripStatus.REQUESTED) return;
 
     const [pickupLng, pickupLat] = trip.pickup_address!.geo;
 
-    const nearestDriver: any = (
-      (await prisma.availableDriver.aggregateRaw({
-        pipeline: [
-          {
-            $geoNear: {
-              near: {
-                type: 'Point',
-                coordinates: [pickupLng, pickupLat],
-              },
-              distanceField: 'distance',
-              spherical: true,
-              maxDistance: config.app.max_distance,
-              query: {},
+    try {
+      // Optimized aggregation pipeline with single pass filtering
+      const pipeline = [
+        {
+          $geoNear: {
+            near: {
+              type: 'Point',
+              coordinates: [pickupLng, pickupLat],
             },
+            distanceField: 'distance',
+            spherical: true,
+            maxDistance: config.app.max_distance,
+            // Filter excluded drivers at database level
+            query: trip.exclude_driver_ids?.length
+              ? {
+                  driver_id: {
+                    $nin: trip.exclude_driver_ids.map(id => ({ $oid: id })),
+                  },
+                }
+              : {},
           },
-          { $limit: 1 },
-        ],
-      })) as any
-    ).filter(
-      (driver: any) =>
-        !trip.exclude_driver_ids ||
-        !trip.exclude_driver_ids.includes(driver.driver_id.$oid),
+        },
+        { $limit: 1 },
+        // Project only needed fields to reduce memory
+        {
+          $project: {
+            driver_id: 1,
+            location: 1,
+            distance: 1,
+          },
+        },
+      ];
+
+      const result = (await prisma.availableDriver.aggregateRaw({
+        pipeline,
+      })) as unknown as any[];
+
+      const nearestDriver = result?.[0];
+
+      // No driver found - notify and retry
+      if (!nearestDriver?.driver_id?.$oid) {
+        await this.handleNoDriverFound(trip);
+        return;
+      }
+
+      const driverId = nearestDriver.driver_id.$oid;
+
+      // Get distance and duration, then send request
+      const distanceDuration = await getDistanceAndTime(
+        trip.pickup_address!.geo,
+        nearestDriver.location.geo,
+      );
+
+      // Add calculated fields to trip
+      const enrichedTrip = {
+        ...trip,
+        ...distanceDuration,
+        passenger_count: trip.passenger_ages?.length,
+      };
+
+      // Send trip request to driver
+      await this.sendTripRequest(driverId, enrichedTrip);
+
+      // Schedule driver availability check
+      this.scheduleDriverCheck(trip.id!);
+    } catch (error) {
+      console.error('Error finding nearest driver:', error);
+      // Retry with backoff on error
+      setTimeout(() => this.retryFindDriver(trip.id!), 5000);
+    }
+  },
+
+  // Separate method for no driver scenario
+  async handleNoDriverFound(trip: Partial<TTrip>): Promise<void> {
+    const io = SocketServices.getIO()?.of('/trip');
+
+    if (new Date().getTime() - new Date(trip.requested_at!).getTime() > 20000)
+      io?.to(trip.passenger_id!).emit(
+        'trip_notification',
+        socketResponse({
+          statusCode: StatusCodes.NOT_FOUND,
+          message: 'No driver found for this trip',
+          data: {
+            ...trip,
+            exclude_driver_ids: undefined,
+          },
+          meta: { trip_id: trip.id },
+        }),
+      );
+
+    // Retry after delay
+    setTimeout(() => this.retryFindDriver(trip.id!), 5000);
+  },
+
+  // Extract socket emission to separate method
+  async sendTripRequest(driverId: string, trip: Partial<TTrip>): Promise<void> {
+    const io = SocketServices.getIO()?.of('/trip');
+
+    console.log(chalk.red(`Sending trip request to driver ${driverId}`));
+
+    io?.to(driverId).emit(
+      'request_for_trip',
+      socketResponse({
+        message: 'Request for trip',
+        data: trip,
+        meta: { trip_id: trip.id },
+      }),
     );
+  },
 
-    const driver = nearestDriver?.[0]?.driver_id?.$oid;
+  // Centralized retry logic with fresh data fetch
+  async retryFindDriver(tripId: string): Promise<void> {
+    console.log(chalk.red(`Retrying to find driver for trip ${tripId}`));
+    const updatedTrip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      omit: {
+        ...tripOmit,
+        exclude_driver_ids: undefined,
+      },
+    });
 
-    if (!driver) {
-      SocketServices.getIO()
-        ?.to(trip.passenger_id!)
-        .emit(
-          'trip_notification',
-          JSON.stringify({
-            status: StatusCodes.NOT_FOUND,
-            message: 'No driver found',
-            data: trip,
-          }),
-        );
+    if (updatedTrip && !updatedTrip.driver_id) {
+      await this.findNearestDriver(updatedTrip);
+    }
+  },
 
+  // Schedule check with cleanup
+  scheduleDriverCheck(tripId: string): void {
+    setTimeout(async () => {
       const updatedTrip = await prisma.trip.findUnique({
-        where: { id: trip.id },
-        omit: {
-          ...tripOmit,
-          exclude_driver_ids: undefined,
+        where: { id: tripId },
+        select: {
+          id: true,
+          driver_id: true,
+          status: true,
         },
       });
 
-      setTimeout(() => this.findNearestDriver(updatedTrip!), 1000);
+      // Only retry if trip still needs a driver
+      if (
+        updatedTrip?.status === ETripStatus.REQUESTED &&
+        !updatedTrip.driver_id
+      ) {
+        // Fetch full trip data only when needed
+        const fullTrip = await prisma.trip.findUnique({
+          where: { id: tripId },
+          omit: {
+            ...tripOmit,
+            exclude_driver_ids: undefined,
+          },
+        });
 
-      return;
-    }
-
-    const distanceDuration = await getDistanceAndTime(
-      trip.pickup_address!.geo,
-      nearestDriver?.[0]?.location?.geo,
-    );
-
-    Object.assign(trip, {
-      ...distanceDuration,
-      passenger_count: trip.passenger_ages?.length,
-    });
-
-    SocketServices.getIO()
-      ?.to(driver)
-      .emit('request_for_trip', JSON.stringify(trip));
+        if (fullTrip) {
+          await this.findNearestDriver(fullTrip);
+        }
+      }
+    }, 5000);
   },
 
   async updateTripLocation({
