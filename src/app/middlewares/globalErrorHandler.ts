@@ -35,6 +35,7 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
 
   res.status(statusCode).json({
     success: false,
+    statusCode,
     message,
     errorMessages,
     stack: config.server.isDevelopment && error.stack,
