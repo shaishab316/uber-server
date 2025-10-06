@@ -1,8 +1,10 @@
 /* eslint-disable no-unused-vars */
 import { Socket } from 'socket.io';
-import { decodeToken } from '../modules/auth/Auth.utils';
-import { prisma } from '../../utils/db';
-import { userOmit } from '../modules/user/User.service';
+import { decodeToken } from '../auth/Auth.utils';
+import { prisma } from '../../../utils/db';
+import { userOmit } from '../user/User.service';
+import ServerError from '../../../errors/ServerError';
+import { StatusCodes } from 'http-status-codes';
 
 const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
   const token = socket.handshake?.auth?.token; //!Todo: if query auth needed ?? socket.handshake?.query?.token;
@@ -15,7 +17,8 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
       omit: userOmit,
     });
 
-    if (!user) throw new Error('User not found');
+    if (!user)
+      throw new ServerError(StatusCodes.NOT_FOUND, 'Your account is not found');
 
     Object.assign(socket.data, { user });
 

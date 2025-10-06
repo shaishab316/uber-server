@@ -1,8 +1,8 @@
-import http from 'http';
+import { Server } from 'http';
 import { Server as IOServer, Socket } from 'socket.io';
 import config from '../../../config';
 import { SocketRoutes } from './Socket.route';
-import auth from '../../middlewares/socketAuth';
+import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
 import { logger } from '../../../utils/logger/logger';
 import { notFoundError } from '../../../errors';
@@ -14,7 +14,7 @@ let io: IOServer | null = null;
 const onlineUsers: OnlineMap = {};
 
 export const SocketServices = {
-  init(server: http.Server) {
+  init(server: Server) {
     if (io) return;
 
     io = new IOServer(server, {
@@ -65,9 +65,7 @@ export const SocketServices = {
         });
 
         // Event: error
-        socket.on('error', err => {
-          logger.error(err);
-        });
+        socket.on('error', logger.error);
 
         // Call module-specific handler
         try {
