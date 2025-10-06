@@ -1,3 +1,12 @@
+# [2.3.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.2.0...v2.3.0) (2025-10-06)
+
+
+### Features
+
+* Disable default Socket.IO namespace ([f616605](https://github.com/Alpha-Bytes-Department/uber-server/commit/f616605bbf00fe636d5fae5807353404351fc8ec))
+* Include statusCode in global error response ([1856437](https://github.com/Alpha-Bytes-Department/uber-server/commit/185643752da14a0167597fbe7b7945fa32db3cec))
+* Remove driver from available list upon trip acceptance and disconnect ([4e45862](https://github.com/Alpha-Bytes-Department/uber-server/commit/4e45862e282ae3a6780338da0ffc2664fbf8b3ac))
+
 # [2.2.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.1.0...v2.2.0) (2025-10-05)
 
 
