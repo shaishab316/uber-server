@@ -1,4 +1,4 @@
-import { hashPassword } from '../../../../app/modules/auth/Auth.utils';
+import { hashPassword } from '../../../app/modules/auth/Auth.utils';
 
 declare global {
   interface String {

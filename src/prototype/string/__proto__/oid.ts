@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
-import ServerError from '../../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
+import ServerError from '../../../errors/ServerError';
 
 declare global {
   interface String {

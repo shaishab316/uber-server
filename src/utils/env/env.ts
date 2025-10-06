@@ -11,7 +11,7 @@ import chalk from 'chalk';
  * @returns The value of the environment variable or the default value
  */
 export default function env<T>(
-  key: string,
+  envName: string,
   defaultValue?: T,
   options: {
     up?: string;
@@ -30,7 +30,11 @@ export default function env<T>(
           ? '^true|false$'
           : '';
 
-  key = key.toSnakeCase().toUpperCase();
+  const key = envName
+    .trim()
+    .replace(/[-\s]+/g, '_')
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .toUpperCase();
   let value: any = process.env[key];
 
   if (value === undefined) {

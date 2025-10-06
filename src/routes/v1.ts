@@ -22,7 +22,7 @@ fileTypes.map((filetype: string) =>
   ),
 );
 
-export default appRouter.inject([
+export default appRouter.injectRoutes([
   {
     path: '/context-pages',
     route: ContextPageRoutes.user,

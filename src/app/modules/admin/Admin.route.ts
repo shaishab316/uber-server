@@ -5,7 +5,7 @@ import { DriverRoutes } from '../driver/Driver.route';
 import { LogRoutes } from '../log/Log.route';
 import { CancelTripRoutes } from '../cancelTrip/CancelTrip.route';
 
-export default Router().inject([
+export default Router().injectRoutes([
   {
     path: '/users',
     route: UserRoutes.admin,
