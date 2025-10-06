@@ -146,7 +146,11 @@ export const TripServices = {
     location: TLocation;
   }) {
     //! Delete driver from availableDriver
-    await AvailableDriverServices.leave({ driver_id });
+    try {
+      await AvailableDriverServices.leave({ driver_id });
+    } catch {
+      void 0;
+    }
 
     const trip = await prisma.trip.findUnique({
       where: { id: trip_id },

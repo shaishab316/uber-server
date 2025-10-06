@@ -18,10 +18,13 @@ const TripSocket: TSocketHandler = async (io, socket) => {
   await TripServices.launchStartedTrip({ io, socket });
 
   //! delete offline driver from availableDriver
-  socket.on(
-    'disconnect',
-    async () => await AvailableDriverServices.leave({ driver_id: user.id }),
-  );
+  socket.on('disconnect', async () => {
+    try {
+      await AvailableDriverServices.leave({ driver_id: user.id });
+    } catch {
+      void 0;
+    }
+  });
 
   const isUser = user.role === EUserRole.USER;
 

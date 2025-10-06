@@ -14,7 +14,7 @@ export const catchAsyncSocket = <S extends ZodType>(
     payload: unknown,
     ack?: (response: any) => void,
   ): Promise<void> => {
-    const response: any = {};
+    const response: any = { success: false };
     try {
       const parsed = await validator.parseAsync(
         typeof payload === 'string' ? JSON.parse(payload) : payload,
