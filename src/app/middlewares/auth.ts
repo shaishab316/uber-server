@@ -39,9 +39,9 @@ const auth = ({
         'Maybe your account has been deleted. Register again.',
       );
 
-    for (const validator of validators) validator(user);
+    await Promise.all(validators.map(fn => fn(user)));
 
-    req.user = user;
+    Object.assign(req, { user });
 
     next();
   });
@@ -51,10 +51,9 @@ auth.all = auth();
 auth.admin = auth({
   validators: [
     commonValidator,
-    user => {
-      if (!user.is_admin) {
+    ({ is_admin }) => {
+      if (!is_admin)
         throw new ServerError(StatusCodes.FORBIDDEN, 'You are not an admin');
-      }
     },
   ],
 });
@@ -62,10 +61,9 @@ auth.admin = auth({
 auth.user = auth({
   validators: [
     commonValidator,
-    user => {
-      if (user.role !== EUserRole.USER) {
+    ({ role }) => {
+      if (role !== EUserRole.USER)
         throw new ServerError(StatusCodes.FORBIDDEN, 'You are not a user');
-      }
     },
   ],
 });
@@ -73,10 +71,9 @@ auth.user = auth({
 auth.driver = auth({
   validators: [
     commonValidator,
-    user => {
-      if (user.role !== EUserRole.DRIVER) {
+    ({ role }) => {
+      if (role !== EUserRole.DRIVER)
         throw new ServerError(StatusCodes.FORBIDDEN, 'You are not a driver');
-      }
     },
   ],
 });
