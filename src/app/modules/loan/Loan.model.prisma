@@ -1,0 +1,20 @@
+model Loan {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  start_date    DateTime    @default(now())
+  driver_id     String      @db.ObjectId
+  amount        Float       @default(0)
+  interest_rate Float       @default(0)
+  loan_name     String
+  status        ELoanStatus @default(PENDING)
+
+  driver User @relation(fields: [driver_id], references: [id])
+
+  @@map("loans")
+}
+
+enum ELoanStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  PAID
+}
