@@ -11,6 +11,8 @@ export const AvailableDriverServices = {
   },
 
   async leave({ driver_id }: { driver_id: string }) {
-    return prisma.availableDriver.delete({ where: { driver_id } });
+    return prisma.availableDriver.delete({
+      where: { driver_id, trip_id: null },
+    });
   },
 };

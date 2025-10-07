@@ -9,8 +9,8 @@ model Trip {
   cancelled_at DateTime?
 
   distance_km  Float?
-  duration_sec BigInt?
-  total_cost   Float?
+  duration_sec Int?
+  total_cost   Float  @default(0)
 
   driver_id      String? @db.ObjectId
   passenger_id   String  @db.ObjectId

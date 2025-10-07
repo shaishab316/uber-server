@@ -67,8 +67,6 @@ export const TripServices = {
       passengerAges: passenger_ages,
     });
 
-    console.log(estimatedFare);
-
     const trip = await prisma.trip.create({
       data: {
         dropoff_address,
@@ -83,26 +81,10 @@ export const TripServices = {
         total_cost: estimatedFare,
         duration_sec: duration.value,
         distance_km: distance.value,
-        
       },
-      select: {
-        passenger: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            avatar: true,
-            nid_number: true,
-          },
-        },
-        pickup_address: true,
-        dropoff_address: true,
-        stops: true,
-        passenger_ages: true,
-        id: true,
-        status: true,
-        requested_at: true,
+      omit: {
+        ...tripOmit,
+        exclude_driver_ids: undefined,
       },
     });
 
@@ -110,9 +92,9 @@ export const TripServices = {
     this.findNearestDriver(trip);
 
     return {
-      trip_id: trip.id,
-      start_otp: sOtp,
-      end_otp: eOtp,
+      ...trip,
+      sOtp,
+      eOtp,
     };
   },
 
@@ -125,27 +107,16 @@ export const TripServices = {
     driver_id: string;
     reason: string;
   }) {
-    const trip = (await prisma.trip.findUnique({
+    const trip = await prisma.trip.update({
       where: { id: trip_id },
+      data: {
+        exclude_driver_ids: { push: driver_id },
+      },
       omit: {
         ...tripOmit,
         exclude_driver_ids: undefined,
       },
-    }))!;
-
-    Object.assign(trip, {
-      exclude_driver_ids: Array.from(
-        new Set([...trip.exclude_driver_ids, driver_id]),
-      ),
     });
-
-    await prisma.trip.update({
-      where: { id: trip_id },
-      data: { exclude_driver_ids: trip.exclude_driver_ids },
-    });
-
-    //! Don't use await for faster response
-    this.findNearestDriver(trip);
 
     //! Track cancel trip reason
     await CancelTripServices.cancelTrip({
@@ -153,6 +124,13 @@ export const TripServices = {
       driver_id,
       reason,
     });
+
+    await prisma.availableDriver.update({
+      where: { driver_id },
+      data: { trip_id: null },
+    });
+
+    await this.findNearestDriver(trip!);
   },
 
   async acceptTrip({
@@ -271,7 +249,10 @@ export const TripServices = {
           },
         },
       },
-      omit: tripOmit,
+      omit: {
+        ...tripOmit,
+        eOtp: undefined,
+      },
     });
 
     SocketServices.getIO('/trip')
@@ -280,7 +261,10 @@ export const TripServices = {
         'trip_notification',
         socketResponse({
           message: `${updatedTrip?.passenger?.name} started your trip`,
-          data: updatedTrip,
+          data: {
+            ...updatedTrip,
+            eOtp: undefined,
+          },
           meta: {
             trip_id,
           },
@@ -290,7 +274,7 @@ export const TripServices = {
     SocketServices.getIO('/trip')
       ?.to(updatedTrip.passenger_id)
       .emit(
-        'start_trip',
+        `trip_${updatedTrip.status.toLowerCase()}`,
         socketResponse({
           message: 'Trip started',
           data: updatedTrip,
@@ -383,18 +367,19 @@ export const TripServices = {
             distanceField: 'distance',
             spherical: true,
             maxDistance: config.uber.max_distance,
-            // Filter excluded drivers at database level
-            query: trip.exclude_driver_ids?.length
-              ? {
-                  driver_id: {
-                    $nin: trip.exclude_driver_ids.map(id => ({ $oid: id })),
-                  },
-                }
-              : {},
+            query: {
+              ...(trip.exclude_driver_ids?.length
+                ? {
+                    driver_id: {
+                      $nin: trip.exclude_driver_ids.map(id => ({ $oid: id })),
+                    },
+                  }
+                : {}),
+              $or: [{ trip_id: null }, { trip_id: { $oid: trip.id } }],
+            },
           },
         },
         { $limit: 1 },
-        // Project only needed fields to reduce memory
         {
           $project: {
             driver_id: 1,
@@ -497,6 +482,11 @@ export const TripServices = {
         meta: { trip_id: trip.id },
       }),
     );
+
+    await prisma.availableDriver.update({
+      where: { driver_id: driverId },
+      data: { trip_id: trip.id },
+    });
   },
 
   // Centralized retry logic with fresh data fetch
@@ -599,9 +589,10 @@ export const TripServices = {
     io: Namespace | null;
   }) {
     const { user } = socket.data;
+
     const userSelectableField = { select: { name: true, avatar: true } };
     const where: Prisma.TripWhereInput = {
-      status: ETripStatus.STARTED,
+      OR: [{ status: ETripStatus.ACCEPTED }, { status: ETripStatus.STARTED }],
     };
 
     if (user.role === EUserRole.DRIVER) {
@@ -616,17 +607,20 @@ export const TripServices = {
         driver: userSelectableField,
         passenger: userSelectableField,
       },
-      omit: tripOmit,
     });
 
     if (trip) {
       socket.join(trip.id);
-      io?.to(trip.id).emit(
-        'start_trip',
+
+      if (user.role === EUserRole.DRIVER)
+        Object.assign(trip, { sOtp: undefined, eOtp: undefined });
+
+      io?.to(user.id).emit(
+        `trip_${trip.status.toLowerCase()}`,
         JSON.stringify({
           success: true,
           statusCode: StatusCodes.OK,
-          message: 'Trip started successfully',
+          message: `Trip ${trip.status.toLowerCase()} successfully`,
           data: trip,
           meta: {
             trip_id: trip.id,

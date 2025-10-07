@@ -5,6 +5,7 @@ model AvailableDriver {
   driver    User      @relation(fields: [driver_id], references: [id], onDelete: Cascade)
   location  TLocation
   vehicle   EVehicle
+  trip_id   String?   @db.ObjectId
 
   @@map("available_drivers")
 }

@@ -4,12 +4,13 @@ import { prisma } from '../../../utils/db';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
 import { TripServices } from './Trip.service';
-import { getDistance, TLocationGeo } from '../../../utils/location';
 import { tripNotificationMaps } from './Trip.utils';
 import { tripOmit } from './Trip.constant';
 import { EUserRole } from '../../../../prisma';
 import { catchAsyncSocket, socketResponse } from '../socket/Socket.utils';
 import { AvailableDriverServices } from '../availableDriver/AvailableDriver.service';
+import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
+import { calculateFare } from '../../../utils/uber/calculateFare';
 
 const TripSocket: TSocketHandler = async (io, socket) => {
   const { user } = socket.data;
@@ -72,14 +73,29 @@ const TripSocket: TSocketHandler = async (io, socket) => {
         }),
       );
 
-      //! notification job
-      const distance = getDistance(
-        trip.vehicle_address?.geo as TLocationGeo,
-        trip.dropoff_address?.geo as TLocationGeo,
+      const { distance, duration } = await getDistanceAndTime(
+        trip.pickup_address.geo,
+        location.geo,
       );
 
+      const estimatedFare = calculateFare({
+        distance: distance.value,
+        time: duration.value,
+        passengerAges: trip.passenger_ages,
+      });
+
+      if (trip.total_cost < estimatedFare) {
+        await prisma.trip.update({
+          where: { id: trip_id },
+          data: { total_cost: estimatedFare },
+        });
+      }
+
+      const { distance: xDistance, duration: xDuration } =
+        await getDistanceAndTime(location.geo, trip.dropoff_address.geo);
+
       const closestNotification = tripNotificationMaps.find(
-        notification => distance <= notification.distance,
+        notification => xDistance.value <= notification.distance,
       );
 
       const notification = closestNotification?.message;
@@ -90,7 +106,8 @@ const TripSocket: TSocketHandler = async (io, socket) => {
           socketResponse({
             message: notification,
             data: {
-              distance,
+              distance: xDistance,
+              duration: xDuration,
             },
             meta: { trip_id },
           }),
