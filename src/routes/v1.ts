@@ -22,39 +22,13 @@ fileTypes.map((filetype: string) =>
   ),
 );
 
-export default appRouter.injectRoutes([
-  {
-    path: '/context-pages',
-    route: ContextPageRoutes.user,
-  },
+export default appRouter.injectRoutes({
+  '/context-pages': [ContextPageRoutes.user],
 
-  {
-    path: '/auth',
-    route: AuthRoutes,
-  },
-  {
-    path: '/profile',
-    middlewares: [auth.all],
-    route: UserRoutes.user,
-  },
-  {
-    path: '/chats',
-    middlewares: [auth.all],
-    route: ChatRoutes.user,
-  },
-  {
-    path: '/trips',
-    middlewares: [auth.user],
-    route: TripRoutes.user,
-  },
-  {
-    path: '/drivers',
-    middlewares: [auth.driver],
-    route: DriverRoutes.driver,
-  },
-  {
-    path: '/admin',
-    middlewares: [auth.admin],
-    route: AdminRoutes,
-  },
-]);
+  '/auth': [AuthRoutes],
+  '/profile': [auth.all, UserRoutes.user],
+  '/chats': [auth.all, ChatRoutes.user],
+  '/trips': [auth.user, TripRoutes.user],
+  '/drivers': [auth.driver, DriverRoutes.driver],
+  '/admin': [auth.admin, AdminRoutes],
+});

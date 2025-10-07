@@ -1,16 +1,16 @@
 /* eslint-disable no-unused-vars */
 import { Router } from 'express';
-import { TRoute } from '../../../types/route.types';
+import { TRoutes } from '../../../types/route.types';
 
 declare global {
   interface Function {
-    injectRoutes(routes: TRoute[]): Router;
+    injectRoutes(routes: TRoutes): Router;
   }
 }
 
-Function.prototype.injectRoutes = function (routes: TRoute[]) {
-  routes.forEach(({ path, middlewares = [], route }) =>
-    (this as Router).use(path, ...middlewares, route),
+Function.prototype.injectRoutes = function (routes) {
+  Object.entries(routes).forEach(([path, middlewares]) =>
+    (this as Router).use(path, ...middlewares),
   );
 
   return this as Router;

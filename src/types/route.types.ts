@@ -1,7 +1,5 @@
 import { RequestHandler, Router } from 'express';
 
-export type TRoute = {
-  path: string;
-  middlewares?: RequestHandler[];
-  route: Router;
+export type TRoutes = {
+  [path: string]: [...middlewares: RequestHandler[], router: Router];
 };

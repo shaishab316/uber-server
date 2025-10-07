@@ -27,24 +27,10 @@ const admin = Router();
   );
 }
 
-// {
-//   driver.use('/available-drivers', AvailableDriverRoutes.driver);
-//   driver.use('/trips', TripRoutes.driver);
-//   driver.use('/loans', LoanRoutes.driver);
-// }
-const driver = Router().injectRoutes([
-  {
-    path: '/available-drivers',
-    route: AvailableDriverRoutes.driver,
-  },
-  {
-    path: '/trips',
-    route: TripRoutes.driver,
-  },
-  {
-    path: '/loans',
-    route: LoanRoutes.driver,
-  },
-]);
+const driver = Router().injectRoutes({
+  '/available-drivers': [AvailableDriverRoutes.driver],
+  '/trips': [TripRoutes.driver],
+  '/loans': [LoanRoutes.driver],
+});
 
 export const DriverRoutes = { admin, driver };

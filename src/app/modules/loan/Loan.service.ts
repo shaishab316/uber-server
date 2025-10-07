@@ -1,6 +1,1 @@
-
-export const LoanServices = {
-  async create(loanData: TLoan) {
-    return Loan.create(loanData);
-  },
-};
+export const LoanServices = {};
