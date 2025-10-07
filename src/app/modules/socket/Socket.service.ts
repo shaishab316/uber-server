@@ -1,5 +1,5 @@
 import { Server } from 'http';
-import { Server as IOServer } from 'socket.io';
+import { Server as IOServer, Namespace } from 'socket.io';
 import config from '../../../config';
 import { SocketRoutes } from './Socket.route';
 import auth from './Socket.middleware';
@@ -84,8 +84,8 @@ export const SocketServices = {
     io?.of(namespace).emit('online_users', Array.from(onlineUsers[namespace]));
   },
 
-  getIO(): IOServer | null {
-    return io;
+  getIO(namespace: string): Namespace | undefined {
+    return io?.of(namespace);
   },
 
   cleanup() {

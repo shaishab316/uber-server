@@ -24,6 +24,8 @@ import { socketResponse } from '../socket/Socket.utils';
 import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
 import chalk from 'chalk';
 import { AvailableDriverServices } from '../availableDriver/AvailableDriver.service';
+import ms from 'ms';
+import { calculateFare } from '../../../utils/uber/calculateFare';
 
 export const TripServices = {
   async requestForTrip({
@@ -54,6 +56,19 @@ export const TripServices = {
     const sOtp = otpGenerator(config.otp.length);
     const eOtp = otpGenerator(config.otp.length);
 
+    const { distance, duration } = await getDistanceAndTime(
+      pickup_address.geo,
+      dropoff_address.geo,
+    );
+
+    const estimatedFare = calculateFare({
+      distance: distance.value,
+      time: duration.value,
+      passengerAges: passenger_ages,
+    });
+
+    console.log(estimatedFare);
+
     const trip = await prisma.trip.create({
       data: {
         dropoff_address,
@@ -65,6 +80,10 @@ export const TripServices = {
         status: ETripStatus.REQUESTED,
         sOtp,
         eOtp,
+        total_cost: estimatedFare,
+        duration_sec: duration.value,
+        distance_km: distance.value,
+        
       },
       select: {
         passenger: {
@@ -187,8 +206,7 @@ export const TripServices = {
       omit: tripOmit,
     });
 
-    SocketServices.getIO()
-      ?.of('/trip')
+    SocketServices.getIO('/trip')
       ?.to(trip_id)
       .emit(
         'trip_notification',
@@ -256,8 +274,7 @@ export const TripServices = {
       omit: tripOmit,
     });
 
-    SocketServices.getIO()
-      ?.of('/trip')
+    SocketServices.getIO('/trip')
       ?.to(trip_id)
       .emit(
         'trip_notification',
@@ -270,8 +287,7 @@ export const TripServices = {
         }),
       );
 
-    SocketServices.getIO()
-      ?.of('/trip')
+    SocketServices.getIO('/trip')
       ?.to(updatedTrip.passenger_id)
       .emit(
         'start_trip',
@@ -335,8 +351,7 @@ export const TripServices = {
       omit: tripOmit,
     });
 
-    SocketServices.getIO()
-      ?.of('/trip')
+    SocketServices.getIO('/trip')
       ?.to(trip_id)
       .emit(
         'trip_notification',
@@ -367,7 +382,7 @@ export const TripServices = {
             },
             distanceField: 'distance',
             spherical: true,
-            maxDistance: config.app.max_distance,
+            maxDistance: config.uber.max_distance,
             // Filter excluded drivers at database level
             query: trip.exclude_driver_ids?.length
               ? {
@@ -430,9 +445,11 @@ export const TripServices = {
 
   // Separate method for no driver scenario
   async handleNoDriverFound(trip: Partial<TTrip>): Promise<void> {
-    const io = SocketServices.getIO()?.of('/trip');
+    const io = SocketServices.getIO('/trip');
+    const timeout = Date.now() - new Date(trip.requested_at!).getTime();
 
-    if (new Date().getTime() - new Date(trip.requested_at!).getTime() > 20000)
+    // If more than 20 seconds have passed, notify passenger
+    if (timeout > ms('20s')) {
       io?.to(trip.passenger_id!).emit(
         'trip_notification',
         socketResponse({
@@ -445,14 +462,30 @@ export const TripServices = {
           meta: { trip_id: trip.id },
         }),
       );
+    }
 
-    // Retry after delay
-    setTimeout(() => this.retryFindDriver(trip.id!), 5000);
+    // Retry only if the trip is less than 5 minutes old
+    if (timeout < ms('5m')) {
+      setTimeout(() => this.retryFindDriver(trip.id!), 5000);
+    } else {
+      io?.to(trip.passenger_id!).emit(
+        'close_trip',
+        socketResponse({
+          statusCode: StatusCodes.NOT_FOUND,
+          message: 'No driver found for this trip',
+          data: {
+            ...trip,
+            exclude_driver_ids: undefined,
+          },
+          meta: { trip_id: trip.id },
+        }),
+      );
+    }
   },
 
   // Extract socket emission to separate method
   async sendTripRequest(driverId: string, trip: Partial<TTrip>): Promise<void> {
-    const io = SocketServices.getIO()?.of('/trip');
+    const io = SocketServices.getIO('/trip');
 
     console.log(chalk.red(`Sending trip request to driver ${driverId}`));
 

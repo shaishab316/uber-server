@@ -152,13 +152,32 @@ const config = {
     down: 'Google map key - end',
   }),
 
-  app: {
+  uber: {
     max_distance: env('max distance', 1000, {
       regex: '^\\d+$',
-      comment: 'in meters',
-      up: 'App info - start',
-      down: 'App info - end',
+      // comment: 'in meters',
+      up: 'Uber info - start',
     }),
+
+    fare: {
+      adult_fare: env('adult fare', 1, {
+        regex: '^\\d+$',
+        comment: 'in km',
+      }),
+      non_adult_fare: env('non adult fare', 0.5, {
+        regex: '^\\d*\\.?\\d*$',
+        comment: 'in km',
+      }),
+      time_fare: env('time fare', 1.2, {
+        regex: '^\\d*\\.?\\d*$',
+        comment: 'in minutes',
+      }),
+      distance_fare: env('distance fare', 20, {
+        regex: '^\\d+$',
+        comment: 'in km',
+        down: 'Uber info - end',
+      }),
+    },
   },
 };
 
