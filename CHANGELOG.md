@@ -1,3 +1,23 @@
+# [3.0.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.4.0...v3.0.0) (2025-10-07)
+
+
+### Code Refactoring
+
+* **router:** switch injectRoutes to object-based syntax ([8e5a515](https://github.com/Alpha-Bytes-Department/uber-server/commit/8e5a515531a0922321043785fb6a8af8b8e96e50))
+
+
+### Features
+
+* Implement loan module for drivers ([a4656fa](https://github.com/Alpha-Bytes-Department/uber-server/commit/a4656fa7b7f839ec4c404933087b445671c48c7c))
+
+
+### BREAKING CHANGES
+
+* **router:** - `injectRoutes` now accepts an object (`TRoutes`) instead of an array of route configs.
+- Updated all route modules to use the new object syntax.
+- Loan route path changed from '/' to '/available'.
+- LoanServices no longer has a `create` method.
+
 # [2.4.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.3.0...v2.4.0) (2025-10-07)
 
 
