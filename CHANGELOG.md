@@ -1,3 +1,11 @@
+# [2.4.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.3.0...v2.4.0) (2025-10-07)
+
+
+### Features
+
+* Implement estimated fare calculation and improve driver search retries ([ebf6453](https://github.com/Alpha-Bytes-Department/uber-server/commit/ebf6453a07dd3b7a4459a585c583ae2a42b5a2e2))
+* Implement trip acceptance and driver exclusion logic ([fd19530](https://github.com/Alpha-Bytes-Department/uber-server/commit/fd19530d973a1c0752365e4eea333b230600acab))
+
 # [2.3.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.2.0...v2.3.0) (2025-10-06)
 
 
