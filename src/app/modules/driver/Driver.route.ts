@@ -6,7 +6,9 @@ import { AvailableDriverRoutes } from '../availableDriver/AvailableDriver.route'
 import { TripRoutes } from '../trip/Trip.route';
 import { LoanRoutes } from '../loan/Loan.route';
 
-const admin = Router();
+const admin = Router().injectRoutes({
+  '/loans': [LoanRoutes.admin],
+});
 {
   admin.get(
     '/pending',

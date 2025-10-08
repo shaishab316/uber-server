@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { availableLoans } from './Loan.constant';
+import { ELoanStatus } from '../../../../prisma';
+import { enum_encode } from '../../../utils/transform/enum';
 
 export const LoanValidations = {
   startLoan: z.object({
@@ -15,11 +17,21 @@ export const LoanValidations = {
             path: ['loan_name'],
           },
         ),
-      bank_account_no: z
+      bank_account_no: z.coerce
         .string({
           error: 'Bank account number is required',
         })
         .nonempty('Bank account number is required'),
+    }),
+  }),
+
+  superGetAllLoans: z.object({
+    query: z.object({
+      status: z
+        .string()
+        .transform(enum_encode)
+        .pipe(z.enum(ELoanStatus).optional())
+        .optional(),
     }),
   }),
 };

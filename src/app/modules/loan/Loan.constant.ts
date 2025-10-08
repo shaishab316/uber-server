@@ -1,3 +1,5 @@
+import { Loan as TLoan } from '../../../../prisma';
+
 /** Todo: implement dynamic available loans */
 export const availableLoans = [
   {
@@ -14,4 +16,9 @@ export const availableLoans = [
     interest_rate: 2, //2%
     terms: '6-24 Months Terms',
   },
+];
+
+export const loanSearchableFields: (keyof TLoan)[] = [
+  'bank_account_no',
+  'driver_id',
 ];

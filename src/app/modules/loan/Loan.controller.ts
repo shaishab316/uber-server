@@ -22,4 +22,42 @@ export const LoanControllers = {
       data,
     });
   }),
+
+  //! admin
+  superGetAllLoans: catchAsync(async ({ query }, res) => {
+    const { meta, loans } = await LoanServices.superGetAllLoans(query);
+
+    serveResponse(res, {
+      message: 'Loans retrieved successfully!',
+      meta,
+      data: loans,
+    });
+  }),
+
+  superAcceptLoan: catchAsync(async ({ params }, res) => {
+    const data = await LoanServices.superAcceptLoan(params.loanId);
+
+    serveResponse(res, {
+      message: 'Loan accepted successfully!',
+      data,
+    });
+  }),
+
+  superRejectLoan: catchAsync(async ({ params }, res) => {
+    const data = await LoanServices.superRejectLoan(params.loanId);
+
+    serveResponse(res, {
+      message: 'Loan rejected successfully!',
+      data,
+    });
+  }),
+
+  superPayLoan: catchAsync(async ({ params }, res) => {
+    const data = await LoanServices.superPayLoan(params.loanId);
+
+    serveResponse(res, {
+      message: 'Loan paid successfully!',
+      data,
+    });
+  }),
 };
