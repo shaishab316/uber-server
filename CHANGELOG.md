@@ -1,3 +1,11 @@
+# [3.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v3.0.0...v3.1.0) (2025-10-08)
+
+
+### Features
+
+* Implement admin loan management endpoints ([02cb7e6](https://github.com/Alpha-Bytes-Department/uber-server/commit/02cb7e6ff685e265125875cdadaa1d51853a6a59))
+* Implement start loan functionality ([548f4b6](https://github.com/Alpha-Bytes-Department/uber-server/commit/548f4b6c7e685a62c1ce536228f011f2bc000577))
+
 # [3.0.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v2.4.0...v3.0.0) (2025-10-07)
 
 
