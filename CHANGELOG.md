@@ -1,3 +1,21 @@
+# [4.0.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v3.1.0...v4.0.0) (2025-10-08)
+
+
+### Code Refactoring
+
+* remove `serveResponse` and update `catchAsync` middleware ([2022895](https://github.com/Alpha-Bytes-Department/uber-server/commit/20228959b9b64d86e17c50f817e0dcf065d10b2e))
+
+
+### BREAKING CHANGES
+
+* The `serveResponse` utility has been removed. The `catchAsync`
+middleware now handles sending responses directly, eliminating the need for
+explicit `serveResponse` calls inside controllers.
+
+Controllers are now simpler and more centralized, but any controller that
+previously relied on `serveResponse` must be updated to work with the new
+`catchAsync` behavior.
+
 # [3.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v3.0.0...v3.1.0) (2025-10-08)
 
 
