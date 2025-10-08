@@ -4,10 +4,11 @@ import env from '../utils/env/env';
 import type ms from 'ms';
 import { genSecret } from '../utils/crypto/genSecret';
 import path from 'path';
+import { enum_decode } from '../utils/transform/enum';
 
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
 
-const node_env = process.env.NODE_ENV?.trim() ?? 'development';
+const node_env = enum_decode(process.env.NODE_ENV) ?? 'development';
 
 const server_name =
   process.env.SERVER_NAME ??

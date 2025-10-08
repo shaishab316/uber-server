@@ -5,6 +5,7 @@ import { SocketRoutes } from './Socket.route';
 import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
 import { logger } from '../../../utils/logger/logger';
+import chalk from 'chalk';
 
 type OnlineMap = Record<string, Set<string>>;
 
@@ -18,6 +19,8 @@ export const SocketServices = {
     io = new IOServer(server, {
       cors: { origin: config.server.allowed_origins },
     });
+
+    logger.info(chalk.green('🚀 Socket services initialized successfully'));
 
     // Disable default namespace
     io.of('/').on('connection', socket => socket.disconnect(true));

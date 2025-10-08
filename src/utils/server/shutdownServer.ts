@@ -16,7 +16,7 @@ export default async function shutdownServer(
 ) {
   if (err) errorLogger.error(chalk.red(`${signal} occurred: `), err);
 
-  if (signal === 'uncaughtException' && !config.server.isDevelopment) return;
+  if (!config.server.isDevelopment) return;
 
   logger.info(chalk.magenta(`🔴 Shutting down server due to ${signal}...`));
 
