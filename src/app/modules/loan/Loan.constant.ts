@@ -1,3 +1,4 @@
+/** Todo: implement dynamic available loans */
 export const availableLoans = [
   {
     name: 'Emergency Loan',
