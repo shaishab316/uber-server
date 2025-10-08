@@ -6,6 +6,12 @@ import { QueryValidations } from '../query/Query.validation';
 
 const user = Router();
 {
+  user.get(
+    '/',
+    purifyRequest(QueryValidations.list, TripValidations.getTripHistory),
+    TripControllers.getTripHistory,
+  );
+
   user.post(
     '/request-for-trip',
     purifyRequest(TripValidations.requestForTrip),
@@ -61,4 +67,13 @@ const driver = Router();
   );
 }
 
-export const TripRoutes = { user, driver };
+const admin = Router();
+{
+  admin.get(
+    '/',
+    purifyRequest(QueryValidations.list, TripValidations.getTripHistory),
+    TripControllers.superGetTripHistory,
+  );
+}
+
+export const TripRoutes = { user, driver, admin };

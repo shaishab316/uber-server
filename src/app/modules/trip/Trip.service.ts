@@ -3,7 +3,7 @@
 // import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../../utils/db';
-import { TRequestForTrip } from './Trip.interface';
+import { TGetTripHistory, TRequestForTrip } from './Trip.interface';
 import config from '../../../config';
 import {
   ETripStatus,
@@ -17,9 +17,15 @@ import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 import { SocketServices } from '../socket/Socket.service';
 import { TAuthenticatedSocket } from '../socket/Socket.interface';
 import { Namespace } from 'socket.io';
-import { tripOmit } from './Trip.constant';
+import {
+  tripOmit,
+  tripSearchableFields as searchableFields,
+} from './Trip.constant';
 import { otpGenerator } from '../../../utils/crypto/otpGenerator';
-import { TServeResponse } from '../../../utils/server/serveResponse';
+import {
+  TPagination,
+  TServeResponse,
+} from '../../../utils/server/serveResponse';
 import { socketResponse } from '../socket/Socket.utils';
 import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
 import chalk from 'chalk';
@@ -628,5 +634,68 @@ export const TripServices = {
         } as TServeResponse<typeof trip>),
       );
     }
+  },
+
+  async getTripHistory({
+    limit,
+    page,
+    search,
+    status,
+    user_id,
+  }: TGetTripHistory) {
+    const where: Prisma.TripWhereInput = {};
+
+    if (user_id) where.OR = [{ passenger_id: user_id }, { driver_id: user_id }];
+
+    if (status) where.status = status;
+
+    if (search) {
+      where.OR = searchableFields.map(field => ({
+        [field]: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      }));
+    }
+
+    const trips = await prisma.trip.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      omit: tripOmit,
+      include: {
+        driver: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+        passenger: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    const total = await prisma.trip.count({ where });
+
+    return {
+      meta: {
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        } as TPagination,
+        query: {
+          search,
+          status,
+          user_id,
+        },
+      },
+      trips,
+    };
   },
 };

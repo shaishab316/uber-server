@@ -73,4 +73,27 @@ export const TripControllers = {
       message: 'Trip completed successfully!',
     };
   }),
+
+  getTripHistory: catchAsync(async ({ query, user }) => {
+    const { meta, trips } = await TripServices.getTripHistory({
+      ...query,
+      user_id: user.id,
+    });
+
+    return {
+      message: 'Trip history retrieved successfully!',
+      meta,
+      data: trips,
+    };
+  }),
+
+  superGetTripHistory: catchAsync(async ({ query }) => {
+    const { meta, trips } = await TripServices.getTripHistory(query);
+
+    return {
+      message: 'Trip history retrieved successfully!',
+      meta,
+      data: trips,
+    };
+  }),
 };

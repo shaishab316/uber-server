@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EVehicle } from '../../../../prisma';
+import { ETripStatus, EVehicle } from '../../../../prisma';
 import { enum_encode } from '../../../utils/transform/enum';
 import { exists } from '../../../utils/db/exists';
 import config from '../../../config';
@@ -77,6 +77,16 @@ export const TripValidations = {
           config.otp.length,
           `End Otp must be ${config.otp.length} digits`,
         ),
+    }),
+  }),
+
+  getTripHistory: z.object({
+    query: z.object({
+      status: z
+        .string()
+        .transform(enum_encode)
+        .pipe(z.enum(ETripStatus).optional())
+        .optional(),
     }),
   }),
 
