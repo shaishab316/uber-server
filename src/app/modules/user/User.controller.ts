@@ -1,6 +1,5 @@
 import { UserServices } from './User.service';
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../utils/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
 import { EUserRole, User as TUser } from '../../../../prisma';
@@ -19,7 +18,7 @@ export const UserControllers = {
 
     AuthServices.setTokens(res, { access_token, refresh_token });
 
-    serveResponse(res, {
+    return {
       statusCode: StatusCodes.CREATED,
       message: `${user.role?.toCapitalize() ?? 'Unknown'} registered successfully!`,
       data: {
@@ -27,28 +26,28 @@ export const UserControllers = {
         refresh_token,
         user,
       },
-    });
+    };
   }),
 
-  edit: catchAsync(async (req, res) => {
+  edit: catchAsync(async req => {
     const data = await UserServices.updateUser(req);
 
-    serveResponse(res, {
+    return {
       message: 'Profile updated successfully!',
       data,
-    });
+    };
   }),
 
-  updateLocation: catchAsync(async (req, res) => {
+  updateLocation: catchAsync(async req => {
     await UserServices.updateUser(req);
 
-    serveResponse(res, {
+    return {
       message: 'Location updated successfully!',
       data: req.body,
-    });
+    };
   }),
 
-  superEdit: catchAsync(async ({ params, body }, res) => {
+  superEdit: catchAsync(async ({ params, body }) => {
     const user = (await prisma.user.findUnique({
       where: { id: params.userId },
     })) as TUser;
@@ -58,58 +57,58 @@ export const UserControllers = {
       body,
     });
 
-    serveResponse(res, {
+    return {
       message: `${user?.role?.toCapitalize() ?? 'User'} updated successfully!`,
       data,
-    });
+    };
   }),
 
-  getAllUser: catchAsync(async ({ query }, res) => {
+  getAllUser: catchAsync(async ({ query }) => {
     const { meta, users } = await UserServices.getAllUser(query);
 
-    serveResponse(res, {
+    return {
       message: 'Users retrieved successfully!',
       meta,
       data: users,
-    });
+    };
   }),
 
-  superGetAllUser: catchAsync(async ({ query }, res) => {
+  superGetAllUser: catchAsync(async ({ query }) => {
     const { meta, users } = await UserServices.getAllUser(query);
 
     Object.assign(meta, {
       users: await UserServices.getUsersCount(),
     });
 
-    serveResponse(res, {
+    return {
       message: 'Users retrieved successfully!',
       meta,
       data: users,
-    });
+    };
   }),
 
-  profile: catchAsync(({ user }, res) => {
+  profile: catchAsync(({ user }) => {
     Object.assign(user, {
       password: undefined,
       otp: undefined,
       otp_expires_at: undefined,
     } as Partial<TUser>);
 
-    serveResponse(res, {
+    return {
       message: 'Profile retrieved successfully!',
       data: user,
-    });
+    };
   }),
 
-  delete: catchAsync(async ({ params }, res) => {
+  delete: catchAsync(async ({ params }) => {
     const user = await UserServices.delete(params.userId);
 
-    serveResponse(res, {
+    return {
       message: `${user?.name ?? 'User'} deleted successfully!`,
-    });
+    };
   }),
 
-  applyForDriver: catchAsync(async ({ body, user }, res) => {
+  applyForDriver: catchAsync(async ({ body, user }) => {
     if (user.role === EUserRole.DRIVER)
       throw new ServerError(
         StatusCodes.UNAUTHORIZED,
@@ -121,9 +120,9 @@ export const UserControllers = {
       ...body,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Application submitted successfully!',
       data,
-    });
+    };
   }),
 };

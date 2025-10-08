@@ -1,77 +1,76 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../utils/server/serveResponse';
 import { TripServices } from './Trip.service';
 
 export const TripControllers = {
-  requestForTrip: catchAsync(async ({ body, user }, res) => {
+  requestForTrip: catchAsync(async ({ body, user }) => {
     const trip = await TripServices.requestForTrip({
       ...body,
       passenger_id: user.id,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Trip started successfully!',
       data: trip,
-    });
+    };
   }),
 
-  rejectTrip: catchAsync(async ({ params, user, body }, res) => {
+  rejectTrip: catchAsync(async ({ params, user, body }) => {
     await TripServices.rejectTrip({
       ...body,
       driver_id: user.id,
       trip_id: params.tripId,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Trip rejected successfully!',
-    });
+    };
   }),
 
-  acceptTrip: catchAsync(async ({ params, user, body }, res) => {
+  acceptTrip: catchAsync(async ({ params, user, body }) => {
     await TripServices.acceptTrip({
       ...body,
       driver_id: user.id,
       trip_id: params.tripId,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Trip accepted successfully!',
-    });
+    };
   }),
 
-  startTrip: catchAsync(async ({ params, user, body }, res) => {
+  startTrip: catchAsync(async ({ params, user, body }) => {
     await TripServices.startTrip({
       ...body,
       driver_id: user.id,
       trip_id: params.tripId,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Trip accepted successfully!',
-    });
+    };
   }),
 
-  updateTripLocation: catchAsync(async ({ params, body, user }, res) => {
+  updateTripLocation: catchAsync(async ({ params, body, user }) => {
     await TripServices.updateTripLocation({
       ...body,
       tripId: params.tripId,
       userId: user.id,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Trip location updated successfully!',
-    });
+    };
   }),
 
-  completeTrip: catchAsync(async ({ params, user, body }, res) => {
+  completeTrip: catchAsync(async ({ params, user, body }) => {
     await TripServices.completeTrip({
       ...body,
       driver_id: user.id,
       trip_id: params.tripId,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Trip completed successfully!',
-    });
+    };
   }),
 };

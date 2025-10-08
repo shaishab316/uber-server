@@ -1,18 +1,17 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../utils/server/serveResponse';
 import { MessageServices } from './Message.service';
 
 export const MessageControllers = {
-  getChatMessages: catchAsync(async ({ query, params }, res) => {
+  getChatMessages: catchAsync(async ({ query, params }) => {
     const { meta, messages } = await MessageServices.getChatMessages({
       ...query,
       chat_id: params.chatId,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Chat messages retrieved successfully!',
       meta,
       data: messages,
-    });
+    };
   }),
 };

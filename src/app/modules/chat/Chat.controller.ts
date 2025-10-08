@@ -1,11 +1,10 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../utils/server/serveResponse';
 import { ChatServices } from './Chat.service';
 import { EUserRole } from '../../../../prisma';
 import { ZodError } from 'zod';
 
 export const ChatControllers = {
-  getChat: catchAsync(async ({ query, user }, res) => {
+  getChat: catchAsync(async ({ query, user }) => {
     if (user.role === EUserRole.USER) {
       query.user_id = user.id;
       if (!query.driver_id)
@@ -30,13 +29,13 @@ export const ChatControllers = {
 
     const data = await ChatServices.getChat(query);
 
-    serveResponse(res, {
+    return {
       message: 'Chat retrieved successfully!',
       data,
-    });
+    };
   }),
 
-  getInboxChats: catchAsync(async ({ query, user }, res) => {
+  getInboxChats: catchAsync(async ({ query, user }) => {
     if (user.role === EUserRole.USER) {
       query.user_id = user.id;
     } else {
@@ -45,14 +44,14 @@ export const ChatControllers = {
 
     const { chats, meta } = await ChatServices.getInboxChats(query);
 
-    serveResponse(res, {
+    return {
       message: 'Inbox chats retrieved successfully!',
       meta,
       data: chats,
-    });
+    };
   }),
 
-  deleteChat: catchAsync(async ({ params, user }, res) => {
+  deleteChat: catchAsync(async ({ params, user }) => {
     if (user.role === EUserRole.USER) {
       params.user_id = user.id;
     } else {
@@ -61,8 +60,8 @@ export const ChatControllers = {
 
     await ChatServices.deleteChat(params);
 
-    serveResponse(res, {
+    return {
       message: 'Chat deleted successfully!',
-    });
+    };
   }),
 };

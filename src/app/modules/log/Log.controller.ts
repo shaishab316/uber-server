@@ -1,61 +1,60 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../utils/server/serveResponse';
 import { LogServices } from './Log.service';
 
 export const LogControllers = {
-  info: catchAsync(async ({ query }, res) => {
+  info: catchAsync(async ({ query }) => {
     const { meta, logs } = await LogServices.getSuccessLogs(query);
 
-    serveResponse(res, {
+    return {
       message: 'Logs retrieved successfully!',
       meta,
       data: logs,
-    });
+    };
   }),
 
-  error: catchAsync(async ({ query }, res) => {
+  error: catchAsync(async ({ query }) => {
     const { meta, error_logs } = await LogServices.getErrorLogs(query);
 
-    serveResponse(res, {
+    return {
       message: 'Error logs retrieved successfully!',
       meta,
       data: error_logs,
-    });
+    };
   }),
 
-  clearLogs: catchAsync(async (_, res) => {
+  clearLogs: catchAsync(async () => {
     const data = await LogServices.clearLogs();
 
-    serveResponse(res, {
+    return {
       message: 'Logs cleared successfully!',
       data,
-    });
+    };
   }),
 
-  clearErrorLogs: catchAsync(async (_, res) => {
+  clearErrorLogs: catchAsync(async () => {
     const data = await LogServices.clearErrorLogs();
 
-    serveResponse(res, {
+    return {
       message: 'Error logs cleared successfully!',
       data,
-    });
+    };
   }),
 
-  deleteLog: catchAsync(async ({ params }, res) => {
+  deleteLog: catchAsync(async ({ params }) => {
     const data = await LogServices.deleteLog(params.logId);
 
-    serveResponse(res, {
+    return {
       message: 'Log deleted successfully!',
       data,
-    });
+    };
   }),
 
-  deleteErrorLog: catchAsync(async ({ params }, res) => {
+  deleteErrorLog: catchAsync(async ({ params }) => {
     const data = await LogServices.deleteErrorLog(params.errorLogId);
 
-    serveResponse(res, {
+    return {
       message: 'Error log deleted successfully!',
       data,
-    });
+    };
   }),
 };

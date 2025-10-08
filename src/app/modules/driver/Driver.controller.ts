@@ -1,33 +1,32 @@
-import serveResponse from '../../../utils/server/serveResponse';
 import catchAsync from '../../middlewares/catchAsync';
 import { DriverServices } from './Driver.service';
 
 export const DriverControllers = {
-  superGetPendingDrivers: catchAsync(async ({ query }, res) => {
+  superGetPendingDrivers: catchAsync(async ({ query }) => {
     const { meta, users } = await DriverServices.superGetPendingDriver(query);
 
-    serveResponse(res, {
+    return {
       message: 'Pending drivers retrieved successfully!',
       meta,
       data: users,
-    });
+    };
   }),
 
-  superApproveDriver: catchAsync(async ({ params }, res) => {
+  superApproveDriver: catchAsync(async ({ params }) => {
     const data = await DriverServices.superApproveDriver(params.driverId);
 
-    serveResponse(res, {
+    return {
       message: 'Driver approved successfully!',
       data,
-    });
+    };
   }),
 
-  superRejectDriver: catchAsync(async ({ params }, res) => {
+  superRejectDriver: catchAsync(async ({ params }) => {
     const data = await DriverServices.superRejectDriver(params.driverId);
 
-    serveResponse(res, {
+    return {
       message: 'Driver rejected successfully!',
       data,
-    });
+    };
   }),
 };

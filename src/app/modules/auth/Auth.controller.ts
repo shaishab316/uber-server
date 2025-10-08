@@ -1,6 +1,5 @@
 import { AuthServices } from './Auth.service';
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../utils/server/serveResponse';
 import { TToken, verifyPassword } from './Auth.utils';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
@@ -17,19 +16,19 @@ export const AuthControllers = {
 
     AuthServices.setTokens(res, { access_token, refresh_token });
 
-    serveResponse(res, {
+    return {
       message: 'Login successfully!',
       data: { access_token, refresh_token, user },
-    });
+    };
   }),
 
-  accountVerifyOtpSend: catchAsync(async ({ body }, res) => {
+  accountVerifyOtpSend: catchAsync(async ({ body }) => {
     const data = await AuthServices.accountVerifyOtpSend(body);
 
-    serveResponse(res, {
+    return {
       message: 'OTP sent successfully!',
       data,
-    });
+    };
   }),
 
   accountVerify: catchAsync(async ({ body }, res) => {
@@ -43,10 +42,10 @@ export const AuthControllers = {
 
     AuthServices.setTokens(res, { access_token, refresh_token });
 
-    serveResponse(res, {
+    return {
       message: 'Account verified successfully!',
       data: { user, access_token, refresh_token },
-    });
+    };
   }),
 
   forgotPasswordOtpVerify: catchAsync(async ({ body }, res) => {
@@ -56,19 +55,19 @@ export const AuthControllers = {
 
     AuthServices.setTokens(res, { reset_token });
 
-    serveResponse(res, {
+    return {
       message: 'OTP verified successfully!',
       data: { user, reset_token },
-    });
+    };
   }),
 
-  forgotPassword: catchAsync(async ({ body }, res) => {
+  forgotPassword: catchAsync(async ({ body }) => {
     const data = await AuthServices.forgotPassword(body);
 
-    serveResponse(res, {
+    return {
       message: 'OTP sent successfully!',
       data,
-    });
+    };
   }),
 
   resetPassword: catchAsync(async ({ user, body }, res) => {
@@ -93,13 +92,13 @@ export const AuthControllers = {
     AuthServices.setTokens(res, { access_token, refresh_token });
     AuthServices.destroyTokens(res, 'reset_token');
 
-    serveResponse(res, {
+    return {
       message: 'Password reset successfully!',
       data: { access_token, refresh_token, user },
-    });
+    };
   }),
 
-  changePassword: catchAsync(async ({ user, body }, res) => {
+  changePassword: catchAsync(async ({ user, body }) => {
     if (!(await verifyPassword(body.oldPassword, user.password))) {
       throw new ServerError(StatusCodes.UNAUTHORIZED, 'Incorrect password');
     }
@@ -116,17 +115,17 @@ export const AuthControllers = {
       password: body.newPassword,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Password changed successfully!',
-    });
+    };
   }),
 
   logout: catchAsync(async ({ cookies }, res) => {
     AuthServices.destroyTokens(res, ...(Object.keys(cookies) as TToken[]));
 
-    serveResponse(res, {
+    return {
       message: 'Logged out successfully!',
-    });
+    };
   }),
 
   /*

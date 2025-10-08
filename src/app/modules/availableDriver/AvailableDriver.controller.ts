@@ -1,28 +1,29 @@
 import catchAsync from '../../middlewares/catchAsync';
-import serveResponse from '../../../utils/server/serveResponse';
 import { AvailableDriverServices } from './AvailableDriver.service';
 
 export const AvailableDriverControllers = {
-  join: catchAsync(async ({ body, user }, res) => {
+  join: catchAsync(async ({ body, user }) => {
     await AvailableDriverServices.join({
-      driver_id: user.id,
       ...body,
+      driver_id: user.id,
     });
 
-    serveResponse(res, {
+    return {
       message: 'Driver joined successfully!',
-    });
+    };
   }),
 
-  leave: catchAsync(async ({ user }, res) => {
+  leave: catchAsync(async ({ user }) => {
     try {
       await AvailableDriverServices.leave({
         driver_id: user.id,
       });
-    } finally {
-      serveResponse(res, {
-        message: 'Driver left successfully!',
-      });
+    } catch {
+      void 0;
     }
+
+    return {
+      message: 'Driver left successfully!',
+    };
   }),
 };
