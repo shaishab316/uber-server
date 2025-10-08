@@ -26,13 +26,13 @@ const admin = Router();
     ':userId/edit',
     avatarCapture,
     purifyRequest(UserValidations.edit),
-    UserControllers.superEdit,
+    UserControllers.superEditProfile,
   );
 
   admin.delete(
     '/:userId/delete',
     purifyRequest(QueryValidations.exists('userId', 'user')),
-    UserControllers.delete,
+    UserControllers.superDeleteAccount,
   );
 }
 
@@ -44,8 +44,10 @@ const user = Router();
     '/edit',
     avatarCapture,
     purifyRequest(UserValidations.edit),
-    UserControllers.edit,
+    UserControllers.editProfile,
   );
+
+  user.delete('/delete', UserControllers.deleteAccount);
 
   user.post(
     '/change-password',

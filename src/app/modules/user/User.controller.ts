@@ -5,10 +5,11 @@ import { AuthServices } from '../auth/Auth.service';
 import { EUserRole, User as TUser } from '../../../../prisma';
 import { prisma } from '../../../utils/db';
 import ServerError from '../../../errors/ServerError';
+import { enum_decode } from '../../../utils/transform/enum';
 
 export const UserControllers = {
   register: catchAsync(async ({ body }, res) => {
-    const user = await UserServices.create(body);
+    const user = await UserServices.register(body);
 
     const { access_token, refresh_token } = AuthServices.retrieveToken(
       user.id,
@@ -29,7 +30,7 @@ export const UserControllers = {
     };
   }),
 
-  edit: catchAsync(async req => {
+  editProfile: catchAsync(async req => {
     const data = await UserServices.updateUser(req);
 
     return {
@@ -47,7 +48,7 @@ export const UserControllers = {
     };
   }),
 
-  superEdit: catchAsync(async ({ params, body }) => {
+  superEditProfile: catchAsync(async ({ params, body }) => {
     const user = (await prisma.user.findUnique({
       where: { id: params.userId },
     })) as TUser;
@@ -100,11 +101,19 @@ export const UserControllers = {
     };
   }),
 
-  delete: catchAsync(async ({ params }) => {
-    const user = await UserServices.delete(params.userId);
+  superDeleteAccount: catchAsync(async ({ params }) => {
+    const user = await UserServices.deleteAccount(params.userId);
 
     return {
       message: `${user?.name ?? 'User'} deleted successfully!`,
+    };
+  }),
+
+  deleteAccount: catchAsync(async ({ user }) => {
+    await UserServices.deleteAccount(user.id);
+
+    return {
+      message: `Goodbye ${user?.name ?? enum_decode(user.role)}! Your account has been deleted successfully!`,
     };
   }),
 

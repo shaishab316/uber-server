@@ -23,7 +23,7 @@ export const userOmit = {
 };
 
 export const UserServices = {
-  async create({ password, name, email, phone }: TUserRegister) {
+  async register({ password, name, email, phone }: TUserRegister) {
     AuthServices.validEmailORPhone({ email, phone });
 
     //! check if user already exists
@@ -159,7 +159,7 @@ export const UserServices = {
     );
   },
 
-  async delete(userId: string) {
+  async deleteAccount(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (user?.avatar) await deleteFile(user.avatar);
