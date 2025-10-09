@@ -14,12 +14,16 @@ declare global {
   }
 }
 
-Function.prototype.injectRoutes = function (routes) {
+function injectRoutes(router: Router, routes: TRoutes) {
   Object.entries(routes).forEach(([path, middlewares]) =>
-    (this as Router).use(path, ...middlewares),
+    router.use(path, ...middlewares),
   );
 
-  return this as Router;
+  return router;
+}
+
+Function.prototype.injectRoutes = function (routes) {
+  return injectRoutes(this as Router, routes);
 };
 
-export {};
+export { injectRoutes };

@@ -5,6 +5,8 @@ import { stripe, stripWebhookEventMap } from './Payment.utils';
 import { StatusCodes } from 'http-status-codes';
 import { errorLogger } from '../../../utils/logger/logger';
 import { TStripWebhookEvent } from './Payment.interface';
+import { PaymentServices } from './Payment.service';
+import Stripe from 'stripe';
 
 export const PaymentControllers = {
   stripeWebhook: catchAsync(
@@ -23,7 +25,7 @@ export const PaymentControllers = {
       if (!eventHandler)
         return res.status(StatusCodes.NOT_FOUND).json({ received: true });
 
-      await eventHandler(event.data.object);
+      await eventHandler(event.data.object as Stripe.Checkout.Session);
 
       res.json({ received: true });
     },
@@ -37,4 +39,16 @@ export const PaymentControllers = {
       next(error);
     },
   ),
+
+  topup: catchAsync(async ({ body, user }) => {
+    const url = await PaymentServices.topup({
+      ...body,
+      user_id: user.id,
+    });
+
+    return {
+      message: 'Topup payment link created successfully',
+      data: { url },
+    };
+  }),
 };

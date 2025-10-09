@@ -8,12 +8,14 @@ declare global {
   }
 }
 
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 Object.defineProperty(String.prototype, 'toCapitalize', {
-  value: function () {
-    return this.charAt(0).toUpperCase() + this.slice(1);
-  },
+  value: capitalize,
   enumerable: false,
   configurable: true,
 });
 
-export {};
+export { capitalize };

@@ -5,6 +5,9 @@ import type ms from 'ms';
 import { genSecret } from '../utils/crypto/genSecret';
 import path from 'path';
 import { enum_decode } from '../utils/transform/enum';
+import { capitalize } from '../prototype/string/__proto__/toCapitalize';
+import Stripe from 'stripe';
+import { stripePaymentMethods } from '../app/modules/payment/Payment.constant';
 
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
 
@@ -13,17 +16,17 @@ const isDevelopment = node_env !== 'production';
 
 const server_name =
   process.env.SERVER_NAME ??
-  path.basename(process.cwd())?.toCapitalize() ??
+  capitalize(path.basename(process.cwd())) ??
   'Server';
 
 const admin_email =
-  process.env.ADMIN_EMAIL ?? `admin@${server_name.toLocaleLowerCase()}.com`;
+  process.env.ADMIN_EMAIL ?? `admin@${server_name.toLowerCase()}.com`;
 
 const user_email =
-  process.env.EMAIL_USER ?? `${server_name.toLocaleLowerCase()}@gmail.com`;
+  process.env.EMAIL_USER ?? `${server_name.toLowerCase()}@gmail.com`;
 
 const support_email =
-  process.env.EMAIL_SUPPORT ?? `support@${server_name.toLocaleLowerCase()}.com`;
+  process.env.EMAIL_SUPPORT ?? `support@${server_name.toLowerCase()}.com`;
 
 const db_name = server_name.toLowerCase().replace(' ', '-');
 
@@ -159,6 +162,24 @@ const config = {
         up: '\n',
       }),
       web_hook_secret: process.env.STRIPE_WEB_HOOK_SECRET ?? '',
+      webhook_endpoint: env(
+        'payment webhook endpoint',
+        `http://localhost:${port}/api/v1/payments/stripe/webhook`,
+        {
+          regex: '^https?:\\/\\/.*\\/payments\\/stripe\\/webhook$|^$',
+        },
+      ),
+      methods: Array.from(
+        new Set(
+          env<Stripe.Checkout.SessionCreateParams.PaymentMethodType[]>(
+            'payment methods',
+            ['card'],
+            {
+              regex: `^(${stripePaymentMethods.join('|')})(,(${stripePaymentMethods.join('|')}))*$`,
+            },
+          ),
+        ),
+      ),
     },
   },
 

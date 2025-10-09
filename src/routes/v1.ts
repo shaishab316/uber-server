@@ -29,7 +29,7 @@ export default appRouter.injectRoutes({
 
   // No auth
   '/auth': [AuthRoutes],
-  '/payments': [PaymentRoutes],
+  '/payments': [PaymentRoutes.user],
 
   // Free auth
   '/profile': [auth.all, UserRoutes.user],

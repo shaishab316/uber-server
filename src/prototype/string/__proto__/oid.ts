@@ -23,4 +23,6 @@ Object.defineProperty(String.prototype, 'oid', {
   enumerable: false,
 });
 
-export {};
+const oid = (str: string) => new ObjectId(str);
+
+export { oid };
