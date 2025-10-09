@@ -9,6 +9,8 @@ import { fileTypes } from '../app/middlewares/capture';
 import { DriverRoutes } from '../app/modules/driver/Driver.route';
 import { TripRoutes } from '../app/modules/trip/Trip.route';
 import { ChatRoutes } from '../app/modules/chat/Chat.route';
+import { PaymentRoutes } from '../app/modules/payment/Payment.route';
+import { TransactionRoutes } from '../app/modules/transaction/Transaction.route';
 
 const appRouter = Router();
 
@@ -25,10 +27,21 @@ fileTypes.map((filetype: string) =>
 export default appRouter.injectRoutes({
   '/context-pages': [ContextPageRoutes.user],
 
+  // No auth
   '/auth': [AuthRoutes],
+  '/payments': [PaymentRoutes],
+
+  // Free auth
   '/profile': [auth.all, UserRoutes.user],
+  '/transactions': [auth.all, TransactionRoutes.user],
   '/chats': [auth.all, ChatRoutes.user],
+
+  // User auth
   '/trips': [auth.user, TripRoutes.user],
+
+  // Driver auth
   '/drivers': [auth.driver, DriverRoutes.driver],
+
+  // Admin auth
   '/admin': [auth.admin, AdminRoutes],
 });

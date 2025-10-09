@@ -9,6 +9,7 @@ import { enum_decode } from '../utils/transform/enum';
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
 
 const node_env = enum_decode(process.env.NODE_ENV) ?? 'development';
+const isDevelopment = node_env !== 'production';
 
 const server_name =
   process.env.SERVER_NAME ??
@@ -55,7 +56,7 @@ const config = {
     name: env('server name', server_name, {
       regex: '^\\w[\\w\\s-]{1,50}$',
     }),
-    isDevelopment: node_env !== 'production',
+    isDevelopment,
     logo: env('logo', '/images/logo.png', {
       regex: '^\\/.*\\.(png|jpg|jpeg|svg)$',
     }),
@@ -145,6 +146,20 @@ const config = {
       regex: '^.{6,32}$',
       down: 'Admin info - end',
     }),
+  },
+
+  payment: {
+    currency: env('payment currency', 'usd', {
+      regex: '^[a-z]{3}$',
+      up: 'Payment info - start',
+    }),
+    stripe: {
+      secret_key: env('stripe secret key', `sk_test_${genSecret(24)}`, {
+        regex: `^sk_${isDevelopment ? 'test' : 'live'}_[0-9a-zA-Z]{24,}$`,
+        up: '\n',
+      }),
+      web_hook_secret: process.env.STRIPE_WEB_HOOK_SECRET ?? '',
+    },
   },
 
   google_map_key: env('google map key', genSecret(8), {

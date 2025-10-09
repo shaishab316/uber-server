@@ -1,0 +1,19 @@
+model Transaction {
+  id                    String           @id @default(auto()) @map("_id") @db.ObjectId
+  created_at            DateTime         @default(now())
+  updated_at            DateTime         @updatedAt
+  stripe_transaction_id String           @unique
+  user_id               String           @db.ObjectId
+  amount                Float
+  type                  ETransactionType @default(TOPUP)
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("transactions")
+}
+
+enum ETransactionType {
+  TOPUP
+  EXPENSE
+  WITHDRAW
+}

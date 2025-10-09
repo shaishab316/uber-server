@@ -34,6 +34,7 @@ model User {
   driver_message    Message[]         @relation("DriverMessage")
   user_message      Message[]         @relation("UserMessage")
   Loan              Loan[]
+  Transaction       Transaction[]
 
   @@map("users")
 }
