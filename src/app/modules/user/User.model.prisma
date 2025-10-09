@@ -24,6 +24,7 @@ model User {
   otp_expires_at DateTime?
 
   location          TLocation?
+  wallet            Wallet?           @relation("UserWallet")
   trips_received    Trip[]            @relation("Passenger")
   trips_given       Trip[]            @relation("Driver")
   available_drivers AvailableDriver[]

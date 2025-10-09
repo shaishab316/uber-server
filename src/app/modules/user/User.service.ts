@@ -64,6 +64,7 @@ export const UserServices = {
         role: EUserRole.USER,
         otp,
         otp_expires_at: new Date(Date.now() + ms(config.otp.exp)),
+        wallet: { create: {} },
       },
       omit: userOmit,
     });

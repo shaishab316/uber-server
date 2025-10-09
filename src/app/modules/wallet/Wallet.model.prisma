@@ -1,0 +1,11 @@
+model Wallet {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  user_id      String @unique @db.ObjectId
+  balance      Int    @default(0)
+  total_expend Int    @default(0)
+  total_income Int    @default(0)
+
+  user User @relation("UserWallet", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("wallets")
+}

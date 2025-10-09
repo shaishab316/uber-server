@@ -48,6 +48,8 @@ export const AdminServices = {
             is_active: true,
             is_verified: true,
             is_admin: true,
+
+            wallet: { create: {} },
           },
         });
       }
