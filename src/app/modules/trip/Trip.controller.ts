@@ -9,7 +9,7 @@ export const TripControllers = {
     });
 
     return {
-      message: 'Trip started successfully!',
+      message: 'Trip requested successfully! Look for a driver',
       data: trip,
     };
   }),

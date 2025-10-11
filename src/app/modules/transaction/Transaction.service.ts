@@ -16,8 +16,12 @@ export const TransactionServices = {
     search,
   }: TList & { user_id?: string }) {
     const where: Prisma.TransactionWhereInput = {};
+    const omit: Prisma.TransactionOmit = {};
 
-    if (user_id) where.user_id = user_id;
+    if (user_id) {
+      where.user_id = user_id;
+      omit.user_id = true;
+    }
 
     if (search) {
       where.OR = searchableFields.map(field => ({
@@ -32,6 +36,7 @@ export const TransactionServices = {
       where,
       skip: (page - 1) * limit,
       take: limit,
+      omit,
     });
 
     const total = await prisma.transaction.count({
@@ -53,7 +58,7 @@ export const TransactionServices = {
           total,
           totalPages: Math.ceil(total / limit),
         } as TPagination,
-        totalAmount,
+        totalAmount: totalAmount._sum.amount,
       },
       transactions,
     };

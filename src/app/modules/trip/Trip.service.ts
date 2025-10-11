@@ -344,7 +344,7 @@ export const TripServices = {
     SocketServices.getIO('/trip')
       ?.to(trip_id)
       .emit(
-        'trip_notification',
+        'trip_completed',
         socketResponse({
           message: `${updatedTrip?.passenger?.name} completed your trip`,
           data: updatedTrip,

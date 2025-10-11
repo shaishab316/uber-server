@@ -13,7 +13,7 @@ import { setupIndexes } from '../db/setupIndexes';
 const server = createServer(app);
 
 const {
-  server: { port, name, isDevelopment },
+  server: { port, name },
 } = config;
 
 /**
@@ -25,11 +25,9 @@ const {
 export default async function startServer() {
   try {
     await connectDB();
-    if (!isDevelopment) {
-      await setupIndexes();
-      await AdminServices.seed();
-      await verifyEmailTransporter();
-    }
+    await setupIndexes();
+    await AdminServices.seed();
+    await verifyEmailTransporter();
 
     await new Promise<void>(resolve => server.listen(port, resolve));
 
