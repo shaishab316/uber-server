@@ -1,3 +1,16 @@
+# [4.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.0.0...v4.1.0) (2025-10-11)
+
+
+### Features
+
+* Adapt transaction service, trip handling, and server startup ([1c992dc](https://github.com/Alpha-Bytes-Department/uber-server/commit/1c992dc0738d58a3fda64727e249518c63bcb127))
+* Allow passengers to cancel trips and record cancellation reasons ([7f698b6](https://github.com/Alpha-Bytes-Department/uber-server/commit/7f698b6a919585e6f3dfa10ddf6243ad4dd69912))
+* Create wallet on user creation and add User-Wallet relation ([75eaa3a](https://github.com/Alpha-Bytes-Department/uber-server/commit/75eaa3ab44fe842d972213e0ec6f535211c9f7a5))
+* Enhance user profile management and account deletion ([d6d86c2](https://github.com/Alpha-Bytes-Department/uber-server/commit/d6d86c220dffc3f8e366d82b831ca2744eba0754))
+* Implement payment and transaction modules with Stripe integration ([020e156](https://github.com/Alpha-Bytes-Department/uber-server/commit/020e156bcca230ce029fdc087e3f97f91d9e794f))
+* Implement Stripe top-up feature and refactor payment routes ([afa196c](https://github.com/Alpha-Bytes-Department/uber-server/commit/afa196cea80fe0217749c4e97657e3e7f903eb60))
+* Implement trip history retrieval for users and admin ([fca1ec0](https://github.com/Alpha-Bytes-Department/uber-server/commit/fca1ec0bd8fd7f37b9c99245121a5d54336e4459))
+
 # [4.0.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v3.1.0...v4.0.0) (2025-10-08)
 
 
