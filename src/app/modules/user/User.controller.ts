@@ -6,6 +6,7 @@ import { EUserRole, User as TUser } from '../../../../prisma';
 import { prisma } from '../../../utils/db';
 import ServerError from '../../../errors/ServerError';
 import { enum_decode } from '../../../utils/transform/enum';
+import { capitalize } from '../../../prototype/string/__proto__/toCapitalize';
 
 export const UserControllers = {
   register: catchAsync(async ({ body }, res) => {
@@ -21,7 +22,7 @@ export const UserControllers = {
 
     return {
       statusCode: StatusCodes.CREATED,
-      message: `${user.role?.toCapitalize() ?? 'Unknown'} registered successfully!`,
+      message: `${capitalize(user.role) ?? 'Unknown'} registered successfully!`,
       data: {
         access_token,
         refresh_token,
@@ -59,7 +60,7 @@ export const UserControllers = {
     });
 
     return {
-      message: `${user?.role?.toCapitalize() ?? 'User'} updated successfully!`,
+      message: `${capitalize(user?.role) ?? 'User'} updated successfully!`,
       data,
     };
   }),

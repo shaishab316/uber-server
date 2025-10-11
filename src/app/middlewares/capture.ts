@@ -104,7 +104,7 @@ export const fileRetriever = catchAsync(async (req, res, next) => {
   const fileExists = await getBucket()!.find({ filename }).hasNext();
   if (!fileExists) next();
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const stream = getBucket()!
       .openDownloadStreamByName(filename)
       .on('error', () =>

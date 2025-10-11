@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { exists } from '../../../utils/db/exists';
 import { TModels } from '../../../utils/db';
+import { capitalize } from '../../../prototype/string/__proto__/toCapitalize';
 
 export const QueryValidations = {
   list: z.object({
@@ -21,7 +22,7 @@ export const QueryValidations = {
       params: z.object({
         [_id]: z.string().refine(exists(model), {
           error: ({ input }) =>
-            `${model.toCapitalize()} not found with id: ${input}`,
+            `${capitalize(model)} not found with id: ${input}`,
           path: [_id],
         }),
       }),
