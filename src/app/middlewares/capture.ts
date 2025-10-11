@@ -10,6 +10,7 @@ import chalk from 'chalk';
 import { json } from '../../utils/transform/json';
 import { getBucket } from '../../utils/server/connectDB';
 import path from 'path';
+import { oid } from '../../utils/transform/oid';
 
 export const fileValidators = {
   images: {
@@ -156,7 +157,7 @@ const storage = new GridFsStorage({
       .toLowerCase()}-${Date.now()}${originalname.match(/\.[a-z0-9]+$/i) ?? ''}`,
     bucketName: 'files',
     metadata: {
-      uploadedBy: req?.user?.id?.oid ?? null,
+      uploadedBy: oid(req?.user?.id) ?? null,
       originalName: originalname,
     },
   }),

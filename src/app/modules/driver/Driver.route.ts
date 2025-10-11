@@ -5,8 +5,9 @@ import { DriverControllers } from './Driver.controller';
 import { AvailableDriverRoutes } from '../availableDriver/AvailableDriver.route';
 import { TripRoutes } from '../trip/Trip.route';
 import { LoanRoutes } from '../loan/Loan.route';
+import { injectRoutes } from '../../../utils/router/injectRouter';
 
-const admin = Router().injectRoutes({
+const admin = injectRoutes(Router(), {
   '/loans': [LoanRoutes.admin],
 });
 {
@@ -29,7 +30,7 @@ const admin = Router().injectRoutes({
   );
 }
 
-const driver = Router().injectRoutes({
+const driver = injectRoutes(Router(), {
   '/available-drivers': [AvailableDriverRoutes.driver],
   '/trips': [TripRoutes.driver],
   '/loans': [LoanRoutes.driver],

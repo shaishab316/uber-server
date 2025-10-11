@@ -11,6 +11,7 @@ import { TripRoutes } from '../app/modules/trip/Trip.route';
 import { ChatRoutes } from '../app/modules/chat/Chat.route';
 import { PaymentRoutes } from '../app/modules/payment/Payment.route';
 import { TransactionRoutes } from '../app/modules/transaction/Transaction.route';
+import { injectRoutes } from '../utils/router/injectRouter';
 
 const appRouter = Router();
 
@@ -24,7 +25,7 @@ fileTypes.map((filetype: string) =>
   ),
 );
 
-export default appRouter.injectRoutes({
+export default injectRoutes(appRouter, {
   '/context-pages': [ContextPageRoutes.user],
 
   // No auth

@@ -6,7 +6,7 @@ import { EUserRole, User as TUser } from '../../../../prisma';
 import { prisma } from '../../../utils/db';
 import ServerError from '../../../errors/ServerError';
 import { enum_decode } from '../../../utils/transform/enum';
-import { capitalize } from '../../../prototype/string/__proto__/toCapitalize';
+import { capitalize } from '../../../utils/transform/capitalize';
 
 export const UserControllers = {
   register: catchAsync(async ({ body }, res) => {

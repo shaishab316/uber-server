@@ -6,7 +6,12 @@ import {
   TAccountVerifyOtpSend,
   TUserLogin,
 } from './Auth.interface';
-import { encodeToken, TToken, verifyPassword } from './Auth.utils';
+import {
+  encodeToken,
+  hashPassword,
+  TToken,
+  verifyPassword,
+} from './Auth.utils';
 import { ZodError } from 'zod';
 import { prisma } from '../../../utils/db';
 import ServerError from '../../../errors/ServerError';
@@ -251,7 +256,7 @@ export const AuthServices = {
   }) {
     return prisma.user.update({
       where: { id: userId },
-      data: { password: await password.hash() },
+      data: { password: await hashPassword(password) },
       select: {
         id: true,
       },

@@ -14,6 +14,7 @@ import config from '../../../config';
 import { otp_send_template } from '../../../templates';
 import ms from 'ms';
 import { sendEmail } from '../../../utils/sendMail';
+import { hashPassword } from '../auth/Auth.utils';
 
 export const userOmit = {
   location: true,
@@ -60,7 +61,7 @@ export const UserServices = {
         name,
         email,
         phone,
-        password: await password.hash(),
+        password: await hashPassword(password),
         role: EUserRole.USER,
         otp,
         otp_expires_at: new Date(Date.now() + ms(config.otp.exp)),

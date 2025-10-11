@@ -3,6 +3,7 @@ import { errorLogger } from '../../../utils/logger/logger';
 import { logger } from '../../../utils/logger/logger';
 import config from '../../../config';
 import { prisma } from '../../../utils/db';
+import { hashPassword } from '../auth/Auth.utils';
 
 export const AdminServices = {
   /**
@@ -42,7 +43,7 @@ export const AdminServices = {
           data: {
             name,
             email,
-            password: await password?.hash(),
+            password: await hashPassword(password),
             avatar: config.server.default_avatar,
 
             is_active: true,

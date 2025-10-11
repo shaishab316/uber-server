@@ -5,9 +5,9 @@ import type ms from 'ms';
 import { genSecret } from '../utils/crypto/genSecret';
 import path from 'path';
 import { enum_decode } from '../utils/transform/enum';
-import { capitalize } from '../prototype/string/__proto__/toCapitalize';
 import Stripe from 'stripe';
 import { stripePaymentMethods } from '../app/modules/payment/Payment.constant';
+import { capitalize } from '../utils/transform/capitalize';
 
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
 

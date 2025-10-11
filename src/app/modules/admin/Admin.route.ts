@@ -5,8 +5,9 @@ import { DriverRoutes } from '../driver/Driver.route';
 import { LogRoutes } from '../log/Log.route';
 import { CancelTripRoutes } from '../cancelTrip/CancelTrip.route';
 import { TripRoutes } from '../trip/Trip.route';
+import { injectRoutes } from '../../../utils/router/injectRouter';
 
-export default Router().injectRoutes({
+export default injectRoutes(Router(), {
   '/users': [UserRoutes.admin],
   '/drivers': [DriverRoutes.admin],
   '/context-pages': [ContextPageRoutes.admin],
