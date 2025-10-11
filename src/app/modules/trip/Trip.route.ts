@@ -17,6 +17,15 @@ const user = Router();
     purifyRequest(TripValidations.requestForTrip),
     TripControllers.requestForTrip,
   );
+
+  user.post(
+    '/:tripId/cancel-trip',
+    purifyRequest(
+      QueryValidations.exists('tripId', 'trip'),
+      TripValidations.rejectTrip,
+    ),
+    TripControllers.cancelTrip,
+  );
 }
 
 const driver = Router();

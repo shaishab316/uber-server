@@ -23,18 +23,19 @@ model User {
   otp            String?
   otp_expires_at DateTime?
 
-  location          TLocation?
-  wallet            Wallet?           @relation("UserWallet")
-  trips_received    Trip[]            @relation("Passenger")
-  trips_given       Trip[]            @relation("Driver")
-  available_drivers AvailableDriver[]
-  CancelTrip        CancelTrip[]
-  driver_chat       Chat[]            @relation("DriverChat")
-  user_chat         Chat[]            @relation("UserChat")
-  driver_message    Message[]         @relation("DriverMessage")
-  user_message      Message[]         @relation("UserMessage")
-  Loan              Loan[]
-  Transaction       Transaction[]
+  location             TLocation?
+  wallet               Wallet?           @relation("UserWallet")
+  trips_received       Trip[]            @relation("Passenger")
+  trips_given          Trip[]            @relation("Driver")
+  available_drivers    AvailableDriver[]
+  DriverCancelTrips    CancelTrip[]      @relation("DriverCancelTrips")
+  PassengerCancelTrips CancelTrip[]      @relation("PassengerCancelTrips")
+  driver_chat          Chat[]            @relation("DriverChat")
+  user_chat            Chat[]            @relation("UserChat")
+  driver_message       Message[]         @relation("DriverMessage")
+  user_message         Message[]         @relation("UserMessage")
+  Loan                 Loan[]
+  Transaction          Transaction[]
 
   @@map("users")
 }

@@ -10,9 +10,11 @@ export const CancelTripServices = {
     trip_id,
     driver_id,
     reason,
+    passenger_id,
   }: {
     trip_id: string;
-    driver_id: string;
+    driver_id?: string;
+    passenger_id?: string;
     reason: string;
   }) {
     return prisma.cancelTrip.upsert({
@@ -21,11 +23,13 @@ export const CancelTripServices = {
       },
       update: {
         driver_id,
+        passenger_id,
         reason,
       },
       create: {
         trip_id,
         driver_id,
+        passenger_id,
         reason,
       },
     });

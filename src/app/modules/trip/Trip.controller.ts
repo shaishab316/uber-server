@@ -26,6 +26,18 @@ export const TripControllers = {
     };
   }),
 
+  cancelTrip: catchAsync(async ({ params, user, body }) => {
+    await TripServices.cancelTrip({
+      ...body,
+      trip_id: params.tripId,
+      passenger_id: user.id,
+    });
+
+    return {
+      message: 'Trip canceled successfully!',
+    };
+  }),
+
   acceptTrip: catchAsync(async ({ params, user, body }) => {
     await TripServices.acceptTrip({
       ...body,

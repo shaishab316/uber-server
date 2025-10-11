@@ -20,6 +20,7 @@ import { Namespace } from 'socket.io';
 import {
   tripOmit,
   tripSearchableFields as searchableFields,
+  cancelAbleTripStatus,
 } from './Trip.constant';
 import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import {
@@ -137,6 +138,46 @@ export const TripServices = {
     });
 
     await this.findNearestDriver(trip!);
+  },
+
+  async cancelTrip({
+    trip_id,
+    reason,
+    passenger_id,
+  }: {
+    trip_id: string;
+    passenger_id: string;
+    reason: string;
+  }) {
+    const trip = (await prisma.trip.findUnique({
+      where: { id: trip_id },
+      include: { passenger: { select: { name: true } } },
+    }))!;
+
+    if (!cancelAbleTripStatus.includes(trip.status))
+      throw new ServerError(StatusCodes.CONFLICT, 'Trip cannot be cancelled');
+
+    if (trip.passenger_id !== passenger_id)
+      throw new ServerError(
+        StatusCodes.FORBIDDEN,
+        `You can't cancel ${trip.passenger.name}'s trip`,
+      );
+
+    await prisma.trip.update({
+      where: { id: trip_id },
+      data: {
+        status: ETripStatus.CANCEL,
+        passenger_id,
+        cancelled_at: new Date(),
+      },
+    });
+
+    //! Track cancel trip reason
+    await CancelTripServices.cancelTrip({
+      trip_id,
+      passenger_id,
+      reason,
+    });
   },
 
   async acceptTrip({

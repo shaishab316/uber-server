@@ -1,4 +1,4 @@
-import { Prisma, Trip as TTrip } from '../../../../prisma';
+import { ETripStatus, Prisma, Trip as TTrip } from '../../../../prisma';
 
 export const tripOmit: Prisma.TripOmit = {
   exclude_driver_ids: true,
@@ -10,4 +10,10 @@ export const tripSearchableFields: (keyof TTrip)[] = [
   'driver_id',
   'id',
   'vehicle',
+];
+
+export const cancelAbleTripStatus: ETripStatus[] = [
+  'REQUESTED',
+  'ACCEPTED',
+  'STARTED',
 ];
