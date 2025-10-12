@@ -12,7 +12,7 @@ const customFormat = printf(
 );
 
 const removeColorsFormat = format(info => {
-  info.message = stripAnsi(info.message as string);
+  info.message = stripAnsi((info.message as string) ?? '');
   return info;
 });
 

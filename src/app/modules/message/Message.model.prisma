@@ -8,7 +8,7 @@ model Message {
   user_id   String? @db.ObjectId
 
   content    String?
-  media_url  String?
+  media_urls String[]           @default([])
   media_type EMessageMediaType?
 
   seen_by_driver Boolean @default(false)
@@ -22,6 +22,6 @@ model Message {
 }
 
 enum EMessageMediaType {
-  image
-  video
+  images
+  videos
 }

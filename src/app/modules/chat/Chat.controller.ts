@@ -2,6 +2,8 @@ import catchAsync from '../../middlewares/catchAsync';
 import { ChatServices } from './Chat.service';
 import { EUserRole } from '../../../../prisma';
 import { ZodError } from 'zod';
+import { StatusCodes } from 'http-status-codes';
+import { capitalize } from '../../../utils/transform/capitalize';
 
 export const ChatControllers = {
   getChat: catchAsync(async ({ query, user }) => {
@@ -64,4 +66,12 @@ export const ChatControllers = {
       message: 'Chat deleted successfully!',
     };
   }),
+
+  uploadMedia: catchAsync(async ({ body, params }) => ({
+    statusCode: body[params.media_type]?.length
+      ? StatusCodes.CREATED
+      : StatusCodes.OK,
+    message: `${capitalize(params.media_type)} ${body[params.media_type]?.length ?? 0} uploaded successfully!`,
+    data: body,
+  })),
 };

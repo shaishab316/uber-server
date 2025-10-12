@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { exists } from '../../../utils/db/exists';
+import { EMessageMediaType } from '../../../../prisma';
 
 export const ChatValidations = {
   getChat: z.object({
@@ -18,6 +19,16 @@ export const ChatValidations = {
           path: ['driver_id'],
         })
         .optional(),
+    }),
+  }),
+
+  uploadMedia: z.object({
+    params: z.object({
+      media_type: z.enum(EMessageMediaType),
+    }),
+    body: z.object({
+      images: z.array(z.string()).optional(),
+      videos: z.array(z.string()).optional(),
     }),
   }),
 

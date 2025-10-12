@@ -112,11 +112,13 @@ export const ChatServices = {
     }
 
     const messages = await prisma.message.findMany({
-      where: { chat_id: chatId, media_url: { not: null } },
-      select: { media_url: true },
+      where: { chat_id: chatId },
+      select: { media_urls: true },
     });
 
-    Promise.all(messages.map(({ media_url }) => deleteFile(media_url!)));
+    await Promise.all(
+      messages.map(({ media_urls }) => Promise.all(media_urls.map(deleteFile))),
+    );
 
     return prisma.chat.delete({ where: { id: chatId } });
   },

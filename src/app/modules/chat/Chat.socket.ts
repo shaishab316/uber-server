@@ -39,7 +39,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
   socket.on(
     'send_message',
-    catchAsyncSocket(async ({ chat_id, content, media_type, media_url }) => {
+    catchAsyncSocket(async ({ chat_id, content, media_type, media_urls }) => {
       const chat = await prisma.chat.findUnique({
         where: { id: chat_id },
       });
@@ -53,7 +53,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         chat_id,
         content,
         media_type,
-        media_url,
+        media_urls,
       };
 
       if (isUser) {

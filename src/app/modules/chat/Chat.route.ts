@@ -4,6 +4,8 @@ import { ChatValidations } from './Chat.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 import { MessageControllers } from '../message/Message.controller';
+import capture from '../../middlewares/capture';
+import { EMessageMediaType } from '../../../../prisma';
 
 const user = Router();
 {
@@ -11,6 +13,24 @@ const user = Router();
     '/',
     purifyRequest(QueryValidations.list),
     ChatControllers.getInboxChats,
+  );
+
+  user.post(
+    '/upload/:media_type',
+    capture(
+      Object.fromEntries(
+        Object.entries(EMessageMediaType).map(([, media_type]) => [
+          media_type as string,
+          {
+            size: Infinity,
+            maxCount: Infinity,
+            fileType: media_type,
+          },
+        ]),
+      ),
+    ),
+    purifyRequest(ChatValidations.uploadMedia),
+    ChatControllers.uploadMedia,
   );
 
   user.get(

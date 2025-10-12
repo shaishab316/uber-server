@@ -59,7 +59,8 @@ export const MessageServices = {
       );
 
     //Cleanup
-    if (message.media_url) await deleteFile(message.media_url);
+    if (message.media_urls)
+      await Promise.all(message.media_urls.map(deleteFile));
 
     const msg = await prisma.message.delete({
       where: { id: message.id },
