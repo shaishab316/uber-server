@@ -74,15 +74,15 @@ export const TripControllers = {
     };
   }),
 
-  completeTrip: catchAsync(async ({ params, user, body }) => {
-    await TripServices.completeTrip({
+  arrivedTrip: catchAsync(async ({ params, user, body }) => {
+    await TripServices.arrivedTrip({
       ...body,
       driver_id: user.id,
       trip_id: params.tripId,
     });
 
     return {
-      message: 'Trip completed successfully!',
+      message: 'Trip arrived successfully!',
     };
   }),
 

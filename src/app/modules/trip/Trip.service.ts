@@ -332,7 +332,7 @@ export const TripServices = {
       );
   },
 
-  async completeTrip({
+  async arrivedTrip({
     trip_id,
     driver_id,
     eOtp,
@@ -369,8 +369,8 @@ export const TripServices = {
       where: { id: trip_id },
       data: {
         driver_id,
-        status: ETripStatus.COMPLETED,
-        completed_at: new Date(),
+        status: ETripStatus.ARRIVED,
+        arrived_at: new Date(),
       },
       include: {
         passenger: {
@@ -385,9 +385,9 @@ export const TripServices = {
     SocketServices.getIO('/trip')
       ?.to(trip_id)
       .emit(
-        'trip_completed',
+        'trip_arrived',
         socketResponse({
-          message: `${updatedTrip?.passenger?.name} completed your trip`,
+          message: `${updatedTrip?.passenger?.name} arrived your trip`,
           data: updatedTrip,
           meta: {
             trip_id,

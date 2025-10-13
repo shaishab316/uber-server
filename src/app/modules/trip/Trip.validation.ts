@@ -67,7 +67,7 @@ export const TripValidations = {
     }),
   }),
 
-  completeTrip: z.object({
+  arrivedTrip: z.object({
     body: z.object({
       eOtp: z.coerce
         .string({

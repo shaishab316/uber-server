@@ -58,12 +58,12 @@ const driver = Router();
   );
 
   driver.post(
-    '/:tripId/complete-trip',
+    '/:tripId/arrived-trip',
     purifyRequest(
       QueryValidations.exists('tripId', 'trip'),
-      TripValidations.completeTrip,
+      TripValidations.arrivedTrip,
     ),
-    TripControllers.completeTrip,
+    TripControllers.arrivedTrip,
   );
 
   driver.post(
