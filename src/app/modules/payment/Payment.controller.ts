@@ -51,4 +51,12 @@ export const PaymentControllers = {
       data: { url },
     };
   }),
+
+  pay: catchAsync(async ({ params, user }) => {
+    await PaymentServices.pay({ trip_id: params.tripId, user_id: user.id });
+
+    return {
+      message: 'Trip paid successfully',
+    };
+  }),
 };

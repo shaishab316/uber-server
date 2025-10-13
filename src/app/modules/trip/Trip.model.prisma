@@ -5,6 +5,7 @@ model Trip {
   accepted_at  DateTime?
   started_at   DateTime?
   arrived_at   DateTime?
+  payed_at     DateTime?    
   completed_at DateTime?
   cancelled_at DateTime?
 
@@ -15,9 +16,11 @@ model Trip {
   driver_id      String? @db.ObjectId
   passenger_id   String  @db.ObjectId
   passenger_ages Int[]
+  transaction_id String? @db.ObjectId
 
-  driver    User? @relation("Driver", fields: [driver_id], references: [id], onDelete: Cascade)
-  passenger User  @relation("Passenger", fields: [passenger_id], references: [id], onDelete: Cascade)
+  driver      User?        @relation("Driver", fields: [driver_id], references: [id], onDelete: Cascade)
+  passenger   User         @relation("Passenger", fields: [passenger_id], references: [id], onDelete: Cascade)
+  transaction Transaction? @relation(fields: [transaction_id], references: [id], onDelete: Cascade)
 
   vehicle         EVehicle
   pickup_address  TLocation

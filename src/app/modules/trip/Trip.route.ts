@@ -3,6 +3,7 @@ import { TripControllers } from './Trip.controller';
 import { TripValidations } from './Trip.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
+import { PaymentControllers } from '../payment/Payment.controller';
 
 const user = Router();
 {
@@ -25,6 +26,12 @@ const user = Router();
       TripValidations.rejectTrip,
     ),
     TripControllers.cancelTrip,
+  );
+
+  user.get(
+    '/:tripId/pay',
+    purifyRequest(QueryValidations.exists('tripId', 'trip')),
+    PaymentControllers.pay,
   );
 }
 
