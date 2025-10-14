@@ -5,10 +5,6 @@ import app from '../../app';
 import config from '../../config';
 import { errorLogger, logger } from '../logger';
 import shutdownServer from './shutdownServer';
-import connectDB from './connectDB';
-import { AdminServices } from '../../app/modules/admin/Admin.service';
-import { verifyEmailTransporter } from '../sendMail';
-import { setupIndexes } from '../db/setupIndexes';
 
 const server = createServer(app);
 
@@ -24,11 +20,6 @@ const {
  */
 export default async function startServer() {
   try {
-    await connectDB();
-    await setupIndexes();
-    await AdminServices.seed();
-    await verifyEmailTransporter();
-
     await new Promise<void>(resolve => server.listen(port, resolve));
 
     process.stdout.write('\x1Bc');

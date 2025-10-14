@@ -30,20 +30,6 @@ if (mock_mail) {
   } as any;
 }
 
-export const verifyEmailTransporter = async () => {
-  logger.info(chalk.yellow('Verifying email credentials...'));
-  try {
-    return await transporter.verify();
-  } catch (error: any) {
-    throw new Error(
-      'Email credentials verification failed. Check your .env configuration: ' +
-        error.message,
-    );
-  } finally {
-    logger.info(chalk.green('✔ Email credentials verified'));
-  }
-};
-
 /**
  * Send email
  * @param {TEmailProps} values - Email values

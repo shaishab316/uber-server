@@ -1,12 +1,16 @@
 import chalk from 'chalk';
-import { logger } from '../logger';
-import { getDB } from '../server/connectDB';
-import { Db } from 'mongodb';
-
-let db: Db | null = null;
+import { logger } from '../src/utils/logger';
+import { MongoClient } from 'mongodb';
+import config from '../src/config';
 
 export async function setupIndexes() {
-  db ??= getDB();
+  const client = new MongoClient(config.url.database);
+
+  logger.info(chalk.green('🚀 Database connecting...'));
+  await client.connect();
+  logger.info(chalk.green('🚀 Database connected successfully'));
+
+  const db = client.db(config.server.db_name);
 
   logger.info(chalk.green('🔑 DB Indexes setup started...'));
   try {
