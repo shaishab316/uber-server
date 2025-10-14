@@ -1,4 +1,8 @@
-import { Prisma, Transaction as TTransaction } from '../../../../prisma';
+import {
+  ETransactionType,
+  Prisma,
+  Transaction as TTransaction,
+} from '../../../../prisma';
 import { prisma } from '../../../utils/db';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { TList } from '../query/Query.interface';
@@ -43,10 +47,19 @@ export const TransactionServices = {
       where,
     });
 
-    const totalAmount = await prisma.transaction.aggregate({
-      where,
+    const totalExpenseAmount = await prisma.transaction.aggregate({
+      where: {
+        ...where,
+        type: ETransactionType.EXPENSE,
+      },
       _sum: {
         amount: true,
+      },
+    });
+
+    const wallet = await prisma.wallet.findFirst({
+      where: {
+        user_id,
       },
     });
 
@@ -58,7 +71,8 @@ export const TransactionServices = {
           total,
           totalPages: Math.ceil(total / limit),
         } as TPagination,
-        totalAmount: totalAmount._sum.amount,
+        totalExpenseAmount: totalExpenseAmount._sum.amount,
+        availableBalance: wallet?.balance ?? 0,
       },
       transactions,
     };

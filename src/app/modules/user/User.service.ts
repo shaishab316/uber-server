@@ -193,6 +193,7 @@ export const UserServices = {
           driver_license,
         },
       },
+      omit: userOmit,
     });
   },
 };

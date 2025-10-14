@@ -37,6 +37,12 @@ const user = Router();
 
 const driver = Router();
 {
+  driver.get(
+    '/',
+    purifyRequest(QueryValidations.list, TripValidations.getTripHistory),
+    TripControllers.getTripHistory,
+  );
+
   driver.post(
     '/:tripId/accept-trip',
     purifyRequest(

@@ -1,3 +1,4 @@
+import { EUserRole } from '../../../../prisma';
 import catchAsync from '../../middlewares/catchAsync';
 import { TripServices } from './Trip.service';
 
@@ -98,10 +99,10 @@ export const TripControllers = {
   }),
 
   getTripHistory: catchAsync(async ({ query, user }) => {
-    const { meta, trips } = await TripServices.getTripHistory({
-      ...query,
-      user_id: user.id,
-    });
+    if (user.role === EUserRole.DRIVER) query.driver_id = user.id;
+    else query.passenger_id = user.id;
+
+    const { meta, trips } = await TripServices.getTripHistory(query);
 
     return {
       message: 'Trip history retrieved successfully!',

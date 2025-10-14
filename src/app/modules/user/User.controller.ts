@@ -121,7 +121,7 @@ export const UserControllers = {
   applyForDriver: catchAsync(async ({ body, user }) => {
     if (user.role === EUserRole.DRIVER)
       throw new ServerError(
-        StatusCodes.UNAUTHORIZED,
+        StatusCodes.BAD_REQUEST,
         'You are already a driver',
       );
 

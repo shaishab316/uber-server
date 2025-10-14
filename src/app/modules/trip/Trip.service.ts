@@ -737,11 +737,13 @@ export const TripServices = {
     page,
     search,
     status,
-    user_id,
+    driver_id,
+    passenger_id,
   }: TGetTripHistory) {
     const where: Prisma.TripWhereInput = {};
 
-    if (user_id) where.OR = [{ passenger_id: user_id }, { driver_id: user_id }];
+    if (driver_id) where.driver_id = driver_id;
+    if (passenger_id) where.passenger_id = passenger_id;
 
     if (status) {
       where.status =
@@ -797,7 +799,8 @@ export const TripServices = {
         query: {
           search,
           status,
-          user_id,
+          driver_id,
+          passenger_id,
         },
       },
       trips,
