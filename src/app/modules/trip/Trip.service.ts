@@ -743,7 +743,16 @@ export const TripServices = {
 
     if (user_id) where.OR = [{ passenger_id: user_id }, { driver_id: user_id }];
 
-    if (status) where.status = status;
+    if (status) {
+      where.status =
+        status === ETripStatus.UPCOMING
+          ? {
+              not: {
+                in: [ETripStatus.CANCEL, ETripStatus.COMPLETED],
+              },
+            }
+          : status;
+    }
 
     if (search) {
       where.OR = searchableFields.map(field => ({

@@ -5,7 +5,7 @@ model Trip {
   accepted_at  DateTime?
   started_at   DateTime?
   arrived_at   DateTime?
-  payed_at     DateTime?    
+  payed_at     DateTime?
   completed_at DateTime?
   cancelled_at DateTime?
 
@@ -49,4 +49,5 @@ enum ETripStatus {
   ARRIVED
   COMPLETED
   CANCEL
+  UPCOMING // only for history filter
 }
