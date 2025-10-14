@@ -7,7 +7,7 @@ import config from '../../config';
 import ServerError from '../../errors/ServerError';
 import handleZodError from '../../errors/handleZodError';
 import { errorLogger } from '../../utils/logger/logger';
-import { TErrorHandler, TErrorMessage } from '../../types/errors.types';
+import { TErrorHandler, TErrorMessage } from '../../types/errors';
 import multer from 'multer';
 import handleMulterError from '../../errors/handleMulterError';
 import { Prisma } from '../../../prisma';

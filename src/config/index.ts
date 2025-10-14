@@ -82,6 +82,9 @@ const config = {
     }),
     ui: env('ui url', `http://localhost:${port}`, {
       regex: '^https?:\\/\\/.*$|^$',
+    }),
+    href: env('href url', `http://localhost:${port}`, {
+      regex: '^https?:\\/\\/.*$|^$',
       down: 'Database info - end',
     }),
   },

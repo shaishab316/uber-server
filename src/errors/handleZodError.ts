@@ -1,5 +1,5 @@
 import { ZodError } from 'zod';
-import { TErrorMessage } from '../types/errors.types';
+import { TErrorMessage } from '../types/errors';
 import { StatusCodes } from 'http-status-codes';
 
 const handleZodError = ({ issues }: ZodError) => {
