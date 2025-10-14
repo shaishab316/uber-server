@@ -51,11 +51,11 @@ router.post(
   AuthControllers.resetPassword,
 );
 
-router.post('/logout', AuthControllers.logout);
+router.get('/logout', AuthControllers.logout);
 
 /**
  * generate new access token
  */
-// router.get('/refresh-token', auth.refresh_token, AuthControllers.refreshToken);
+router.get('/refresh-token', auth.refresh_token, AuthControllers.refreshToken);
 
 export const AuthRoutes = router;

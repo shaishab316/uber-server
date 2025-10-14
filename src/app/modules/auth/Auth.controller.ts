@@ -128,21 +128,15 @@ export const AuthControllers = {
     };
   }),
 
-  /*
-
-  refreshToken: catchAsync(async ({ user }, res) => {
+  refreshToken: catchAsync(async ({ user }) => {
     const { access_token } = AuthServices.retrieveToken(
       user.id,
       'access_token',
     );
 
-    serveResponse(res, {
+    return {
       message: 'AccessToken refreshed successfully!',
       data: { access_token },
-    });
+    };
   }),
-
-  
-
-  */
 };
