@@ -284,7 +284,6 @@ export const TripServices = {
     const updatedTrip = await prisma.trip.update({
       where: { id: trip_id },
       data: {
-        driver_id,
         status: ETripStatus.STARTED,
         started_at: new Date(),
       },
@@ -368,7 +367,6 @@ export const TripServices = {
     const updatedTrip = await prisma.trip.update({
       where: { id: trip_id },
       data: {
-        driver_id,
         status: ETripStatus.ARRIVED,
         arrived_at: new Date(),
       },
@@ -386,6 +384,63 @@ export const TripServices = {
       ?.to(trip_id)
       .emit(
         'trip_arrived',
+        socketResponse({
+          message: `${updatedTrip?.passenger?.name} arrived your trip`,
+          data: updatedTrip,
+          meta: {
+            trip_id,
+          },
+        }),
+      );
+  },
+
+  async completeTrip({
+    trip_id,
+    driver_id,
+  }: {
+    trip_id: string;
+    driver_id: string;
+  }) {
+    const trip = await prisma.trip.findUnique({
+      where: { id: trip_id },
+      include: {
+        driver: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      omit: tripOmit,
+    });
+
+    if (trip?.driver_id !== driver_id)
+      throw new ServerError(
+        StatusCodes.CONFLICT,
+        `You can't complete ${trip?.driver?.name}'s trip`,
+      );
+
+    if (trip.status === ETripStatus.COMPLETED) return;
+
+    const updatedTrip = await prisma.trip.update({
+      where: { id: trip_id },
+      data: {
+        status: ETripStatus.COMPLETED,
+        completed_at: new Date(),
+      },
+      include: {
+        passenger: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      omit: tripOmit,
+    });
+
+    SocketServices.getIO('/trip')
+      ?.to(trip_id)
+      .emit(
+        'trip_completed',
         socketResponse({
           message: `${updatedTrip?.passenger?.name} arrived your trip`,
           data: updatedTrip,

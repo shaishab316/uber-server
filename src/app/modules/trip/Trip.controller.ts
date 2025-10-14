@@ -86,6 +86,17 @@ export const TripControllers = {
     };
   }),
 
+  completeTrip: catchAsync(async ({ params, user }) => {
+    await TripServices.completeTrip({
+      driver_id: user.id,
+      trip_id: params.tripId,
+    });
+
+    return {
+      message: 'Trip completed successfully!',
+    };
+  }),
+
   getTripHistory: catchAsync(async ({ query, user }) => {
     const { meta, trips } = await TripServices.getTripHistory({
       ...query,

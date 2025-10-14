@@ -74,6 +74,12 @@ const driver = Router();
   );
 
   driver.post(
+    '/:tripId/complete-trip',
+    purifyRequest(QueryValidations.exists('tripId', 'trip')),
+    TripControllers.completeTrip,
+  );
+
+  driver.post(
     '/:tripId/update-location',
     purifyRequest(
       QueryValidations.exists('tripId', 'trip'),
