@@ -6,7 +6,6 @@ import { Morgan } from './utils/logger/morgen';
 import cookieParser from 'cookie-parser';
 import config from './config';
 import { notFoundError } from './errors';
-import { fileRetriever, fileTypes } from './app/middlewares/capture';
 import serveResponse from './utils/server/serveResponse';
 
 /**
@@ -19,7 +18,7 @@ const app = express();
 
 // Serve static files
 app.use(express.static('public'));
-fileTypes.forEach(type => app.get(`/${type}/:filename`, fileRetriever));
+app.use(express.static('uploads'));
 
 // Configure middleware
 app.use(

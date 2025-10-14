@@ -5,7 +5,7 @@ import { prisma } from '../../../utils/db';
 import { TList } from '../query/Query.interface';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { TGetChat } from './Chat.interface';
-import { deleteFile } from '../../middlewares/capture';
+import { deleteFiles } from '../../middlewares/capture';
 
 export const ChatServices = {
   async getChat({ driver_id, user_id }: Required<TGetChat>) {
@@ -117,7 +117,7 @@ export const ChatServices = {
     });
 
     await Promise.all(
-      messages.map(({ media_urls }) => Promise.all(media_urls.map(deleteFile))),
+      messages.map(({ media_urls }) => deleteFiles(media_urls)),
     );
 
     return prisma.chat.delete({ where: { id: chatId } });

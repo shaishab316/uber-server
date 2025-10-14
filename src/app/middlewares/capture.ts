@@ -1,16 +1,14 @@
-import type { Express } from 'express';
+import type { Express, Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { GridFsStorage } from 'multer-gridfs-storage';
-import multer, { FileFilterCallback } from 'multer';
+import multer, { FileFilterCallback, StorageEngine } from 'multer';
 import ServerError from '../../errors/ServerError';
 import catchAsync from './catchAsync';
-import config from '../../config';
 import { errorLogger, logger } from '../../utils/logger';
 import chalk from 'chalk';
 import { json } from '../../utils/transform/json';
-import { getBucket } from '../../utils/server/connectDB';
 import path from 'path';
-import { oid } from '../../utils/transform/oid';
+import fs from 'fs/promises';
+import { existsSync } from 'fs';
 
 export const fileValidators = {
   images: {
@@ -28,7 +26,7 @@ export const fileValidators = {
   any: {
     validator: /.*/,
   },
-};
+} as const;
 
 export const fileTypes = Object.keys(
   fileValidators,
@@ -43,6 +41,30 @@ interface UploadFields {
   };
 }
 
+// Base upload directory
+const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
+
+// Ensure upload directories exist (async)
+const ensureUploadDirs = async (): Promise<void> => {
+  try {
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+
+    await Promise.all(
+      fileTypes.map(type =>
+        fs.mkdir(path.join(UPLOAD_DIR, type), { recursive: true }),
+      ),
+    );
+  } catch (error) {
+    errorLogger.error('Failed to create upload directories:', error);
+    throw error;
+  }
+};
+
+// Initialize directories on module load
+ensureUploadDirs().catch(err =>
+  errorLogger.error('Upload directory initialization failed:', err),
+);
+
 /**
  * Universal file uploader middleware
  */
@@ -52,14 +74,16 @@ const capture = (fields: UploadFields) =>
 
     try {
       await new Promise<void>((resolve, reject) =>
-        upload(fields)(req, res, err => (err ? reject(err) : resolve())),
+        upload(fields)(req, res, (err: any) => (err ? reject(err) : resolve())),
       );
 
       const files = req.files as { [field: string]: Express.Multer.File[] };
 
-      Object.keys(fields).forEach(field => {
-        if (files?.[field]?.length) {
-          const uploadedFiles = files[field].map(
+      for (const field of Object.keys(fields)) {
+        const fieldFiles = files?.[field];
+
+        if (fieldFiles?.length) {
+          const uploadedFiles = fieldFiles.map(
             file => `/${fields[field].fileType}/${file.filename}`,
           );
 
@@ -68,22 +92,27 @@ const capture = (fields: UploadFields) =>
               ? uploadedFiles
               : uploadedFiles[0];
 
-          //! for cleanup
           req.tempFiles.push(...uploadedFiles);
         } else {
-          req.body[field] = fields[field].default;
+          req.body[field] = fields[field].default ?? null;
         }
-      });
+      }
     } catch (error) {
-      errorLogger.error(error);
+      errorLogger.error('File upload error:', error);
 
-      Object.keys(fields).forEach(field => {
-        req.body[field] = fields[field].default;
-      });
+      // Set defaults on error
+      for (const field of Object.keys(fields)) {
+        req.body[field] = fields[field].default ?? null;
+      }
     } finally {
+      // Parse JSON data if exists
       if (req.body?.data) {
-        Object.assign(req.body, json(req.body.data));
-        delete req.body.data;
+        try {
+          Object.assign(req.body, json(req.body.data));
+          delete req.body.data;
+        } catch (err) {
+          errorLogger.error('Failed to parse form data:', err);
+        }
       }
 
       next();
@@ -93,101 +122,182 @@ const capture = (fields: UploadFields) =>
 export default capture;
 
 /**
- * Universal file retriever
+ * Delete file from local disk (optimized with async)
  */
-export const fileRetriever = catchAsync(async (req, res, next) => {
-  if (!getBucket())
-    next(
-      new ServerError(StatusCodes.SERVICE_UNAVAILABLE, 'Files not available'),
-    );
-
-  const filename = req.params.filename.replace(/[^\w.-]/g, '');
-  const fileExists = await getBucket()!.find({ filename }).hasNext();
-  if (!fileExists) next();
-
-  return new Promise<void>((resolve, reject) => {
-    const stream = getBucket()!
-      .openDownloadStreamByName(filename)
-      .on('error', () =>
-        reject(new ServerError(StatusCodes.NOT_FOUND, 'Stream error')),
-      )
-      .pipe(res)
-      .on('finish', resolve);
-
-    res.on('close', () => stream.destroy());
-  });
-});
-
-/**
- * Delete file from GridFS
- */
-export const deleteFile = async (filename: string) => {
-  filename = path.basename(filename);
+export const deleteFile = async (filename: string): Promise<boolean> => {
+  const sanitizedFilename = path.basename(filename);
 
   try {
-    if (!getBucket()) return;
+    logger.info(chalk.yellow(`🗑️ Deleting file: '${sanitizedFilename}'`));
 
-    logger.info(chalk.yellow(`🗑️ Deleting file: '${filename}'`));
+    // Use Promise.all to check all directories concurrently
+    const deletePromises = fileTypes.map(async fileType => {
+      const filePath = path.join(UPLOAD_DIR, fileType, sanitizedFilename);
 
-    const result = await Promise.all(
-      (await getBucket()!.find({ filename }).toArray()).map(({ _id }) =>
-        getBucket()!.delete(_id),
-      ),
-    );
+      if (existsSync(filePath)) {
+        await fs.unlink(filePath);
+        return fileType;
+      }
+      return null;
+    });
 
-    if (result.length)
-      logger.info(chalk.green(`✔ file '${filename}' deleted successfully!`));
-    else errorLogger.error(chalk.red(`❌ file '${filename}' not deleted!`));
+    const results = await Promise.all(deletePromises);
+    const deletedFrom = results.filter(Boolean);
 
-    return result;
+    if (deletedFrom.length > 0) {
+      logger.info(
+        chalk.green(
+          `✔ File '${sanitizedFilename}' deleted from ${deletedFrom.join(', ')}`,
+        ),
+      );
+      return true;
+    }
+
+    errorLogger.error(chalk.red(`❌ File '${sanitizedFilename}' not found!`));
+    return false;
   } catch (error: any) {
     errorLogger.error(
-      chalk.red(`❌ file '${filename}' not deleted!`),
+      chalk.red(`❌ Failed to delete '${sanitizedFilename}'`),
       error?.stack ?? error,
     );
+    return false;
   }
 };
 
-const storage = new GridFsStorage({
-  url: config.url.database,
-  file: (req, { originalname }) => ({
-    filename: `${originalname
-      .replace(/\..+$/, '')
+/**
+ * Delete multiple files concurrently
+ */
+export const deleteFiles = async (filenames: string[]): Promise<boolean[]> => {
+  return Promise.all(filenames.map(deleteFile));
+};
+
+/**
+ * Optimized disk storage configuration
+ */
+const storage: StorageEngine = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const fileType =
+      (req as any).uploadFields?.[file.fieldname]?.fileType || 'any';
+    const dir = path.join(UPLOAD_DIR, fileType);
+
+    cb(null, dir);
+  },
+  filename: (_, file, cb) => {
+    // More efficient sanitization
+    const ext = path.extname(file.originalname).toLowerCase();
+    const basename = path
+      .basename(file.originalname, ext)
       .replace(/[^\w]+/g, '-')
-      .toLowerCase()}-${Date.now()}${originalname.match(/\.[a-z0-9]+$/i) ?? ''}`,
-    bucketName: 'files',
-    metadata: {
-      uploadedBy: oid(req?.user?.id) ?? null,
-      originalName: originalname,
-    },
-  }),
+      .toLowerCase()
+      .substring(0, 100); // Limit length
+
+    const filename = `${basename}-${Date.now()}${ext}`;
+    cb(null, filename);
+  },
 });
 
+/**
+ * File filter with better error messages
+ */
 const fileFilter =
   (fields: UploadFields) =>
-  (_: any, file: Express.Multer.File, cb: FileFilterCallback) => {
-    const fieldType = Object.keys(fields)
-      .find(f => file.fieldname === f)
-      ?.toLowerCase();
-    const fileType = fields[fieldType!]?.fileType;
+  (_: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+    const fieldConfig = fields[file.fieldname];
+
+    if (!fieldConfig) {
+      return cb(
+        new ServerError(
+          StatusCodes.BAD_REQUEST,
+          `Unexpected field: ${file.fieldname}`,
+        ),
+      );
+    }
+
+    const { fileType } = fieldConfig;
+    const validator = fileValidators[fileType]?.validator;
+
+    if (!validator) {
+      return cb(
+        new ServerError(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          `Invalid file type configuration: ${fileType}`,
+        ),
+      );
+    }
 
     const mime = file.mimetype.toLowerCase();
 
-    if (fileValidators[fileType]?.validator.test(mime)) return cb(null, true);
+    if (validator.test(mime)) {
+      return cb(null, true);
+    }
 
     cb(
       new ServerError(
         StatusCodes.BAD_REQUEST,
-        `${file.originalname} is not a valid ${fileType} file`,
+        `File '${file.originalname}' is not a valid ${fileType} (got ${mime})`,
       ),
     );
   };
 
-const upload = (fields: UploadFields) =>
-  multer({ storage, fileFilter: fileFilter(fields) }).fields(
-    Object.keys(fields).map(field => ({
-      name: field,
-      maxCount: fields[field].maxCount || undefined,
-      size: (fields[field].size || 5) * 1024 * 1024,
+/**
+ * Create multer upload middleware
+ */
+const upload = (fields: UploadFields) => {
+  // Calculate max file size from all fields
+  const maxFileSize = Math.max(
+    ...Object.values(fields).map(f => (f.size || 5) * 1024 * 1024),
+  );
+
+  const multerInstance = multer({
+    storage,
+    fileFilter: fileFilter(fields),
+    limits: {
+      fileSize: maxFileSize,
+      files: Object.values(fields).reduce(
+        (sum, f) => sum + (f.maxCount || 1),
+        0,
+      ),
+    },
+  }).fields(
+    Object.entries(fields).map(([name, config]) => ({
+      name,
+      maxCount: config.maxCount || 1,
     })),
   );
+
+  // Wrapper to inject fields metadata
+  return (req: any, res: any, next: any) => {
+    req.uploadFields = fields;
+    return multerInstance(req, res, next);
+  };
+};
+
+/**
+ * Helper to get file path
+ */
+export const getFilePath = (fileUrl: string): string | null => {
+  try {
+    const [, fileType, filename] = fileUrl.split('/');
+    if (!fileType || !filename) return null;
+
+    const filePath = path.join(UPLOAD_DIR, fileType, filename);
+    return existsSync(filePath) ? filePath : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Check if file exists
+ */
+export const fileExists = async (fileUrl: string): Promise<boolean> => {
+  const filePath = getFilePath(fileUrl);
+  if (!filePath) return false;
+
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+};

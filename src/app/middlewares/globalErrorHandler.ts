@@ -15,7 +15,7 @@ import {
   handlePrismaRequestError,
   handlePrismaValidationError,
 } from '../../errors/handlePrismaErrors';
-import { deleteFile } from './capture';
+import { deleteFiles } from './capture';
 
 export const defaultError: TErrorHandler = {
   statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
@@ -23,9 +23,9 @@ export const defaultError: TErrorHandler = {
   errorMessages: [],
 };
 
-const globalErrorHandler: ErrorRequestHandler = (error, req, res, _) => {
+const globalErrorHandler: ErrorRequestHandler = async (error, req, res, _) => {
   /** delete uploaded files */
-  if (req.tempFiles) Promise.all(req.tempFiles.map(deleteFile));
+  if (req.tempFiles) await deleteFiles(req.tempFiles);
 
   if (config.server.isDevelopment)
     console.log(chalk.red('🚨 globalErrorHandler ~~ '), error);

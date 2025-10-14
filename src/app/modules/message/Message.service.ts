@@ -3,7 +3,7 @@ import { Prisma } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../utils/db';
 import { TPagination } from '../../../utils/server/serveResponse';
-import { deleteFile } from '../../middlewares/capture';
+import { deleteFiles } from '../../middlewares/capture';
 import { TList } from '../query/Query.interface';
 import { messageSearchableFields as searchableFields } from './Message.constant';
 import { TDeleteMsg, TSeenMsg } from './Message.interface';
@@ -59,8 +59,7 @@ export const MessageServices = {
       );
 
     //Cleanup
-    if (message.media_urls)
-      await Promise.all(message.media_urls.map(deleteFile));
+    if (message.media_urls) await deleteFiles(message.media_urls);
 
     const msg = await prisma.message.delete({
       where: { id: message.id },
