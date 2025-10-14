@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { Server } from 'http';
-import { errorLogger, logger } from '../logger/logger';
+import { errorLogger, logger } from '../logger';
 import config from '../../config';
 
 /**

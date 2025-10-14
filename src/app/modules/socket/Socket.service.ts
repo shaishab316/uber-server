@@ -4,7 +4,7 @@ import config from '../../../config';
 import { SocketRoutes } from './Socket.route';
 import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
-import { logger } from '../../../utils/logger/logger';
+import { logger } from '../../../utils/logger';
 import chalk from 'chalk';
 
 type OnlineMap = Record<string, Set<string>>;

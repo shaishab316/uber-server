@@ -8,7 +8,7 @@ import { TApplyForDriver, TUserEdit, TUserRegister } from './User.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { errorLogger } from '../../../utils/logger/logger';
+import { errorLogger } from '../../../utils/logger';
 import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import config from '../../../config';
 import { otp_send_template } from '../../../templates';

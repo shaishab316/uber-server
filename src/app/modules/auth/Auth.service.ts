@@ -20,7 +20,7 @@ import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import config from '../../../config';
 import { sendEmail } from '../../../utils/sendMail';
 import { otp_send_template } from '../../../templates';
-import { errorLogger } from '../../../utils/logger/logger';
+import { errorLogger } from '../../../utils/logger';
 import ms from 'ms';
 import { userOmit } from '../user/User.service';
 import { Response } from 'express';

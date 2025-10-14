@@ -5,7 +5,7 @@ import multer, { FileFilterCallback } from 'multer';
 import ServerError from '../../errors/ServerError';
 import catchAsync from './catchAsync';
 import config from '../../config';
-import { errorLogger, logger } from '../../utils/logger/logger';
+import { errorLogger, logger } from '../../utils/logger';
 import chalk from 'chalk';
 import { json } from '../../utils/transform/json';
 import { getBucket } from '../../utils/server/connectDB';

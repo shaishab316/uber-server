@@ -1,7 +1,7 @@
 import { Db, GridFSBucket, MongoClient } from 'mongodb';
 import chalk from 'chalk';
 import config from '../../config';
-import { logger } from '../logger/logger';
+import { logger } from '../logger';
 
 let client: MongoClient | null = null;
 let bucket: GridFSBucket | null = null;

@@ -1,6 +1,6 @@
 import morgan from 'morgan';
 import config from '../../config';
-import { errorLogger, logger } from './logger';
+import { errorLogger, logger } from '.';
 import { StatusCodes } from 'http-status-codes';
 import { Response } from 'express';
 

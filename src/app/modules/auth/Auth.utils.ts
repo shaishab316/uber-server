@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import config from '../../../config';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import { errorLogger } from '../../../utils/logger/logger';
+import { errorLogger } from '../../../utils/logger';
 import chalk from 'chalk';
 import bcrypt from 'bcryptjs';
 import { enum_decode } from '../../../utils/transform/enum';

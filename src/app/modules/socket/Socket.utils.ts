@@ -4,7 +4,7 @@ import { TServeResponse } from '../../../utils/server/serveResponse';
 import { StatusCodes } from 'http-status-codes';
 import { formatError } from '../../middlewares/globalErrorHandler';
 import chalk from 'chalk';
-import { errorLogger } from '../../../utils/logger/logger';
+import { errorLogger } from '../../../utils/logger';
 
 export const catchAsyncSocket = <S extends ZodType>(
   fn: (data: z.infer<S>) => Promise<Partial<TServeResponse<any>>>,

@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { createServer } from 'http';
 import app from '../../app';
 import config from '../../config';
-import { errorLogger, logger } from '../logger/logger';
+import { errorLogger, logger } from '../logger';
 import shutdownServer from './shutdownServer';
 import connectDB from './connectDB';
 import { AdminServices } from '../../app/modules/admin/Admin.service';

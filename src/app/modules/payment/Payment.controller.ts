@@ -3,7 +3,7 @@ import config from '../../../config';
 import catchAsync from '../../middlewares/catchAsync';
 import { stripe, stripWebhookEventMap } from './Payment.utils';
 import { StatusCodes } from 'http-status-codes';
-import { errorLogger } from '../../../utils/logger/logger';
+import { errorLogger } from '../../../utils/logger';
 import { TStripWebhookEvent } from './Payment.interface';
 import { PaymentServices } from './Payment.service';
 import Stripe from 'stripe';

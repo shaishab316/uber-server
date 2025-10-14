@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import { errorLogger } from '../../../utils/logger/logger';
-import { logger } from '../../../utils/logger/logger';
+import { errorLogger } from '../../../utils/logger';
+import { logger } from '../../../utils/logger';
 import config from '../../../config';
 import { prisma } from '../../../utils/db';
 import { hashPassword } from '../auth/Auth.utils';

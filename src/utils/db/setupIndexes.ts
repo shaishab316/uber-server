@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { logger } from '../logger/logger';
+import { logger } from '../logger';
 import { getDB } from '../server/connectDB';
 import { Db } from 'mongodb';
 

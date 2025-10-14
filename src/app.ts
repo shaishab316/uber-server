@@ -41,10 +41,8 @@ app.use(
   cookieParser(),
 );
 
-app.get('/', ({ headers }, res) => {
-  res.redirect(
-    headers['accept']?.includes('text/html') ? '/pages/index.html' : '/health',
-  );
+app.get('/', (_, res) => {
+  res.redirect('/health');
 });
 
 // Health check
@@ -63,11 +61,7 @@ app.get('/health', (_, res) => {
 app.use('/api/v1', RoutesV1);
 
 // 404 handler
-app.use(({ originalUrl, headers }, res, next) => {
-  //! if browser is requesting show 404 page
-  if (headers['accept']?.includes('text/html'))
-    return res.redirect('/pages/404.html');
-
+app.use(({ originalUrl }, _, next) => {
   next(notFoundError(originalUrl));
 });
 
