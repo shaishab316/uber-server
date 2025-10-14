@@ -63,18 +63,6 @@ export const TripControllers = {
     };
   }),
 
-  updateTripLocation: catchAsync(async ({ params, body, user }) => {
-    await TripServices.updateTripLocation({
-      ...body,
-      tripId: params.tripId,
-      userId: user.id,
-    });
-
-    return {
-      message: 'Trip location updated successfully!',
-    };
-  }),
-
   arrivedTrip: catchAsync(async ({ params, user, body }) => {
     await TripServices.arrivedTrip({
       ...body,

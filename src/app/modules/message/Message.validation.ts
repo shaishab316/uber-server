@@ -19,7 +19,7 @@ export const MessageValidations = {
         ctx.addIssue({
           code: 'custom',
           path: ['content'],
-          message: 'Content or media url is required',
+          message: 'Content or media urls is required',
         });
       }
 
@@ -28,14 +28,14 @@ export const MessageValidations = {
         ctx.addIssue({
           code: 'custom',
           path: ['media_type'],
-          message: 'Media type is required if media url is provided',
+          message: 'Media type is required if media urls is provided',
         });
       }
       if (data.media_type && !data.media_urls.length) {
         ctx.addIssue({
           code: 'custom',
-          path: ['media_url'],
-          message: 'Media url is required if media type is provided',
+          path: ['media_urls'],
+          message: 'Media urls is required if media type is provided',
         });
       }
     }),

@@ -84,15 +84,6 @@ const driver = Router();
     purifyRequest(QueryValidations.exists('tripId', 'trip')),
     TripControllers.completeTrip,
   );
-
-  driver.post(
-    '/:tripId/update-location',
-    purifyRequest(
-      QueryValidations.exists('tripId', 'trip'),
-      TripValidations.updateLocation,
-    ),
-    TripControllers.updateTripLocation,
-  );
 }
 
 const admin = Router();
