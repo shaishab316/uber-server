@@ -25,7 +25,10 @@ const admin = Router();
   admin.patch(
     ':userId/edit',
     avatarCapture,
-    purifyRequest(UserValidations.edit),
+    purifyRequest(
+      QueryValidations.exists('userId', 'user'),
+      UserValidations.edit,
+    ),
     UserControllers.superEditProfile,
   );
 

@@ -90,6 +90,30 @@ export const TripValidations = {
     }),
   }),
 
+  superGetTripHistory: z.object({
+    query: z.object({
+      status: z
+        .string()
+        .transform(enum_encode)
+        .pipe(z.enum(ETripStatus).optional())
+        .optional(),
+      driver_id: z
+        .string()
+        .refine(exists('user'), {
+          error: ({ input }) => `Driver not found with id: ${input}`,
+          path: ['driver_id'],
+        })
+        .optional(),
+      passenger_id: z
+        .string()
+        .refine(exists('user'), {
+          error: ({ input }) => `Passenger not found with id: ${input}`,
+          path: ['passenger_id'],
+        })
+        .optional(),
+    }),
+  }),
+
   //! socket validations..........
   joinTrip: z.object({
     trip_id: z.string().refine(exists('trip'), {
