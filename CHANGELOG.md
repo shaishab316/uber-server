@@ -1,3 +1,18 @@
+# [4.2.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.1.0...v4.2.0) (2025-10-15)
+
+
+### Features
+
+* :rocket: Implement media upload functionality in chat module ([baa6856](https://github.com/Alpha-Bytes-Department/uber-server/commit/baa6856c5b46640ff5750100791b3534881557b0))
+* ✨ Update Prisma client and add avatar URL modifier ([c48f483](https://github.com/Alpha-Bytes-Department/uber-server/commit/c48f4839153067e0c20d3ae4889066ce539c3048))
+* 🚚 Rename completeTrip to arrivedTrip and update status ([8784c76](https://github.com/Alpha-Bytes-Department/uber-server/commit/8784c76d26aac9cacf1c6402d63324984a741451))
+* Add transaction routes, trip history validation, user check ([abc421a](https://github.com/Alpha-Bytes-Department/uber-server/commit/abc421a14bcc860af1c5d04db3d7719372450c16))
+* Implement driver transaction tracking and fix trip payment ([f2c00cc](https://github.com/Alpha-Bytes-Department/uber-server/commit/f2c00cc61da08d62f0f8dfcdde2225fba1af58b9))
+* Implement new homepage and backend overhaul, remove old features ([295933a](https://github.com/Alpha-Bytes-Department/uber-server/commit/295933acc3f7de893c540c028ffcf442ab4dcdaf))
+* Improve transaction and driver application flows ([08912d5](https://github.com/Alpha-Bytes-Department/uber-server/commit/08912d50f94c43b5d3dbc6db5ff20f2db664500d))
+* Update .gitignore, re-enable refresh token route, and refactor controller ([61f7083](https://github.com/Alpha-Bytes-Department/uber-server/commit/61f708385b2e611e78460a59eb675aff3f5ec16f))
+* Update message validation and remove updateTripLocation ([1bd4982](https://github.com/Alpha-Bytes-Department/uber-server/commit/1bd498217a6374e84ef2fbb7ca805b1dd7d21c6e))
+
 # [4.1.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.0.0...v4.1.0) (2025-10-11)
 
 
