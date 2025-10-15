@@ -4,6 +4,7 @@ model Transaction {
   updated_at            DateTime         @updatedAt
   stripe_transaction_id String?
   user_id               String           @db.ObjectId
+  driver_id             String?          @db.ObjectId
   amount                Float
   type                  ETransactionType @default(TOPUP)
   payment_method        String           @default("unknown")

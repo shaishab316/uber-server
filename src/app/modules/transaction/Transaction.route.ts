@@ -12,6 +12,15 @@ const user = Router();
   );
 }
 
+const driver = Router();
+{
+  driver.get(
+    '/',
+    purifyRequest(QueryValidations.list),
+    TransactionControllers.getDriverTransactions,
+  );
+}
+
 const admin = Router();
 {
   admin.get(
@@ -21,4 +30,4 @@ const admin = Router();
   );
 }
 
-export const TransactionRoutes = { user, admin };
+export const TransactionRoutes = { user, admin, driver };
