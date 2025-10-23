@@ -36,4 +36,20 @@ export const AuthValidations = {
         .min(6, 'Password must be 6 characters long'),
     }),
   }),
+
+  facebookLogin: z.object({
+    body: z.object({
+      access_token: z
+        .string({ error: 'Access token is missing' })
+        .nonempty('Access token is required'),
+    }),
+  }),
+
+  googleLogin: z.object({
+    body: z.object({
+      access_token: z
+        .string({ error: 'Access token is missing' })
+        .nonempty('Access token is required'),
+    }),
+  }),
 };

@@ -70,33 +70,35 @@ export const AuthControllers = {
     };
   }),
 
-  resetPassword: catchAsync(async ({ user, body }, res) => {
-    if (await verifyPassword(body.password, user.password)) {
-      throw new ServerError(
-        StatusCodes.UNAUTHORIZED,
-        'You cannot use old password',
+  resetPassword: catchAsync(
+    async ({ user: { password, ...user }, body }, res) => {
+      if (await verifyPassword(body.password, password)) {
+        throw new ServerError(
+          StatusCodes.UNAUTHORIZED,
+          'You cannot use old password',
+        );
+      }
+
+      await AuthServices.modifyPassword({
+        userId: user.id,
+        password: body.password,
+      });
+
+      const { access_token, refresh_token } = AuthServices.retrieveToken(
+        user.id,
+        'access_token',
+        'refresh_token',
       );
-    }
 
-    await AuthServices.modifyPassword({
-      userId: user.id,
-      password: body.password,
-    });
+      AuthServices.setTokens(res, { access_token, refresh_token });
+      AuthServices.destroyTokens(res, 'reset_token');
 
-    const { access_token, refresh_token } = AuthServices.retrieveToken(
-      user.id,
-      'access_token',
-      'refresh_token',
-    );
-
-    AuthServices.setTokens(res, { access_token, refresh_token });
-    AuthServices.destroyTokens(res, 'reset_token');
-
-    return {
-      message: 'Password reset successfully!',
-      data: { access_token, refresh_token, user },
-    };
-  }),
+      return {
+        message: 'Password reset successfully!',
+        data: { access_token, refresh_token, user },
+      };
+    },
+  ),
 
   changePassword: catchAsync(async ({ user, body }) => {
     if (!(await verifyPassword(body.oldPassword, user.password))) {
@@ -137,6 +139,40 @@ export const AuthControllers = {
     return {
       message: 'AccessToken refreshed successfully!',
       data: { access_token },
+    };
+  }),
+
+  facebookLogin: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.facebookLogin(body);
+
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id!,
+      'access_token',
+      'refresh_token',
+    );
+
+    AuthServices.setTokens(res, { access_token, refresh_token });
+
+    return {
+      message: 'Login successfully!',
+      data: { access_token, refresh_token, user },
+    };
+  }),
+
+  googleLogin: catchAsync(async ({ body }, res) => {
+    const user = await AuthServices.googleLogin(body);
+
+    const { access_token, refresh_token } = AuthServices.retrieveToken(
+      user.id!,
+      'access_token',
+      'refresh_token',
+    );
+
+    AuthServices.setTokens(res, { access_token, refresh_token });
+
+    return {
+      message: 'Login successfully!',
+      data: { access_token, refresh_token, user },
     };
   }),
 };

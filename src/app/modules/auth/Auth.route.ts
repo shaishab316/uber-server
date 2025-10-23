@@ -27,6 +27,18 @@ router.post(
 );
 
 router.post(
+  '/facebook-login',
+  purifyRequest(AuthValidations.facebookLogin),
+  AuthControllers.facebookLogin,
+);
+
+router.post(
+  '/google-login',
+  purifyRequest(AuthValidations.googleLogin),
+  AuthControllers.googleLogin,
+);
+
+router.post(
   '/account-verify/otp-send',
   purifyRequest(AuthValidations.otpSend),
   AuthControllers.accountVerifyOtpSend,

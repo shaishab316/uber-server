@@ -45,7 +45,7 @@ interface UploadFields {
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
 // Ensure upload directories exist (async)
-const ensureUploadDirs = async (): Promise<void> => {
+export const ensureUploadDirs = async (): Promise<void> => {
   try {
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
 

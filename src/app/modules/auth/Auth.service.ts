@@ -1,9 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { $ZodIssue } from 'zod/v4/core/errors.cjs';
-import { User as TUser } from '../../../../prisma';
+import { EUserRole, User as TUser } from '../../../../prisma';
 import {
   TAccountVerify,
   TAccountVerifyOtpSend,
+  TFacebookLogin,
+  TGoogleLogin,
   TUserLogin,
 } from './Auth.interface';
 import {
@@ -24,6 +26,8 @@ import { errorLogger } from '../../../utils/logger';
 import ms from 'ms';
 import { userOmit } from '../user/User.service';
 import { Response } from 'express';
+import { facebookUser, googleUser } from './Auth.lib';
+import { downloadImage } from '../../../utils/downloadImage';
 
 export const AuthServices = {
   async login({ password, email, phone }: TUserLogin): Promise<Partial<TUser>> {
@@ -261,5 +265,61 @@ export const AuthServices = {
         id: true,
       },
     });
+  },
+
+  async facebookLogin({ access_token }: TFacebookLogin) {
+    try {
+      const payload = await facebookUser(access_token);
+
+      let user = await prisma.user.findFirst({
+        where: { fb_id: payload.id },
+      });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            fb_id: payload.id,
+            password: await hashPassword(payload.id),
+            avatar: await downloadImage(payload?.picture?.data?.url),
+            role: EUserRole.USER,
+          },
+        });
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof Error)
+        throw new ServerError(StatusCodes.UNAUTHORIZED, error.message);
+
+      throw error;
+    }
+  },
+
+  async googleLogin({ access_token }: TGoogleLogin) {
+    try {
+      const payload = await googleUser(access_token);
+
+      let user = await prisma.user.findFirst({
+        where: { google_id: payload.id },
+      });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            google_id: payload.id,
+            password: await hashPassword(payload.id),
+            avatar: await downloadImage(payload.picture),
+            role: EUserRole.USER,
+          },
+        });
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof Error)
+        throw new ServerError(StatusCodes.UNAUTHORIZED, error.message);
+
+      throw error;
+    }
   },
 };
