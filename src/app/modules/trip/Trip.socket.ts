@@ -1,16 +1,13 @@
-import { StatusCodes } from 'http-status-codes';
-import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../utils/db';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { TripValidations } from './Trip.validation';
 import { TripServices } from './Trip.service';
 import { tripNotificationMaps } from './Trip.utils';
-import { tripOmit } from './Trip.constant';
 import { EUserRole } from '../../../../prisma';
 import { catchAsyncSocket, socketResponse } from '../socket/Socket.utils';
 import { AvailableDriverServices } from '../availableDriver/AvailableDriver.service';
 import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
-import { calculateFare } from '../../../utils/uber/calculateFare';
+import { calculateTripFare } from '../../../utils/uber/tripFareHelper';
 
 const TripSocket: TSocketHandler = async (io, socket) => {
   const { user } = socket.data;
@@ -30,32 +27,6 @@ const TripSocket: TSocketHandler = async (io, socket) => {
   const isUser = user.role === EUserRole.USER;
 
   socket.on(
-    'join_trip_room',
-    catchAsyncSocket(async ({ trip_id }) => {
-      const trip = (await prisma.trip.findFirst({
-        where: { id: trip_id },
-        omit: tripOmit,
-      }))!;
-
-      if (trip.passenger_id !== user.id && trip.driver_id !== user.id) {
-        throw new ServerError(
-          StatusCodes.UNAUTHORIZED,
-          `You are not ${isUser ? 'passenger' : 'driver'} of this trip`,
-        );
-      }
-
-      // Join room
-      socket.join(trip.id);
-
-      return {
-        message: 'Joined trip successfully',
-        data: trip,
-        meta: { trip_id },
-      };
-    }, TripValidations.joinTrip),
-  );
-
-  socket.on(
     'update_trip_location',
     catchAsyncSocket(async ({ location, trip_id }) => {
       const trip = await TripServices.updateTripLocation({
@@ -64,25 +35,37 @@ const TripSocket: TSocketHandler = async (io, socket) => {
         location,
       });
 
-      socket.to(trip_id).emit(
-        'update_trip_location',
-        socketResponse({
-          message: `${user.name} updated trip's location`,
-          data: location,
-          meta: { trip_id },
-        }),
-      );
+      // Target the other participant in the trip
+      const targetUserId = isUser ? trip.driver_id : trip.passenger_id;
+      if (targetUserId) {
+        io.to(targetUserId).emit(
+          'update_trip_location',
+          socketResponse({
+            message: `${user.name} updated trip's location`,
+            data: location,
+            meta: { trip_id },
+          }),
+        );
+      }
 
-      const { distance, duration } = await getDistanceAndTime(
+      const { distance } = await getDistanceAndTime(
         trip.pickup_address.geo,
         location.geo,
       );
 
-      const estimatedFare = calculateFare({
-        distance: distance.value,
-        time: duration.value,
-        passengerAges: trip.passenger_ages,
-      });
+      // Recalculate fare with updated distance (driver's current position to destination)
+      const fareResult = await calculateTripFare({
+        distance_km: distance.value / 1000, // Convert meters to km
+        passenger_ages: trip.passenger_ages,
+        requested_at: trip.requested_at,
+        accepted_at: trip.accepted_at,
+        started_at: trip.started_at,
+        pickup_address: trip.pickup_address,
+        dropoff_address: trip.dropoff_address,
+        stops: trip.stops,
+      } as any);
+
+      const estimatedFare = fareResult.total;
 
       if (trip.total_cost < estimatedFare) {
         await prisma.trip.update({
@@ -101,7 +84,7 @@ const TripSocket: TSocketHandler = async (io, socket) => {
       const notification = closestNotification?.message;
 
       if (notification) {
-        socket.to(trip.passenger_id).emit(
+        io.to(trip.passenger_id).emit(
           'trip_notification',
           socketResponse({
             message: notification,

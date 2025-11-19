@@ -17,7 +17,7 @@ import ServerError from '../../../errors/ServerError';
 import { CancelTripServices } from '../cancelTrip/CancelTrip.service';
 import { SocketServices } from '../socket/Socket.service';
 import { TAuthenticatedSocket } from '../socket/Socket.interface';
-import { Namespace } from 'socket.io';
+import { Server as IOServer } from 'socket.io';
 import {
   tripOmit,
   tripSearchableFields as searchableFields,
@@ -33,7 +33,7 @@ import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
 import chalk from 'chalk';
 import { AvailableDriverServices } from '../availableDriver/AvailableDriver.service';
 import ms from 'ms';
-import { calculateFare } from '../../../utils/uber/calculateFare';
+import { calculateTripFare } from '../../../utils/uber/tripFareHelper';
 
 export const TripServices = {
   async requestForTrip({
@@ -69,11 +69,19 @@ export const TripServices = {
       dropoff_address.geo,
     );
 
-    const estimatedFare = calculateFare({
-      distance: distance.value,
-      time: duration.value,
-      passengerAges: passenger_ages,
-    });
+    // Calculate estimated fare using the new pricing system
+    const fareResult = await calculateTripFare({
+      distance_km: distance.value / 1000, // Convert meters to km
+      passenger_ages,
+      requested_at: new Date(),
+      accepted_at: null,
+      started_at: null,
+      pickup_address,
+      dropoff_address,
+      stops,
+    } as any);
+
+    const estimatedFare = fareResult.total;
 
     const trip = await prisma.trip.create({
       data: {
@@ -232,8 +240,9 @@ export const TripServices = {
       omit: tripOmit,
     });
 
-    SocketServices.getIO('/trip')
-      ?.to(trip_id)
+    // Notify passenger that driver accepted the trip
+    SocketServices.getIO()
+      ?.to(updatedTrip.passenger_id)
       .emit(
         'trip_notification',
         socketResponse({
@@ -302,8 +311,9 @@ export const TripServices = {
       },
     });
 
-    SocketServices.getIO('/trip')
-      ?.to(trip_id)
+    // Notify driver that passenger started the trip
+    SocketServices.getIO()
+      ?.to(updatedTrip.driver_id!)
       .emit(
         'trip_notification',
         socketResponse({
@@ -318,7 +328,7 @@ export const TripServices = {
         }),
       );
 
-    SocketServices.getIO('/trip')
+    SocketServices.getIO()
       ?.to(updatedTrip.passenger_id)
       .emit(
         `trip_${updatedTrip.status.toLowerCase()}`,
@@ -381,8 +391,9 @@ export const TripServices = {
       omit: tripOmit,
     });
 
-    SocketServices.getIO('/trip')
-      ?.to(trip_id)
+    // Notify passenger that driver arrived
+    SocketServices.getIO()
+      ?.to(updatedTrip.passenger_id)
       .emit(
         'trip_arrived',
         socketResponse({
@@ -438,8 +449,9 @@ export const TripServices = {
       omit: tripOmit,
     });
 
-    SocketServices.getIO('/trip')
-      ?.to(trip_id)
+    // Notify passenger that trip is completed
+    SocketServices.getIO()
+      ?.to(updatedTrip.passenger_id)
       .emit(
         'trip_completed',
         socketResponse({
@@ -533,7 +545,7 @@ export const TripServices = {
 
   // Separate method for no driver scenario
   async handleNoDriverFound(trip: Partial<TTrip>): Promise<void> {
-    const io = SocketServices.getIO('/trip');
+    const io = SocketServices.getIO();
     const timeout = Date.now() - new Date(trip.requested_at!).getTime();
 
     // If more than 20 seconds have passed, notify passenger
@@ -573,7 +585,7 @@ export const TripServices = {
 
   // Extract socket emission to separate method
   async sendTripRequest(driverId: string, trip: Partial<TTrip>): Promise<void> {
-    const io = SocketServices.getIO('/trip');
+    const io = SocketServices.getIO();
 
     console.log(chalk.red(`Sending trip request to driver ${driverId}`));
 
@@ -689,7 +701,7 @@ export const TripServices = {
     io,
   }: {
     socket: TAuthenticatedSocket;
-    io: Namespace | null;
+    io: IOServer | null;
   }) {
     const { user } = socket.data;
 
@@ -713,8 +725,6 @@ export const TripServices = {
     });
 
     if (trip) {
-      socket.join(trip.id);
-
       if (user.role === EUserRole.DRIVER)
         Object.assign(trip, { sOtp: undefined, eOtp: undefined });
 

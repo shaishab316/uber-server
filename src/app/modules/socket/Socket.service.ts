@@ -1,16 +1,14 @@
 import { Server } from 'http';
-import { Server as IOServer, Namespace } from 'socket.io';
+import { Server as IOServer } from 'socket.io';
 import config from '../../../config';
-import { SocketRoutes } from './Socket.route';
+import { SocketHandlers } from './Socket.route';
 import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
 import { logger } from '../../../utils/logger';
 import chalk from 'chalk';
 
-type OnlineMap = Record<string, Set<string>>;
-
 let io: IOServer | null = null;
-const onlineUsers: OnlineMap = {};
+const onlineUsers: Set<string> = new Set();
 
 export const SocketServices = {
   init(server: Server) {
@@ -22,78 +20,68 @@ export const SocketServices = {
 
     logger.info(chalk.green('🚀 Socket services initialized successfully'));
 
-    // Disable default namespace
-    io.of('/').on('connection', socket => socket.disconnect(true));
-
     // Attach cleanup on server close
     server.on('close', this.cleanup);
 
-    // Initialize each namespace
-    SocketRoutes.forEach((handler, namespace) => {
-      const nsp = io!.of(namespace);
-      onlineUsers[namespace] = new Set();
+    // Use single namespace
+    io.use(auth);
+    io.on('connection', (socket: TAuthenticatedSocket) => {
+      const { user } = socket.data;
 
-      nsp.use(auth);
-      nsp.on('connection', (socket: TAuthenticatedSocket) => {
-        const { user } = socket.data;
+      // Join private room with user ID
+      socket.join(user.id);
+      this.markOnline(user.id);
 
-        // Join private room
-        socket.join(user.id);
-        this.markOnline(namespace, user.id);
+      logger.info(`👤 User (${user.name}) connected`);
 
-        logger.info(
-          `👤 User (${user.name}) connected to namespace: ${namespace}`,
-        );
-
-        // Event: leave room
-        socket.on('leave', (roomId: string) => {
-          socket.leave(roomId);
-          logger.info(`👤 User (${user.name}) left room: ${roomId}`);
-        });
-
-        // Event: disconnect
-        socket.on('disconnect', () => {
-          socket.leave(user.id);
-          this.markOffline(namespace, user.id);
-          logger.info(
-            `👤 User (${user.name}) disconnected from namespace: ${namespace}`,
-          );
-        });
-
-        // Event: error
-        socket.on('error', logger.error);
-
-        // Call module-specific handler
-        try {
-          handler(nsp, socket);
-        } catch (err) {
-          logger.error(`Namespace "${namespace}" handler error:`, err);
-        }
+      // Event: leave room
+      socket.on('leave', (roomId: string) => {
+        socket.leave(roomId);
+        logger.info(`👤 User (${user.name}) left room: ${roomId}`);
       });
+
+      // Event: disconnect
+      socket.on('disconnect', () => {
+        socket.leave(user.id);
+        this.markOffline(user.id);
+        logger.info(`👤 User (${user.name}) disconnected`);
+      });
+
+      // Event: error
+      socket.on('error', logger.error);
+
+      // Call all handlers
+      try {
+        Object.values(SocketHandlers).forEach(handler => {
+          handler(io!, socket);
+        });
+      } catch (err) {
+        logger.error('Socket handler error:', err);
+      }
     });
   },
 
-  markOnline(namespace: string, userId: string) {
-    onlineUsers[namespace].add(userId);
-    this.emitOnline(namespace);
+  markOnline(userId: string) {
+    onlineUsers.add(userId);
+    this.emitOnline();
   },
 
-  markOffline(namespace: string, userId: string) {
-    onlineUsers[namespace].delete(userId);
-    this.emitOnline(namespace);
+  markOffline(userId: string) {
+    onlineUsers.delete(userId);
+    this.emitOnline();
   },
 
-  emitOnline(namespace: string) {
-    io?.of(namespace).emit('online_users', Array.from(onlineUsers[namespace]));
+  emitOnline() {
+    io?.emit('online_users', Array.from(onlineUsers));
   },
 
-  getIO(namespace: string): Namespace | undefined {
-    return io?.of(namespace);
+  getIO(): IOServer | null {
+    return io;
   },
 
   cleanup() {
     if (!io) return;
-    Object.keys(onlineUsers).forEach(ns => onlineUsers[ns].clear());
+    onlineUsers.clear();
     io.close(() => logger.info('Socket.IO server closed.'));
     io = null;
   },

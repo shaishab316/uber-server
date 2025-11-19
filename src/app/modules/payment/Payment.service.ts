@@ -94,7 +94,7 @@ export const PaymentServices = {
         data: { transaction_id: transaction.id, paid_at: new Date() },
       });
 
-      SocketServices.getIO('/trip')
+      SocketServices.getIO()
         ?.to(trip.driver_id!)
         .emit(
           'trip_paid',

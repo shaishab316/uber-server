@@ -200,23 +200,59 @@ const config = {
     }),
 
     fare: {
-      adult_fare: env('adult fare', 1, {
-        regex: '^\\d+$',
-        comment: 'in km',
-      }),
-      non_adult_fare: env('non adult fare', 0.5, {
-        regex: '^\\d*\\.?\\d*$',
-        comment: 'in km',
-      }),
-      time_fare: env('time fare', 1.2, {
-        regex: '^\\d*\\.?\\d*$',
-        comment: 'in minutes',
-      }),
-      distance_fare: env('distance fare', 20, {
-        regex: '^\\d+$',
-        comment: 'in km',
-        down: 'Uber info - end',
-      }),
+      // Base pricing structure
+      base: {
+        distance_km: 2.5, // Base distance in km
+        price: 213, // Total price for base distance
+        driver_share: 200,
+        app_fee: 10,
+        fidelity_points: 3,
+      },
+
+      // Additional charges per km after base distance
+      additional_km_price: 35,
+      additional_app_fee_per_km: 1,
+
+      // Peak hours pricing
+      peak_hours: {
+        additional_km_price: 40, // Instead of 35
+        base_price: 235, // Instead of 213
+        driver_share: 220, // Instead of 200
+        app_fee: 12, // Instead of 10
+      },
+
+      // Airport zone pricing
+      airport: {
+        base_price: 300,
+        driver_share: 277,
+        app_fee: 20,
+        fidelity_points: 3,
+        additional_km_price: 70,
+        additional_app_fee_per_km: 5,
+      },
+
+      // Extra passenger charges
+      passenger_charges: {
+        base_passengers: 4, // 2 adults + 2 children included
+        third_adult_percentage: 10,
+        fourth_adult_percentage: 15,
+      },
+
+      // Additional fees
+      fees: {
+        waiting_after_minutes: 3,
+        waiting_fee: 30,
+        stop_after_minutes: 2,
+        stop_fee: 30,
+        cancellation_driver_percentage: 30, // 30% of trip if driver cancels after reaching client
+        no_show_passenger_percentage: 30, // 30% of trip if passenger doesn't show
+      },
+
+      // Driver subscription
+      driver_subscription: {
+        yearly_fee: 600, // pesos
+        free_drivers: 100, // First 100 drivers free
+      },
     },
   },
 };

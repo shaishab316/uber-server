@@ -5,37 +5,11 @@ import { prisma } from '../../../utils/db';
 import { MessageValidations } from '../message/Message.validation';
 import { TSocketHandler } from '../socket/Socket.interface';
 import { MessageServices } from '../message/Message.service';
-import { ChatValidations } from './Chat.validation';
 import { catchAsyncSocket, socketResponse } from '../socket/Socket.utils';
 
 const ChatSocket: TSocketHandler = (io, socket) => {
   const { user } = socket.data;
   const isUser = user.role === EUserRole.USER;
-
-  socket.on(
-    'join_chat_room',
-    catchAsyncSocket(async ({ chat_id }) => {
-      const chat = await prisma.chat.findFirst({
-        where: { id: chat_id },
-      });
-
-      if (chat?.driver_id !== user.id && chat?.user_id !== user.id) {
-        throw new ServerError(
-          StatusCodes.FORBIDDEN,
-          'You are not allowed to join this chat',
-        );
-      }
-
-      // Join room
-      socket.join(chat_id);
-
-      return {
-        message: 'Joined chat successfully',
-        data: chat,
-        meta: { chat_id },
-      };
-    }, ChatValidations.joinChat),
-  );
 
   socket.on(
     'send_message',
@@ -66,14 +40,17 @@ const ChatSocket: TSocketHandler = (io, socket) => {
 
       const message = await MessageServices.createMsg(msgData);
 
-      io.to(chat_id).emit(
-        'new_message',
-        socketResponse({
-          message: `New message from ${user.name}`,
-          data: message,
-          meta: { chat_id },
-        }),
-      );
+      const targetUserId = isUser ? chat?.driver_id : chat?.user_id;
+      if (targetUserId) {
+        io.to(targetUserId).emit(
+          'new_message',
+          socketResponse({
+            message: `New message from ${user.name}`,
+            data: message,
+            meta: { chat_id },
+          }),
+        );
+      }
 
       return {
         statusCode: StatusCodes.CREATED,
@@ -92,14 +69,21 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         user_id: user.id,
       });
 
-      io.to(message.chat_id).emit(
-        'delete_message',
-        socketResponse({
-          message: `Message deleted by ${user.name}`,
-          data: message,
-          meta: { chat_id: message.chat_id },
-        }),
-      );
+      const chat = await prisma.chat.findUnique({
+        where: { id: message.chat_id },
+      });
+
+      const targetUserId = isUser ? chat?.driver_id : chat?.user_id;
+      if (targetUserId) {
+        io.to(targetUserId).emit(
+          'delete_message',
+          socketResponse({
+            message: `Message deleted by ${user.name}`,
+            data: message,
+            meta: { chat_id: message.chat_id },
+          }),
+        );
+      }
 
       return {
         message: 'Message deleted successfully',
