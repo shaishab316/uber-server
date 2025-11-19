@@ -12,7 +12,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
   const isUser = user.role === EUserRole.USER;
 
   socket.on(
-    'send_message',
+    'message:send',
     catchAsyncSocket(async ({ chat_id, content, media_type, media_urls }) => {
       const chat = await prisma.chat.findUnique({
         where: { id: chat_id },
@@ -43,7 +43,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       const targetUserId = isUser ? chat?.driver_id : chat?.user_id;
       if (targetUserId) {
         io.to(targetUserId).emit(
-          'new_message',
+          'message:new',
           socketResponse({
             message: `New message from ${user.name}`,
             data: message,
@@ -62,7 +62,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
   );
 
   socket.on(
-    'delete_message',
+    'message:delete',
     catchAsyncSocket(async ({ message_id }) => {
       const message = await MessageServices.deleteMsg({
         message_id,
@@ -76,7 +76,7 @@ const ChatSocket: TSocketHandler = (io, socket) => {
       const targetUserId = isUser ? chat?.driver_id : chat?.user_id;
       if (targetUserId) {
         io.to(targetUserId).emit(
-          'delete_message',
+          'message:deleted',
           socketResponse({
             message: `Message deleted by ${user.name}`,
             data: message,

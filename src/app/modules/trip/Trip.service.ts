@@ -244,7 +244,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(updatedTrip.passenger_id)
       .emit(
-        'trip_notification',
+        'trip:accepted',
         socketResponse({
           message: `${updatedTrip?.passenger?.name} accepted your trip request`,
           data: updatedTrip,
@@ -315,7 +315,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(updatedTrip.driver_id!)
       .emit(
-        'trip_notification',
+        'trip:notification',
         socketResponse({
           message: `${updatedTrip?.passenger?.name} started your trip`,
           data: {
@@ -331,7 +331,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(updatedTrip.passenger_id)
       .emit(
-        `trip_${updatedTrip.status.toLowerCase()}`,
+        'trip:started',
         socketResponse({
           message: 'Trip started',
           data: updatedTrip,
@@ -395,7 +395,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(updatedTrip.passenger_id)
       .emit(
-        'trip_arrived',
+        'trip:arrived',
         socketResponse({
           message: `${updatedTrip?.passenger?.name} arrived your trip`,
           data: updatedTrip,
@@ -453,7 +453,7 @@ export const TripServices = {
     SocketServices.getIO()
       ?.to(updatedTrip.passenger_id)
       .emit(
-        'trip_completed',
+        'trip:completed',
         socketResponse({
           message: `${updatedTrip?.passenger?.name} arrived your trip`,
           data: updatedTrip,
@@ -551,7 +551,7 @@ export const TripServices = {
     // If more than 20 seconds have passed, notify passenger
     if (timeout > ms('20s')) {
       io?.to(trip.passenger_id!).emit(
-        'trip_notification',
+        'trip:notification',
         socketResponse({
           statusCode: StatusCodes.NOT_FOUND,
           message: 'No driver found for this trip',
@@ -569,7 +569,7 @@ export const TripServices = {
       setTimeout(() => this.retryFindDriver(trip.id!), 5000);
     } else {
       io?.to(trip.passenger_id!).emit(
-        'close_trip',
+        'trip:close',
         socketResponse({
           statusCode: StatusCodes.NOT_FOUND,
           message: 'No driver found for this trip',
@@ -590,7 +590,7 @@ export const TripServices = {
     console.log(chalk.red(`Sending trip request to driver ${driverId}`));
 
     io?.to(driverId).emit(
-      'request_for_trip',
+      'trip:request',
       socketResponse({
         message: 'Request for trip',
         data: trip,
@@ -729,7 +729,7 @@ export const TripServices = {
         Object.assign(trip, { sOtp: undefined, eOtp: undefined });
 
       io?.to(user.id).emit(
-        `trip_${trip.status.toLowerCase()}`,
+        `trip:${trip.status.toLowerCase()}`,
         JSON.stringify({
           success: true,
           statusCode: StatusCodes.OK,

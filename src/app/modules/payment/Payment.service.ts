@@ -97,7 +97,7 @@ export const PaymentServices = {
       SocketServices.getIO()
         ?.to(trip.driver_id!)
         .emit(
-          'trip_paid',
+          'trip:paid',
           socketResponse({
             message: 'Trip paid successfully',
             meta: { trip_id },

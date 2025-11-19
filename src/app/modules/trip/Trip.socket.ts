@@ -27,7 +27,7 @@ const TripSocket: TSocketHandler = async (io, socket) => {
   const isUser = user.role === EUserRole.USER;
 
   socket.on(
-    'update_trip_location',
+    'trip:update_location',
     catchAsyncSocket(async ({ location, trip_id }) => {
       const trip = await TripServices.updateTripLocation({
         user_id: user.id,
@@ -39,7 +39,7 @@ const TripSocket: TSocketHandler = async (io, socket) => {
       const targetUserId = isUser ? trip.driver_id : trip.passenger_id;
       if (targetUserId) {
         io.to(targetUserId).emit(
-          'update_trip_location',
+          'trip:location_updated',
           socketResponse({
             message: `${user.name} updated trip's location`,
             data: location,
@@ -85,7 +85,7 @@ const TripSocket: TSocketHandler = async (io, socket) => {
 
       if (notification) {
         io.to(trip.passenger_id).emit(
-          'trip_notification',
+          'trip:notification',
           socketResponse({
             message: notification,
             data: {
