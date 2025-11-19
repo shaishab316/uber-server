@@ -53,6 +53,18 @@ export const PaymentServices = {
     });
 
     if (trip.transaction_id) {
+      // Notify driver that trip had already been paid
+      SocketServices.getIO()
+        ?.to(trip.driver_id!)
+        .emit(
+          'trip:paid',
+          socketResponse({
+            message: 'Trip paid successfully',
+            meta: { trip_id },
+            data: trip,
+          }),
+        );
+
       throw new ServerError(StatusCodes.CONFLICT, 'Trip already paid');
     }
 
@@ -94,6 +106,7 @@ export const PaymentServices = {
         data: { transaction_id: transaction.id, paid_at: new Date() },
       });
 
+      // Notify driver that trip has been paid
       SocketServices.getIO()
         ?.to(trip.driver_id!)
         .emit(

@@ -20,7 +20,7 @@
     "new-module": "node ./src/app/modules/.builder.js",
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "set DEBUG=socket.io* && ts-node-dev --respawn --transpile-only --watch .env src/server.ts",
+    "dev": "set DEBUG=socket.io* && ts-node-dev --respawn --inspect --transpile-only --watch .env src/server.ts",
     "stripe": "npx ts-node scripts/stripe.ts",
     "seedAdmin": "npx ts-node scripts/seedAdmin.ts",
     "seedIndex": "npx ts-node scripts/seedIndex.ts",

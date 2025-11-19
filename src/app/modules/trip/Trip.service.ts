@@ -181,6 +181,12 @@ export const TripServices = {
       },
     });
 
+    // Release any drivers reserved for this trip
+    await prisma.availableDriver.updateMany({
+      where: { trip_id },
+      data: { trip_id: null },
+    });
+
     //! Track cancel trip reason
     await CancelTripServices.cancelTrip({
       trip_id,
@@ -311,9 +317,9 @@ export const TripServices = {
       },
     });
 
-    // Notify driver that passenger started the trip
+    // Notify passenger that trip has started
     SocketServices.getIO()
-      ?.to(updatedTrip.driver_id!)
+      ?.to(updatedTrip.passenger_id)
       .emit(
         'trip:notification',
         socketResponse({
@@ -580,6 +586,16 @@ export const TripServices = {
           meta: { trip_id: trip.id },
         }),
       );
+
+      // Finalize: release any reserved drivers for this trip to avoid stale locks
+      try {
+        await prisma.availableDriver.updateMany({
+          where: { trip_id: trip.id! },
+          data: { trip_id: null },
+        });
+      } catch {
+        void 0;
+      }
     }
   },
 
@@ -589,6 +605,7 @@ export const TripServices = {
 
     console.log(chalk.red(`Sending trip request to driver ${driverId}`));
 
+    // notify driver about the trip request
     io?.to(driverId).emit(
       'trip:request',
       socketResponse({
