@@ -12,6 +12,7 @@ import { ChatRoutes } from '../app/modules/chat/Chat.route';
 import { PaymentRoutes } from '../app/modules/payment/Payment.route';
 import { TransactionRoutes } from '../app/modules/transaction/Transaction.route';
 import { injectRoutes } from '../utils/router/injectRouter';
+import { NewsFeedRoutes } from '../app/modules/newsFeed/NewsFeed.route';
 
 const appRouter = Router();
 
@@ -31,6 +32,7 @@ export default injectRoutes(appRouter, {
   // No auth
   '/auth': [AuthRoutes],
   '/payments': [PaymentRoutes.user],
+  '/news-feeds': [NewsFeedRoutes.free],
 
   // Free auth
   '/profile': [auth.all, UserRoutes.user],
