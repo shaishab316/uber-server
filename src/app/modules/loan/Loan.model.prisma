@@ -9,7 +9,7 @@ model Loan {
   loan_name       String
   status          ELoanStatus @default(PENDING)
 
-  driver User @relation(fields: [driver_id], references: [id])
+  driver User @relation(fields: [driver_id], references: [id], onDelete: Cascade)
 
   @@map("loans")
 }

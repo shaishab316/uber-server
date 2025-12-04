@@ -49,10 +49,9 @@ enum EUserRole {
 }
 
 type TDriverInfo {
-  business_contact String
-  driver_license   String
-  car_photo        String
-  car_name         String
+  driver_license String
+  car_photo      String
+  car_name       String
 }
 
 type TLocation {

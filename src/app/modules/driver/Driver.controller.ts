@@ -29,4 +29,17 @@ export const DriverControllers = {
       data,
     };
   }),
+
+  getEarnings: catchAsync(async ({ user, query }) => {
+    const { meta, trips } = await DriverServices.getEarnings({
+      ...query,
+      driver_id: user.id,
+    });
+
+    return {
+      message: 'Earnings retrieved successfully!',
+      meta,
+      data: trips,
+    };
+  }),
 };

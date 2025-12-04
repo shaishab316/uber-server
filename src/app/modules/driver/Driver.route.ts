@@ -7,6 +7,7 @@ import { TripRoutes } from '../trip/Trip.route';
 import { LoanRoutes } from '../loan/Loan.route';
 import { injectRoutes } from '../../../utils/router/injectRouter';
 import { TransactionRoutes } from '../transaction/Transaction.route';
+import { DriverValidations } from './Driver.validation';
 
 const admin = injectRoutes(Router(), {
   '/loans': [LoanRoutes.admin],
@@ -37,5 +38,12 @@ const driver = injectRoutes(Router(), {
   '/loans': [LoanRoutes.driver],
   '/transactions': [TransactionRoutes.driver],
 });
+{
+  driver.get(
+    '/earnings',
+    purifyRequest(QueryValidations.list, DriverValidations.getEarnings),
+    DriverControllers.getEarnings,
+  );
+}
 
 export const DriverRoutes = { admin, driver };

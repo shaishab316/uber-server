@@ -36,9 +36,7 @@ export default injectRoutes(appRouter, {
   '/profile': [auth.all, UserRoutes.user],
   '/transactions': [auth.all, TransactionRoutes.user],
   '/chats': [auth.all, ChatRoutes.user],
-
-  // User auth
-  '/trips': [auth.user, TripRoutes.user],
+  '/trips': [auth.all, TripRoutes.user],
 
   // Driver auth
   '/drivers': [auth.driver, DriverRoutes.driver],

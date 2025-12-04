@@ -24,7 +24,7 @@ export const UserValidations = {
       phone: z.string().optional(),
       role: z.enum(EUserRole).optional(),
       name: z.string().optional(),
-      avatar: z.string().optional(),
+      avatar: z.string().optional().nullable(),
       nid_number: z.string().optional(),
       payment_method: z.string().optional(),
     }),
@@ -90,11 +90,6 @@ export const UserValidations = {
           error: 'Payment Method is missing',
         })
         .nonempty('Payment Method is required'),
-      business_contact: z
-        .string({
-          error: 'Business Contact is missing',
-        })
-        .nonempty('Business Contact is required'),
     }),
   }),
 

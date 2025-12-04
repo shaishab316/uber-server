@@ -71,7 +71,13 @@ export const UserServices = {
     });
   },
 
-  async updateUser({ user, body }: { user: Partial<TUser>; body: TUserEdit }) {
+  async updateUser({
+    user,
+    body: { avatar, ...body },
+  }: {
+    user: Partial<TUser>;
+    body: TUserEdit;
+  }) {
     if (body.phone || body.email) {
       const existingUser = await prisma.user.findFirst({
         where: { OR: [{ email: body.email }, { phone: body.phone }] },
@@ -86,13 +92,15 @@ export const UserServices = {
       }
     }
 
-    body.avatar ||= undefined;
-    if (body.avatar && user?.avatar) await deleteFile(user.avatar);
+    if (avatar && user?.avatar) await deleteFile(user.avatar);
 
     return prisma.user.update({
       where: { id: user.id },
       omit: userOmit,
-      data: body,
+      data: {
+        ...body,
+        ...(avatar ? { avatar } : {}),
+      },
     });
   },
 
@@ -172,7 +180,6 @@ export const UserServices = {
   async applyForDriver({
     avatar,
     driver_license,
-    business_contact,
     car_name,
     car_photo,
     nid_number,
@@ -187,7 +194,6 @@ export const UserServices = {
         nid_number,
         payment_method,
         driver_info: {
-          business_contact,
           car_name,
           car_photo,
           driver_license,

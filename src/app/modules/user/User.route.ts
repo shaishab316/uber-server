@@ -50,7 +50,7 @@ const user = Router();
     UserControllers.editProfile,
   );
 
-  user.delete('/delete', UserControllers.deleteAccount);
+  user.delete('/', UserControllers.deleteAccount);
 
   user.post(
     '/change-password',

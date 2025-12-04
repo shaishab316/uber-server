@@ -8,7 +8,7 @@ const user = Router();
 {
   user.all('/stripe/webhook', PaymentControllers.stripeWebhook);
 
-  user.get(
+  user.post(
     '/topup',
     auth.all,
     purifyRequest(PaymentValidations.topup),
