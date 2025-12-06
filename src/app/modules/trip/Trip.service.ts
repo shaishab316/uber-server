@@ -4,7 +4,11 @@
 // import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { prisma } from '../../../utils/db';
-import { TGetTripHistory, TRequestForTrip } from './Trip.interface';
+import {
+  TGetTripHistory,
+  TRatingTrip,
+  TRequestForTrip,
+} from './Trip.interface';
 import config from '../../../config';
 import {
   EDay,
@@ -865,5 +869,35 @@ export const TripServices = {
       },
       trips,
     };
+  },
+
+  async ratingTrip({ rating, trip_id }: TRatingTrip) {
+    const trip = await prisma.trip.findUnique({
+      where: { id: trip_id },
+      select: {
+        driver: {
+          select: {
+            id: true,
+            rating: true,
+          },
+        },
+      },
+    });
+
+    if (!trip?.driver) {
+      throw new ServerError(
+        StatusCodes.NOT_FOUND,
+        'No driver assigned for this trip',
+      );
+    }
+
+    const driverRating = trip?.driver?.rating || 0;
+
+    const avgRating = Number(((driverRating + rating) / 2).toFixed(1));
+
+    return prisma.user.update({
+      where: { id: trip?.driver?.id },
+      data: { rating: avgRating },
+    });
   },
 };

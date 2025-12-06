@@ -29,6 +29,7 @@ model User {
   onesignal_id String?
 
   last_online_at DateTime?
+  rating         Float     @default(5.0)
 
   location             TLocation?
   wallet               Wallet?           @relation("UserWallet")

@@ -33,6 +33,12 @@ const user = Router();
     purifyRequest(QueryValidations.exists('tripId', 'trip')),
     PaymentControllers.pay,
   );
+
+  user.post(
+    '/rating-trip',
+    purifyRequest(TripValidations.ratingTrip),
+    TripControllers.ratingTrip,
+  );
 }
 
 const driver = Router();

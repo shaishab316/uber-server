@@ -110,6 +110,22 @@ export const TripValidations = {
     }),
   }),
 
+  ratingTrip: z.object({
+    body: z.object({
+      trip_id: z.string().refine(exists('trip'), {
+        error: ({ input }) => `Trip not found with id: ${input}`,
+      }),
+      rating: z.coerce
+        .number()
+        .min(1, 'Rating must be at least 1')
+        .max(5, 'Rating cannot be more than 5'),
+      feedback: z
+        .string()
+        .max(500, 'Feedback cannot be more than 500 characters')
+        .optional(),
+    }),
+  }),
+  
   //! socket validations..........
   joinTrip: z.object({
     trip_id: z.string().refine(exists('trip'), {

@@ -71,7 +71,7 @@ export const TransactionServices = {
           total,
           totalPages: Math.ceil(total / limit),
         } as TPagination,
-        totalExpenseAmount: totalExpenseAmount._sum.amount,
+        totalExpenseAmount: totalExpenseAmount._sum.amount ?? 0,
         availableBalance: wallet?.balance ?? 0,
       },
       transactions,
