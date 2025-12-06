@@ -1,10 +1,11 @@
 model NewsFeed {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  last_edited DateTime @default(now()) @updatedAt
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  last_edited DateTime  @default(now()) @updatedAt
   title       String
   content     String
   body        String?
   image       String
+  role        EUserRole @default(USER)
 
   @@map("news_feeds")
 }

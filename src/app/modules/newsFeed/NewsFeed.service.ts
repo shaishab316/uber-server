@@ -1,7 +1,6 @@
 import { prisma } from '../../../utils/db';
 import { deleteFile } from '../../middlewares/capture';
-import { TList } from '../query/Query.interface';
-import { TNewsCreate, TNewsEdit } from './NewsFeed.interface';
+import { TNewsCreate, TNewsEdit, TNewsGetAll } from './NewsFeed.interface';
 
 export const NewsFeedServices = {
   async createNewsFeed({ title, content, body, image }: TNewsCreate) {
@@ -46,14 +45,17 @@ export const NewsFeedServices = {
     });
   },
 
-  async getAllNews({ limit, page }: TList) {
+  async getAllNews({ limit, page, role }: TNewsGetAll) {
+    const where = { role };
+
     const newsFeeds = await prisma.newsFeed.findMany({
+      where,
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { last_edited: 'desc' },
     });
 
-    const total = await prisma.newsFeed.count();
+    const total = await prisma.newsFeed.count({ where });
 
     return {
       meta: {

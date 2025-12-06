@@ -40,7 +40,7 @@ const free = Router();
 {
   free.get(
     '/',
-    purifyRequest(QueryValidations.list),
+    purifyRequest(QueryValidations.list, NewsFeedValidations.getAllNews),
     NewsFeedControllers.getAllNews,
   );
 
