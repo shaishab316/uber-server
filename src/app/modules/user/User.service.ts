@@ -1,4 +1,3 @@
-import { TList } from '../query/Query.interface';
 import { userSearchableFields as searchFields } from './User.constant';
 import { prisma } from '../../../utils/db';
 import { EUserRole, Prisma, User as TUser } from '../../../../prisma';
@@ -6,6 +5,7 @@ import { TPagination } from '../../../utils/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
 import {
   TApplyForDriver,
+  TSuperGetAllUser,
   TUpdateOneSignalId,
   TUserEdit,
   TUserRegister,
@@ -109,14 +109,17 @@ export const UserServices = {
     });
   },
 
-  async getAllUser({
-    page,
-    limit,
-    search,
-    omit,
-    ...where
-  }: Prisma.UserWhereInput & TList & { omit: Prisma.UserOmit }) {
-    where ??= {} as any;
+  async getAllUser({ page, limit, search, tab }: TSuperGetAllUser) {
+    const where: Prisma.UserWhereInput = {};
+
+    if (tab === 'drivers') {
+      where.role = EUserRole.DRIVER;
+      where.is_pending_driver = false;
+    } else if (tab === 'pending_drivers') {
+      where.is_pending_driver = true;
+    } else {
+      where.role = EUserRole.USER;
+    }
 
     if (search)
       where.OR = searchFields.map(field => ({
@@ -128,7 +131,7 @@ export const UserServices = {
 
     const users = await prisma.user.findMany({
       where,
-      omit,
+      omit: userOmit,
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -162,8 +165,15 @@ export const UserServices = {
   },
 
   async getUsersCount() {
+    const validRoles = Object.values(EUserRole) as EUserRole[];
+
     const counts = await prisma.user.groupBy({
       by: ['role'],
+      where: {
+        role: {
+          in: validRoles,
+        },
+      },
       _count: {
         _all: true,
       },

@@ -31,6 +31,8 @@ model Trip {
   exclude_driver_ids String[]     @default([])
   CancelTrip         CancelTrip[]
 
+  day EDay @default(SUNDAY)
+
   sOtp String
   eOtp String
 
@@ -50,4 +52,14 @@ enum ETripStatus {
   COMPLETED
   CANCEL
   UPCOMING // only for history filter
+}
+
+enum EDay {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
 }

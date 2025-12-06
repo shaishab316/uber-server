@@ -7,6 +7,7 @@ import { prisma } from '../../../utils/db';
 import { TGetTripHistory, TRequestForTrip } from './Trip.interface';
 import config from '../../../config';
 import {
+  EDay,
   ETripStatus,
   EUserRole,
   Prisma,
@@ -83,6 +84,16 @@ export const TripServices = {
 
     const estimatedFare = fareResult.total;
 
+    const todayEnum: EDay = [
+      EDay.SUNDAY,
+      EDay.MONDAY,
+      EDay.TUESDAY,
+      EDay.WEDNESDAY,
+      EDay.THURSDAY,
+      EDay.FRIDAY,
+      EDay.SATURDAY,
+    ][new Date().getDay()];
+
     const trip = await prisma.trip.create({
       data: {
         dropoff_address,
@@ -97,6 +108,7 @@ export const TripServices = {
         total_cost: estimatedFare,
         duration_sec: duration.value,
         distance_km: distance.value,
+        day: todayEnum,
       },
       omit: {
         ...tripOmit,

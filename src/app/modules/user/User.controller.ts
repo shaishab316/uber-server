@@ -79,10 +79,6 @@ export const UserControllers = {
   superGetAllUser: catchAsync(async ({ query }) => {
     const { meta, users } = await UserServices.getAllUser(query);
 
-    Object.assign(meta, {
-      users: await UserServices.getUsersCount(),
-    });
-
     return {
       message: 'Users retrieved successfully!',
       meta,

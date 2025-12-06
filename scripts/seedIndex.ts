@@ -3,7 +3,7 @@ import { logger } from '../src/utils/logger';
 import { MongoClient } from 'mongodb';
 import config from '../src/config';
 
-export async function setupIndexes() {
+async function setupIndexes() {
   const client = new MongoClient(config.url.database);
 
   logger.info(chalk.green('🚀 Database connecting...'));
@@ -56,5 +56,13 @@ export async function setupIndexes() {
     }
   } finally {
     logger.info(chalk.green('✅ DB Indexes setup successfully'));
+    await client.close();
+    process.exit(0);
   }
 }
+
+setupIndexes().catch(error => {
+  logger.error(chalk.red('❌ DB Indexes setup failed'));
+  logger.error(error);
+  process.exit(1);
+});

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { EUserRole } from '../../../../prisma';
-import { enum_encode } from '../../../utils/transform/enum';
 import { locationSchema } from '../trip/Trip.validation';
 
 export const UserValidations = {
@@ -30,6 +29,23 @@ export const UserValidations = {
     }),
   }),
 
+  superEdit: z.object({
+    body: z.object({
+      is_active: z
+        .string()
+        .transform(val => val === 'true')
+        .optional(),
+      is_verified: z
+        .string()
+        .transform(val => val === 'true')
+        .optional(),
+      is_admin: z
+        .string()
+        .transform(val => val === 'true')
+        .optional(),
+    }),
+  }),
+
   changePassword: z.object({
     body: z.object({
       oldPassword: z
@@ -49,12 +65,7 @@ export const UserValidations = {
 
   getAllUser: z.object({
     query: z.object({
-      search: z.string().trim().optional(),
-      role: z
-        .string()
-        .optional()
-        .transform(enum_encode)
-        .pipe(z.enum(EUserRole).optional()),
+      tab: z.enum(['users', 'drivers', 'pending_drivers']).default('users'),
     }),
   }),
 

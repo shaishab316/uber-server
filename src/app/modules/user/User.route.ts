@@ -28,6 +28,7 @@ const admin = Router();
     purifyRequest(
       QueryValidations.exists('userId', 'user'),
       UserValidations.edit,
+      UserValidations.superEdit,
     ),
     UserControllers.superEditProfile,
   );
