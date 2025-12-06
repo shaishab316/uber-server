@@ -7,6 +7,7 @@ import { prisma } from '../../../utils/db';
 import { ETransactionType } from '../../../../prisma';
 import { SocketServices } from '../socket/Socket.service';
 import { socketResponse } from '../socket/Socket.utils';
+import { NotificationServices } from '../notification/Notification.service';
 
 export const PaymentServices = {
   async topup({ amount, user_id }: TTopup) {
@@ -50,6 +51,18 @@ export const PaymentServices = {
   async pay({ trip_id, user_id }: { trip_id: string; user_id: string }) {
     const trip = await prisma.trip.findUniqueOrThrow({
       where: { id: trip_id },
+    });
+
+    await NotificationServices.createNotification({
+      user_id: trip.driver_id!,
+      title: 'Trip Payment Initiated',
+      message: `Payment process has started for trip ID: ${trip_id}.`,
+    });
+
+    await NotificationServices.createNotification({
+      user_id,
+      title: 'Trip Payment Initiated',
+      message: `Payment process has started for your trip ID: ${trip_id}.`,
     });
 
     if (trip.transaction_id) {
