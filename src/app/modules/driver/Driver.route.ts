@@ -8,6 +8,7 @@ import { LoanRoutes } from '../loan/Loan.route';
 import { injectRoutes } from '../../../utils/router/injectRouter';
 import { TransactionRoutes } from '../transaction/Transaction.route';
 import { DriverValidations } from './Driver.validation';
+import { AvailableLoanRoutes } from '../availableLoan/AvailableLoan.route';
 
 const admin = injectRoutes(Router(), {
   '/loans': [LoanRoutes.admin],
@@ -37,6 +38,7 @@ const driver = injectRoutes(Router(), {
   '/trips': [TripRoutes.driver],
   '/loans': [LoanRoutes.driver],
   '/transactions': [TransactionRoutes.driver],
+  '/available-loans': [AvailableLoanRoutes.driver],
 });
 {
   driver.get(
