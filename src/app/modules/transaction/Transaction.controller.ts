@@ -32,7 +32,7 @@ export const TransactionControllers = {
 
   getSuperTransactions: catchAsync(async ({ query }) => {
     const { meta, transactions } =
-      await TransactionServices.getUserTransactions(query);
+      await TransactionServices.getAdminTransactions(query);
 
     return {
       message: 'Transactions retrieved successfully!',

@@ -137,4 +137,59 @@ export const TransactionServices = {
       transactions,
     };
   },
+
+  async getAdminTransactions({ page, limit, search }: TList) {
+    const where: Prisma.TransactionWhereInput = {
+      type: ETransactionType.EXPENSE,
+    };
+
+    if (search) {
+      where.OR = searchableFields.map(field => ({
+        [field]: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      }));
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const total = await prisma.transaction.count({
+      where,
+    });
+
+    const totalEarning = await prisma.transaction.aggregate({
+      _sum: {
+        amount: true,
+      },
+    });
+
+    return {
+      meta: {
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        } as TPagination,
+        totalEarning: Number(
+          (totalEarning._sum.amount
+            ? totalEarning._sum.amount * 0.2
+            : 0
+          ).toFixed(2),
+        ),
+        totalDriverEarning: Number(
+          (totalEarning._sum.amount
+            ? totalEarning._sum.amount * 0.8
+            : 0
+          ).toFixed(2),
+        ),
+      },
+      transactions,
+    };
+  },
 };
