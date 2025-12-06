@@ -1,13 +1,16 @@
 model Loan {
-  id              String      @id @default(auto()) @map("_id") @db.ObjectId
-  start_date      DateTime    @default(now())
-  driver_id       String      @db.ObjectId
-  amount          Float       @default(0)
-  due_amount      Float       @default(0)
-  interest_rate   Float       @default(0)
-  bank_account_no String
-  loan_id         String      @db.ObjectId
-  status          ELoanStatus @default(PENDING)
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  start_date DateTime    @default(now())
+  driver_id  String      @db.ObjectId
+  loan_id    String      @db.ObjectId
+  status     ELoanStatus @default(PENDING)
+
+  name                String
+  amount              Float
+  contact             String // email or phone number
+  problem             String
+  bank_account_number String
+  document            String // link to document image or pdf
 
   driver User          @relation(fields: [driver_id], references: [id], onDelete: Cascade)
   loan   AvailableLoan @relation(fields: [loan_id], references: [id], onDelete: Cascade)

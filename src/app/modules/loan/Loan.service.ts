@@ -1,38 +1,25 @@
-import { StatusCodes } from 'http-status-codes';
 import { ELoanStatus, Prisma } from '../../../../prisma';
-import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../utils/db';
-import { loanSearchableFields as searchableFields } from './Loan.constant';
 import { TStartLoan, TSuperGetAllLoans } from './Loan.interface';
 import { TPagination } from '../../../utils/server/serveResponse';
 
 export const LoanServices = {
-  async startLoan({ loan_id, user_id, bank_account_no }: TStartLoan) {
-    const loan = await prisma.availableLoan.findUnique({
+  async startLoan({ driver, loan_id, ...payload }: TStartLoan) {
+    const loanDetails = await prisma.availableLoan.findUnique({
       where: { id: loan_id },
     });
 
-    const existingLoan = await prisma.loan.findFirst({
-      where: {
-        loan_id: loan_id,
-        driver_id: user_id,
-        status: {
-          in: [ELoanStatus.PENDING, ELoanStatus.ACCEPTED],
-        },
-      },
-    });
-
-    if (existingLoan)
-      throw new ServerError(StatusCodes.BAD_REQUEST, 'Loan already exists');
+    if (!loanDetails) {
+      throw new Error(`Available loan with id "${loan_id}" not found`);
+    }
 
     return prisma.loan.create({
       data: {
+        ...payload,
         loan_id,
-        amount: loan?.amount,
-        driver_id: user_id,
-        interest_rate: loan?.interest_rate,
-        bank_account_no,
-        due_amount: loan?.amount,
+        driver_id: driver.id,
+        amount: loanDetails.amount,
+        name: payload.name ?? driver.name,
       },
     });
   },
@@ -46,12 +33,12 @@ export const LoanServices = {
     if (status) where.status = status;
 
     if (search) {
-      where.OR = searchableFields.map(field => ({
-        [field]: {
-          contains: search,
-          mode: 'insensitive',
-        },
-      }));
+      // where.OR = searchableFields.map(field => ({
+      //   [field]: {
+      //     contains: search,
+      //     mode: 'insensitive',
+      //   },
+      // }));
     }
 
     const loans = await prisma.loan.findMany({

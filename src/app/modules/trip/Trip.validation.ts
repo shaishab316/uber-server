@@ -125,7 +125,7 @@ export const TripValidations = {
         .optional(),
     }),
   }),
-  
+
   //! socket validations..........
   joinTrip: z.object({
     trip_id: z.string().refine(exists('trip'), {

@@ -9,11 +9,13 @@ export const LoanValidations = {
       loan_id: z.string().refine(exists('availableLoan'), {
         error: ({ input }) => `Loan with id "${input}" does not exist`,
       }),
-      bank_account_no: z.coerce
-        .string({
-          error: 'Bank account number is required',
-        })
-        .nonempty('Bank account number is required'),
+      name: z.string().optional(),
+      contact: z.string({ error: 'Contact is required' }),
+      problem: z.string({ error: 'Problem description is required' }),
+      document: z.string({ error: 'Document is required' }),
+      bank_account_number: z.string({
+        error: 'Bank account number is required',
+      }),
     }),
   }),
 

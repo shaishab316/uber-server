@@ -36,7 +36,6 @@ const admin = injectRoutes(Router(), {
 const driver = injectRoutes(Router(), {
   '/available-drivers': [AvailableDriverRoutes.driver],
   '/trips': [TripRoutes.driver],
-  '/loans': [LoanRoutes.driver],
   '/transactions': [TransactionRoutes.driver],
   '/available-loans': [AvailableLoanRoutes.driver],
 });

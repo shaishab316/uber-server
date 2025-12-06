@@ -4,15 +4,15 @@ import purifyRequest from '../../middlewares/purifyRequest';
 import { LoanValidations } from './Loan.validation';
 import { QueryValidations } from '../query/Query.validation';
 
-const driver = Router();
-{
-  driver.get('/available', LoanControllers.getAllLoans);
-  driver.post(
-    '/start-loan',
-    purifyRequest(LoanValidations.startLoan),
-    LoanControllers.startLoan,
-  );
-}
+// const driver = Router();
+// {
+//   driver.get('/available', LoanControllers.getAllLoans);
+//   driver.post(
+//     '/start-loan',
+//     purifyRequest(LoanValidations.startLoan),
+//     LoanControllers.startLoan,
+//   );
+// }
 
 const admin = Router();
 {
@@ -38,4 +38,4 @@ const admin = Router();
   );
 }
 
-export const LoanRoutes = { driver, admin };
+export const LoanRoutes = { admin };

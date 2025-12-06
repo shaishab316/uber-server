@@ -1,19 +1,11 @@
 import catchAsync from '../../middlewares/catchAsync';
-import { availableLoans } from './Loan.constant';
 import { LoanServices } from './Loan.service';
 
 export const LoanControllers = {
-  getAllLoans: catchAsync(async () => {
-    return {
-      message: 'Loans retrieved successfully!',
-      data: availableLoans,
-    };
-  }),
-
-  startLoan: catchAsync(async ({ body, user }) => {
+  startLoan: catchAsync(async ({ body, user: driver }) => {
     const data = await LoanServices.startLoan({
       ...body,
-      user_id: user.id,
+      driver,
     });
 
     return {
