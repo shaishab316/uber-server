@@ -8,6 +8,7 @@ import { injectRoutes } from '../../../utils/router/injectRouter';
 import { TransactionRoutes } from '../transaction/Transaction.route';
 import { NewsFeedRoutes } from '../newsFeed/NewsFeed.route';
 import { AvailableLoanRoutes } from '../availableLoan/AvailableLoan.route';
+import { UserActivityRoutes } from '../userActivity/UserActivity.route';
 
 export default injectRoutes(Router(), {
   '/users': [UserRoutes.admin],
@@ -18,4 +19,5 @@ export default injectRoutes(Router(), {
   '/transactions': [TransactionRoutes.admin],
   '/news-feeds': [NewsFeedRoutes.admin],
   '/available-loans': [AvailableLoanRoutes.admin],
+  '/user-activities': [UserActivityRoutes.admin],
 });

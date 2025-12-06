@@ -21,6 +21,7 @@ export const UserControllers = {
     AuthServices.setTokens(res, { access_token, refresh_token });
 
     return {
+      track_activity: user.id,
       statusCode: StatusCodes.CREATED,
       message: `${capitalize(user.role) ?? 'Unknown'} registered successfully!`,
       data: {
