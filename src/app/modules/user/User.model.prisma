@@ -26,6 +26,8 @@ model User {
   otp            String?
   otp_expires_at DateTime?
 
+  onesignal_ids String[] @default([])
+
   location             TLocation?
   wallet               Wallet?           @relation("UserWallet")
   trips_received       Trip[]            @relation("Passenger")

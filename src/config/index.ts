@@ -192,6 +192,17 @@ const config = {
     down: 'Google map key - end',
   }),
 
+  onesignal: {
+    onesignal_app_id: env('onesignal app id', genSecret(8), {
+      regex: '^.{10,}$',
+      up: 'OneSignal info - start',
+    }),
+    onesignal_api_key: env('onesignal api key', genSecret(16), {
+      regex: '^.{16,}$',
+      down: 'OneSignal info - end',
+    }),
+  },
+
   uber: {
     max_distance: env('max distance', 1000, {
       regex: '^\\d+$',

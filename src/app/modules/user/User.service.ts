@@ -4,7 +4,12 @@ import { prisma } from '../../../utils/db';
 import { EUserRole, Prisma, User as TUser } from '../../../../prisma';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
-import { TApplyForDriver, TUserEdit, TUserRegister } from './User.interface';
+import {
+  TApplyForDriver,
+  TUpdateOneSignalId,
+  TUserEdit,
+  TUserRegister,
+} from './User.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
@@ -200,6 +205,23 @@ export const UserServices = {
         },
       },
       omit: userOmit,
+    });
+  },
+
+  async onesignalIdUpdate({ onesignal_id, user_id }: TUpdateOneSignalId) {
+    const user = await prisma.user.findUnique({
+      where: { id: user_id },
+      select: { onesignal_ids: true },
+    });
+
+    return prisma.user.update({
+      where: { id: user_id },
+      data: {
+        onesignal_ids: Array.from(
+          new Set([...(user?.onesignal_ids || []), onesignal_id]),
+        ),
+      },
+      select: { onesignal_ids: true },
     });
   },
 };

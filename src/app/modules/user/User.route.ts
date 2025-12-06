@@ -86,6 +86,12 @@ const user = Router();
     purifyRequest(UserValidations.updateLocation),
     UserControllers.updateLocation,
   );
+
+  user.post(
+    '/onesignal-id',
+    purifyRequest(UserValidations.onesignalId),
+    UserControllers.onesignalIdUpdate,
+  );
 }
 
 export const UserRoutes = {

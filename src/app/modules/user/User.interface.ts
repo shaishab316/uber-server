@@ -6,3 +6,7 @@ export type TUserEdit = z.infer<typeof UserValidations.edit>['body'];
 export type TApplyForDriver = z.infer<
   typeof UserValidations.applyForDriver
 >['body'];
+
+export type TUpdateOneSignalId = z.infer<
+  typeof UserValidations.onesignalId
+>['body'] & { user_id: string };

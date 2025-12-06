@@ -98,4 +98,10 @@ export const UserValidations = {
       location: locationSchema,
     }),
   }),
+
+  onesignalId: z.object({
+    body: z.object({
+      onesignal_id: z.string().nonempty('OneSignal ID is required'),
+    }),
+  }),
 };

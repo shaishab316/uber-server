@@ -3,6 +3,7 @@ import { prisma } from '../../../utils/db';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { notificationSearchableFields } from './Notification.constants';
 import { TGetAllNotificationsArgs } from './Notification.interface';
+import { sendPushNotification } from './Notification.utils';
 
 export const NotificationServices = {
   async createNotification(payload: Prisma.NotificationCreateArgs['data']) {
@@ -10,9 +11,11 @@ export const NotificationServices = {
       where: { id: payload.user_id },
     });
 
-    if (user) {
-      //todo
+    if (!user) {
+      throw new Error('User not found');
     }
+
+    await sendPushNotification(user.onesignal_ids, payload.message);
 
     //? create a new notification
     return prisma.notification.create({
