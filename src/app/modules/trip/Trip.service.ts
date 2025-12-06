@@ -828,6 +828,28 @@ export const TripServices = {
 
     const total = await prisma.trip.count({ where });
 
+    const activeTipCount = await prisma.trip.count({
+      where: {
+        status: {
+          not: {
+            in: [ETripStatus.CANCEL, ETripStatus.COMPLETED],
+          },
+        },
+      },
+    });
+
+    const completedTipCount = await prisma.trip.count({
+      where: {
+        status: ETripStatus.COMPLETED,
+      },
+    });
+
+    const cancelledTripCount = await prisma.trip.count({
+      where: {
+        status: ETripStatus.CANCEL,
+      },
+    });
+
     return {
       meta: {
         pagination: {
@@ -836,12 +858,10 @@ export const TripServices = {
           total,
           totalPages: Math.ceil(total / limit),
         } as TPagination,
-        query: {
-          search,
-          status,
-          driver_id,
-          passenger_id,
-        },
+        status,
+        activeTipCount,
+        completedTipCount,
+        cancelledTripCount,
       },
       trips,
     };

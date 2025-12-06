@@ -82,11 +82,7 @@ export const TripValidations = {
 
   getTripHistory: z.object({
     query: z.object({
-      status: z
-        .string()
-        .transform(enum_encode)
-        .pipe(z.enum(ETripStatus).optional())
-        .optional(),
+      status: z.enum(ETripStatus).optional(),
     }),
   }),
 
