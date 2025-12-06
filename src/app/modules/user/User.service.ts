@@ -209,19 +209,11 @@ export const UserServices = {
   },
 
   async onesignalIdUpdate({ onesignal_id, user_id }: TUpdateOneSignalId) {
-    const user = await prisma.user.findUnique({
-      where: { id: user_id },
-      select: { onesignal_ids: true },
-    });
-
-    return prisma.user.update({
+    await prisma.user.update({
       where: { id: user_id },
       data: {
-        onesignal_ids: Array.from(
-          new Set([...(user?.onesignal_ids || []), onesignal_id]),
-        ),
+        onesignal_id,
       },
-      select: { onesignal_ids: true },
     });
   },
 };

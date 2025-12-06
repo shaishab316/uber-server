@@ -15,7 +15,9 @@ export const NotificationServices = {
       throw new Error('User not found');
     }
 
-    await sendPushNotification(user.onesignal_ids, payload.message);
+    if (user.onesignal_id) {
+      await sendPushNotification([user.onesignal_id], payload.message);
+    }
 
     //? create a new notification
     return prisma.notification.create({

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { $ZodIssue } from 'zod/v4/core/errors.cjs';
+import { $ZodIssue } from 'zod/v4/core';
 import { EUserRole, User as TUser } from '../../../../prisma';
 import {
   TAccountVerify,
@@ -81,7 +81,7 @@ export const AuthServices = {
       Object.assign(user, { otp_expires_at });
     }
 
-    Object.assign(user, { password: undefined });
+    Object.assign(user, { password: undefined, onesignal_id: undefined });
 
     return user;
   },

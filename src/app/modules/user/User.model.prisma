@@ -26,7 +26,7 @@ model User {
   otp            String?
   otp_expires_at DateTime?
 
-  onesignal_ids String[] @default([])
+  onesignal_id String?
 
   location             TLocation?
   wallet               Wallet?           @relation("UserWallet")

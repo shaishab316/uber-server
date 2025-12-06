@@ -94,6 +94,7 @@ export const UserControllers = {
       password: undefined,
       otp: undefined,
       otp_expires_at: undefined,
+      onesignal_id: undefined,
     } as Partial<TUser>);
 
     return {
