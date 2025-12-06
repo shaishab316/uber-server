@@ -2,28 +2,23 @@ import { StatusCodes } from 'http-status-codes';
 import { ELoanStatus, Prisma } from '../../../../prisma';
 import ServerError from '../../../errors/ServerError';
 import { prisma } from '../../../utils/db';
-import {
-  availableLoans,
-  loanSearchableFields as searchableFields,
-} from './Loan.constant';
+import { loanSearchableFields as searchableFields } from './Loan.constant';
 import { TStartLoan, TSuperGetAllLoans } from './Loan.interface';
 import { TPagination } from '../../../utils/server/serveResponse';
 
 export const LoanServices = {
-  async startLoan({ loan_name, user_id, bank_account_no }: TStartLoan) {
-    const loan = availableLoans.find(loan => loan.name === loan_name);
+  async startLoan({ loan_id, user_id, bank_account_no }: TStartLoan) {
+    const loan = await prisma.availableLoan.findUnique({
+      where: { id: loan_id },
+    });
+
     const existingLoan = await prisma.loan.findFirst({
       where: {
-        loan_name,
+        loan_id: loan_id,
         driver_id: user_id,
-        OR: [
-          {
-            status: ELoanStatus.PENDING,
-          },
-          {
-            status: ELoanStatus.ACCEPTED,
-          },
-        ],
+        status: {
+          in: [ELoanStatus.PENDING, ELoanStatus.ACCEPTED],
+        },
       },
     });
 
@@ -32,7 +27,7 @@ export const LoanServices = {
 
     return prisma.loan.create({
       data: {
-        loan_name,
+        loan_id,
         amount: loan?.amount,
         driver_id: user_id,
         interest_rate: loan?.interest_rate,

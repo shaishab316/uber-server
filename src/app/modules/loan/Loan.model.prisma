@@ -6,10 +6,11 @@ model Loan {
   due_amount      Float       @default(0)
   interest_rate   Float       @default(0)
   bank_account_no String
-  loan_name       String
+  loan_id         String      @db.ObjectId
   status          ELoanStatus @default(PENDING)
 
-  driver User @relation(fields: [driver_id], references: [id], onDelete: Cascade)
+  driver User          @relation(fields: [driver_id], references: [id], onDelete: Cascade)
+  loan   AvailableLoan @relation(fields: [loan_id], references: [id], onDelete: Cascade)
 
   @@map("loans")
 }

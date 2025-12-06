@@ -9,5 +9,7 @@ model AvailableLoan {
   terms         String
   image         String
 
+  loans Loan[]
+
   @@map("availableLoans")
 }
