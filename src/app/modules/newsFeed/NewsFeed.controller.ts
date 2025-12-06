@@ -32,11 +32,12 @@ export const NewsFeedControllers = {
   }),
 
   getAllNews: catchAsync(async ({ query }, res) => {
-    const data = await NewsFeedServices.getAllNews(query);
+    const { meta, newsFeeds } = await NewsFeedServices.getAllNews(query);
 
     serveResponse(res, {
       message: 'NewsFeeds fetched successfully!',
-      data,
+      meta,
+      data: newsFeeds,
     });
   }),
 

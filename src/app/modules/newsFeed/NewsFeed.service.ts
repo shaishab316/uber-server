@@ -1,4 +1,5 @@
 import { prisma } from '../../../utils/db';
+import { deleteFile } from '../../middlewares/capture';
 import { TList } from '../query/Query.interface';
 import { TNewsCreate, TNewsEdit } from './NewsFeed.interface';
 
@@ -15,6 +16,15 @@ export const NewsFeedServices = {
   },
 
   async editNewsFeed({ news_id, ...data }: TNewsEdit) {
+    const newsFeed = await prisma.newsFeed.findUnique({
+      where: { id: news_id },
+      select: { image: true },
+    });
+
+    if (data.image && newsFeed?.image) {
+      await deleteFile(newsFeed.image);
+    }
+
     return prisma.newsFeed.update({
       where: { id: news_id },
       data,
@@ -22,6 +32,15 @@ export const NewsFeedServices = {
   },
 
   async deleteNewsFeed({ news_id }: { news_id: string }) {
+    const newsFeed = await prisma.newsFeed.findUnique({
+      where: { id: news_id },
+      select: { image: true },
+    });
+
+    if (newsFeed?.image) {
+      await deleteFile(newsFeed.image);
+    }
+
     return prisma.newsFeed.delete({
       where: { id: news_id },
     });
