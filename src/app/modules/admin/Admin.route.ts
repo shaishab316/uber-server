@@ -9,8 +9,11 @@ import { TransactionRoutes } from '../transaction/Transaction.route';
 import { NewsFeedRoutes } from '../newsFeed/NewsFeed.route';
 import { AvailableLoanRoutes } from '../availableLoan/AvailableLoan.route';
 import { UserActivityRoutes } from '../userActivity/UserActivity.route';
+import purifyRequest from '../../middlewares/purifyRequest';
+import { AdminValidations } from './Admin.validation';
+import { AdminControllers } from './Admin.controller';
 
-export default injectRoutes(Router(), {
+const adminRoutes = injectRoutes(Router(), {
   '/users': [UserRoutes.admin],
   '/drivers': [DriverRoutes.admin],
   '/context-pages': [ContextPageRoutes.admin],
@@ -21,3 +24,11 @@ export default injectRoutes(Router(), {
   '/available-loans': [AvailableLoanRoutes.admin],
   '/user-activities': [UserActivityRoutes.admin],
 });
+
+adminRoutes.get(
+  '/overview',
+  purifyRequest(AdminValidations.overview),
+  AdminControllers.overview,
+);
+
+export default adminRoutes;

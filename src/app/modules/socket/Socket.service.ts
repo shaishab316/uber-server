@@ -6,6 +6,7 @@ import auth from './Socket.middleware';
 import { TAuthenticatedSocket } from './Socket.interface';
 import { logger } from '../../../utils/logger';
 import chalk from 'chalk';
+import { prisma } from '../../../utils/db';
 
 let io: IOServer | null = null;
 const onlineUsers: Set<string> = new Set();
@@ -41,10 +42,16 @@ export const SocketServices = {
       });
 
       // Event: disconnect
-      socket.on('disconnect', () => {
+      socket.on('disconnect', async () => {
         socket.leave(user.id);
         this.markOffline(user.id);
         logger.info(`👤 User (${user.name}) disconnected`);
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { last_online_at: new Date() },
+          select: { id: true },
+        });
       });
 
       // Event: error

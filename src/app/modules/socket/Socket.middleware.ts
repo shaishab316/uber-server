@@ -13,13 +13,15 @@ const socketAuth = async (socket: Socket, next: (err?: Error) => void) => {
   try {
     const { uid } = decodeToken(token, 'access_token');
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.update({
       where: { id: uid },
+      data: { last_online_at: new Date() },
       omit: userOmit,
     });
 
-    if (!user)
+    if (!user) {
       throw new ServerError(StatusCodes.NOT_FOUND, 'Your account is not found');
+    }
 
     Object.assign(socket.data, { user });
 

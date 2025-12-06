@@ -28,6 +28,8 @@ model User {
 
   onesignal_id String?
 
+  last_online_at DateTime?
+
   location             TLocation?
   wallet               Wallet?           @relation("UserWallet")
   trips_received       Trip[]            @relation("Passenger")
