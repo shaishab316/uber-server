@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { EUserRole } from '../../../../prisma';
 import { locationSchema } from '../trip/Trip.validation';
+import { exists } from '../../../utils/db/exists';
 
 export const UserValidations = {
   register: z.object({
@@ -113,6 +114,14 @@ export const UserValidations = {
   onesignalId: z.object({
     body: z.object({
       onesignal_id: z.string().nonempty('OneSignal ID is required'),
+    }),
+  }),
+
+  approveUser: z.object({
+    body: z.object({
+      user_id: z.string().refine(exists('user'), {
+        error: ({ input }) => `User with ID ${input} does not exist`,
+      }),
     }),
   }),
 };

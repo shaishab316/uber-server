@@ -5,6 +5,7 @@ import { TPagination } from '../../../utils/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
 import {
   TApplyForDriver,
+  TApproveUser,
   TSuperGetAllUser,
   TUpdateOneSignalId,
   TUserEdit,
@@ -26,6 +27,9 @@ export const userOmit = {
   password: true,
   otp: true,
   otp_expires_at: true,
+  fb_id: true,
+  google_id: true,
+  onesignal_id: true,
 };
 
 export const UserServices = {
@@ -138,6 +142,10 @@ export const UserServices = {
 
     const total = await prisma.user.count({ where });
 
+    const totalPendingDrivers = await prisma.user.count({
+      where: { is_pending_driver: true },
+    });
+
     return {
       meta: {
         pagination: {
@@ -146,6 +154,7 @@ export const UserServices = {
           total,
           totalPages: Math.ceil(total / limit),
         } as TPagination,
+        totalPendingDrivers,
       },
       users,
     };
@@ -224,6 +233,32 @@ export const UserServices = {
       data: {
         onesignal_id,
       },
+    });
+  },
+
+  async approveUser({ user_id }: TApproveUser) {
+    const user = (await prisma.user.findUnique({ where: { id: user_id } }))!;
+
+    if (user.is_pending_driver) {
+      return prisma.user.update({
+        where: { id: user_id },
+        data: {
+          role: EUserRole.DRIVER,
+          is_active: true,
+          is_verified: true,
+          is_pending_driver: false,
+        },
+        omit: userOmit,
+      });
+    }
+
+    return prisma.user.update({
+      where: { id: user_id },
+      data: {
+        is_verified: true,
+        is_active: true,
+      },
+      omit: userOmit,
     });
   },
 };

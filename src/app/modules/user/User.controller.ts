@@ -144,4 +144,13 @@ export const UserControllers = {
       message: 'OneSignal ID updated successfully!',
     };
   }),
+
+  approveUser: catchAsync(async ({ body }) => {
+    const data = await UserServices.approveUser(body);
+
+    return {
+      message: 'User approved successfully!',
+      data,
+    };
+  }),
 };

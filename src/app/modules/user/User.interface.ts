@@ -16,3 +16,5 @@ export type TSuperGetAllUser = z.infer<
   typeof UserValidations.getAllUser
 >['query'] &
   TList;
+
+export type TApproveUser = z.infer<typeof UserValidations.approveUser>['body'];

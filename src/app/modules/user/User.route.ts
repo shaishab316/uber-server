@@ -33,6 +33,12 @@ const admin = Router();
     UserControllers.superEditProfile,
   );
 
+  admin.post(
+    '/approve-user',
+    purifyRequest(UserValidations.approveUser),
+    UserControllers.approveUser,
+  );
+
   admin.delete(
     '/:userId/delete',
     purifyRequest(QueryValidations.exists('userId', 'user')),
