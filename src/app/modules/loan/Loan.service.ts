@@ -2,6 +2,9 @@ import { ELoanStatus, Prisma } from '../../../../prisma';
 import { prisma } from '../../../utils/db';
 import { TStartLoan, TSuperGetAllLoans } from './Loan.interface';
 import { TPagination } from '../../../utils/server/serveResponse';
+import { loanSearchableFields } from './Loan.constant';
+import ServerError from '../../../errors/ServerError';
+import { StatusCodes } from 'http-status-codes';
 
 export const LoanServices = {
   async startLoan({ driver, loan_id, ...payload }: TStartLoan) {
@@ -33,12 +36,12 @@ export const LoanServices = {
     if (status) where.status = status;
 
     if (search) {
-      // where.OR = searchableFields.map(field => ({
-      //   [field]: {
-      //     contains: search,
-      //     mode: 'insensitive',
-      //   },
-      // }));
+      where.OR = loanSearchableFields.map(field => ({
+        [field]: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      }));
     }
 
     const loans = await prisma.loan.findMany({
@@ -67,9 +70,39 @@ export const LoanServices = {
   },
 
   async superAcceptLoan(loan_id: string) {
-    return prisma.loan.update({
-      where: { id: loan_id },
-      data: { status: ELoanStatus.ACCEPTED },
+    return prisma.$transaction(async tx => {
+      const error = new ServerError(
+        StatusCodes.NOT_ACCEPTABLE,
+        `Loan already processed`,
+      );
+
+      try {
+        const loan = await tx.loan.update({
+          where: { id: loan_id, status: ELoanStatus.PENDING },
+          data: { status: ELoanStatus.PAID },
+        });
+
+        if (!loan) {
+          throw error;
+        }
+
+        await tx.user.update({
+          where: { id: loan.driver_id },
+          data: {
+            wallet: {
+              update: {
+                balance: { increment: loan.amount },
+              },
+            },
+
+            active_loan: { increment: loan.amount },
+            loan_taken: { increment: loan.amount },
+            available_loan: { decrement: loan.amount },
+          },
+        });
+      } catch {
+        throw error;
+      }
     });
   },
 

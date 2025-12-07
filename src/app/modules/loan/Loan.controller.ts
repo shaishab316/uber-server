@@ -26,7 +26,7 @@ export const LoanControllers = {
   }),
 
   superAcceptLoan: catchAsync(async ({ params }) => {
-    const data = await LoanServices.superAcceptLoan(params.loanId);
+    const data = await LoanServices.superAcceptLoan(params.loan_id);
 
     return {
       message: 'Loan accepted successfully!',
@@ -35,19 +35,10 @@ export const LoanControllers = {
   }),
 
   superRejectLoan: catchAsync(async ({ params }) => {
-    const data = await LoanServices.superRejectLoan(params.loanId);
+    const data = await LoanServices.superRejectLoan(params.loan_id);
 
     return {
       message: 'Loan rejected successfully!',
-      data,
-    };
-  }),
-
-  superPayLoan: catchAsync(async ({ params }) => {
-    const data = await LoanServices.superPayLoan(params.loanId);
-
-    return {
-      message: 'Loan paid successfully!',
       data,
     };
   }),

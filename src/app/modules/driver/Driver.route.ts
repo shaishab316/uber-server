@@ -4,15 +4,12 @@ import { QueryValidations } from '../query/Query.validation';
 import { DriverControllers } from './Driver.controller';
 import { AvailableDriverRoutes } from '../availableDriver/AvailableDriver.route';
 import { TripRoutes } from '../trip/Trip.route';
-import { LoanRoutes } from '../loan/Loan.route';
 import { injectRoutes } from '../../../utils/router/injectRouter';
 import { TransactionRoutes } from '../transaction/Transaction.route';
 import { DriverValidations } from './Driver.validation';
 import { AvailableLoanRoutes } from '../availableLoan/AvailableLoan.route';
 
-const admin = injectRoutes(Router(), {
-  '/loans': [LoanRoutes.admin],
-});
+const admin = Router();
 {
   admin.get(
     '/pending',

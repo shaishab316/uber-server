@@ -21,7 +21,7 @@ const adminRoutes = injectRoutes(Router(), {
   '/cancel-trips': [CancelTripRoutes.admin],
   '/transactions': [TransactionRoutes.admin],
   '/news-feeds': [NewsFeedRoutes.admin],
-  '/available-loans': [AvailableLoanRoutes.admin],
+  '/loans': [AvailableLoanRoutes.admin],
   '/user-activities': [UserActivityRoutes.admin],
 });
 

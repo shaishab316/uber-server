@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ELoanStatus } from '../../../../prisma';
-import { enum_encode } from '../../../utils/transform/enum';
 import { exists } from '../../../utils/db/exists';
 
 export const LoanValidations = {
@@ -21,11 +20,7 @@ export const LoanValidations = {
 
   superGetAllLoans: z.object({
     query: z.object({
-      status: z
-        .string()
-        .transform(enum_encode)
-        .pipe(z.enum(ELoanStatus).optional())
-        .optional(),
+      status: z.enum(ELoanStatus).default(ELoanStatus.PENDING),
     }),
   }),
 };

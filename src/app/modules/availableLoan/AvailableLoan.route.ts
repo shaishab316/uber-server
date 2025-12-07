@@ -10,6 +10,18 @@ import capture from '../../middlewares/capture';
 
 const admin = Router();
 {
+  /**
+   * get all loans requested by drivers
+   */
+  admin.get(
+    '/',
+    purifyRequest(QueryValidations.list, LoanValidations.superGetAllLoans),
+    LoanControllers.superGetAllLoans,
+  );
+
+  /**
+   * create new loan
+   */
   admin.post(
     '/',
     imageCapture,
@@ -17,6 +29,9 @@ const admin = Router();
     AvailableLoanControllers.create,
   );
 
+  /**
+   * update a loan
+   */
   admin.patch(
     '/',
     imageCapture,
@@ -24,10 +39,31 @@ const admin = Router();
     AvailableLoanControllers.update,
   );
 
+  /**
+   * delete a loan
+   */
   admin.delete(
     '/',
     purifyRequest(AvailableLoanValidations.delete),
     AvailableLoanControllers.delete,
+  );
+
+  /**
+   * Accept a loan request
+   */
+  admin.post(
+    '/:loan_id',
+    purifyRequest(QueryValidations.exists('loan_id', 'loan')),
+    LoanControllers.superAcceptLoan,
+  );
+
+  /**
+   * Reject a loan request
+   */
+  admin.delete(
+    '/:loan_id',
+    purifyRequest(QueryValidations.exists('loan_id', 'loan')),
+    LoanControllers.superRejectLoan,
   );
 }
 
