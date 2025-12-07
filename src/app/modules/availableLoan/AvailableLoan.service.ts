@@ -25,16 +25,28 @@ export const AvailableLoanServices = {
     });
   },
 
-  async getAllLoans({ limit, page }: TList) {
+  async getAllLoans({
+    limit,
+    page,
+    driver_id,
+  }: TList & { driver_id?: string }) {
     const loans = await prisma.availableLoan.findMany({
       skip: (page - 1) * limit,
       take: limit,
+      include: {
+        loans: {
+          where: { driver_id },
+        },
+      },
     });
 
     const total = await prisma.availableLoan.count();
 
     return {
-      loans,
+      loans: loans.map(({ loans, ...loan }) => ({
+        ...loan,
+        is_taken: Boolean(loans.length),
+      })),
       meta: {
         pagination: {
           total,

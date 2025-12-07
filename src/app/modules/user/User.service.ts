@@ -30,6 +30,9 @@ export const userOmit = {
   fb_id: true,
   google_id: true,
   onesignal_id: true,
+  available_loan: true,
+  loan_taken: true,
+  active_loan: true,
 };
 
 export const UserServices = {

@@ -4,6 +4,9 @@ import { AvailableLoanValidations } from './AvailableLoan.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { imageCapture } from '../newsFeed/NewsFeed.route';
 import { QueryValidations } from '../query/Query.validation';
+import { LoanValidations } from '../loan/Loan.validation';
+import { LoanControllers } from '../loan/Loan.controller';
+import capture from '../../middlewares/capture';
 
 const admin = Router();
 {
@@ -34,6 +37,19 @@ const driver = Router();
     '/',
     purifyRequest(QueryValidations.list),
     AvailableLoanControllers.getAllLoans,
+  );
+
+  driver.post(
+    '/',
+    capture({
+      document: {
+        fileType: 'any',
+        maxCount: 1,
+        size: 50 * 1024 * 1024, // 50 MB
+      },
+    }),
+    purifyRequest(LoanValidations.startLoan),
+    LoanControllers.startLoan,
   );
 
   driver.get(
