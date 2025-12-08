@@ -21,7 +21,7 @@ import { StatusCodes } from 'http-status-codes';
 import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import config from '../../../config';
 import { sendEmail } from '../../../utils/sendMail';
-import { otp_send_template } from '../../../templates';
+import { emailTemplate } from '../../../templates';
 import { errorLogger } from '../../../utils/logger';
 import ms from 'ms';
 import { userOmit } from '../user/User.service';
@@ -57,7 +57,7 @@ export const AuthServices = {
           sendEmail({
             to: email,
             subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-            html: otp_send_template({
+            html: await emailTemplate({
               userName: user.name,
               otp,
               template: 'account_verify',
@@ -163,7 +163,7 @@ export const AuthServices = {
         sendEmail({
           to: email,
           subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-          html: otp_send_template({
+          html: await emailTemplate({
             userName: user.name,
             otp,
             template: 'account_verify',
@@ -202,7 +202,7 @@ export const AuthServices = {
         sendEmail({
           to: email,
           subject: `Your ${config.server.name} Password Reset OTP is ⚡ ${otp} ⚡.`,
-          html: otp_send_template({
+          html: await emailTemplate({
             userName: user.name,
             otp,
             template: 'reset_password',

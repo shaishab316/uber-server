@@ -17,7 +17,7 @@ import { AuthServices } from '../auth/Auth.service';
 import { errorLogger } from '../../../utils/logger';
 import { otpGenerator } from '../../../utils/crypto/otpGenerator';
 import config from '../../../config';
-import { otp_send_template } from '../../../templates';
+import { emailTemplate } from '../../../templates';
 import ms from 'ms';
 import { sendEmail } from '../../../utils/sendMail';
 import { hashPassword } from '../auth/Auth.utils';
@@ -57,7 +57,7 @@ export const UserServices = {
         sendEmail({
           to: email,
           subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-          html: otp_send_template({
+          html: await emailTemplate({
             userName: name,
             otp,
             template: 'account_verify',
