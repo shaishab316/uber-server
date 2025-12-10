@@ -91,7 +91,10 @@ export const UserServices = {
       });
     }
 
-    return user;
+    return {
+      ...user,
+      refer_id,
+    };
   },
 
   async updateUser({

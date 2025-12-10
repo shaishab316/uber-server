@@ -75,15 +75,13 @@ export const ReferServices = {
     const bonusAmount = 20; //TODO: move to config
 
     await prisma.$transaction(async prismaTx => {
-      const referer = await prismaTx.user.findFirst({
-        where: {
-          refer: {
-            slug: refer_id,
-          },
-        },
+      const refer = await prismaTx.refer.findUnique({
+        where: { slug: refer_id },
       });
 
-      if (!referer) {
+      const referer_id = refer?.user_id;
+
+      if (!referer_id) {
         return; //? Invalid refer id
       }
 
@@ -99,12 +97,12 @@ export const ReferServices = {
       //? Set referer id to new user
       await prismaTx.user.update({
         where: { id: user_id },
-        data: { refer_id: referer.id },
+        data: { refer_id: referer_id },
       });
 
       //? Add bonus to referer
       await prismaTx.wallet.update({
-        where: { user_id: referer.id },
+        where: { user_id: referer_id },
         data: {
           balance: {
             increment: bonusAmount,
@@ -124,13 +122,15 @@ export const ReferServices = {
 
       //? Log transactions
       await prismaTx.transaction.createMany({
-        data: [user_id, referer.id].map(user_id => ({
-          user_id,
-          amount: bonusAmount,
-          type: ETransactionType.EARNED,
-          description: `Referral bonus for referring a new user.`,
-          payment_method: 'REFERRAL',
-        })),
+        data: [user_id, referer_id].map(
+          user_id =>
+            ({
+              user_id,
+              amount: bonusAmount,
+              type: ETransactionType.EARNED,
+              payment_method: 'REFERRAL',
+            }) satisfies Prisma.TransactionCreateManyInput,
+        ),
       });
     });
   },
