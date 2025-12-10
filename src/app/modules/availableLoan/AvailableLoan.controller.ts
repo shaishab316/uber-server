@@ -51,7 +51,7 @@ export const AvailableLoanControllers = {
   }),
 
   getLoanById: catchAsync(async (req, res) => {
-    const data = await AvailableLoanServices.getLoanById(req.params.load_id);
+    const data = await AvailableLoanServices.getLoanById(req.params.loan_id);
 
     serveResponse(res, {
       message: 'AvailableLoan fetched successfully!',

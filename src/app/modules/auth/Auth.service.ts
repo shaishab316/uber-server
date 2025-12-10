@@ -28,6 +28,7 @@ import { userOmit } from '../user/User.service';
 import { Response } from 'express';
 import { facebookUser, googleUser } from './Auth.lib';
 import { downloadImage } from '../../../utils/downloadImage';
+import { ReferServices } from '../refer/Refer.service';
 
 export const AuthServices = {
   async login({ password, email, phone }: TUserLogin): Promise<Partial<TUser>> {
@@ -267,7 +268,7 @@ export const AuthServices = {
     });
   },
 
-  async facebookLogin({ access_token }: TFacebookLogin) {
+  async facebookLogin({ access_token, refer_id }: TFacebookLogin) {
     try {
       const payload = await facebookUser(access_token);
 
@@ -284,6 +285,14 @@ export const AuthServices = {
             role: EUserRole.USER,
           },
         });
+
+        //? Handle reference bonus if refer_id is provided
+        if (refer_id) {
+          await ReferServices.handleReferenceBonus({
+            user_id: user.id,
+            refer_id,
+          });
+        }
       }
 
       return user;
@@ -295,7 +304,7 @@ export const AuthServices = {
     }
   },
 
-  async googleLogin({ access_token }: TGoogleLogin) {
+  async googleLogin({ access_token, refer_id }: TGoogleLogin) {
     try {
       const payload = await googleUser(access_token);
 
@@ -312,6 +321,14 @@ export const AuthServices = {
             role: EUserRole.USER,
           },
         });
+
+        //? Handle reference bonus if refer_id is provided
+        if (refer_id) {
+          await ReferServices.handleReferenceBonus({
+            user_id: user.id,
+            refer_id,
+          });
+        }
       }
 
       return user;

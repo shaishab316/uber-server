@@ -1,5 +1,6 @@
 import z from 'zod';
 import { AuthValidations } from './Auth.validation';
+import { TReferredAble } from '../refer/Refer.interface';
 
 export type TUserLogin = z.infer<typeof AuthValidations.login>['body'];
 export type TAccountVerify = z.infer<
@@ -10,8 +11,10 @@ export type TAccountVerifyOtpSend = z.infer<
 >['body'];
 export type TFacebookLogin = z.infer<
   typeof AuthValidations.facebookLogin
->['body'];
-export type TGoogleLogin = z.infer<typeof AuthValidations.googleLogin>['body'];
+>['body'] &
+  TReferredAble;
+export type TGoogleLogin = z.infer<typeof AuthValidations.googleLogin>['body'] &
+  TReferredAble;
 
 export type TGoogleUser = {
   id: string;

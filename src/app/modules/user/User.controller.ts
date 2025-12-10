@@ -9,8 +9,11 @@ import { enum_decode } from '../../../utils/transform/enum';
 import { capitalize } from '../../../utils/transform/capitalize';
 
 export const UserControllers = {
-  register: catchAsync(async ({ body }, res) => {
-    const user = await UserServices.register(body);
+  register: catchAsync(async ({ body, query }, res) => {
+    const user = await UserServices.register({
+      ...body,
+      ...query,
+    });
 
     const { access_token, refresh_token } = AuthServices.retrieveToken(
       user.id,
@@ -86,17 +89,12 @@ export const UserControllers = {
     };
   }),
 
-  profile: catchAsync(({ user }) => {
-    Object.assign(user, {
-      password: undefined,
-      otp: undefined,
-      otp_expires_at: undefined,
-      onesignal_id: undefined,
-    } as Partial<TUser>);
+  profile: catchAsync(async ({ user }) => {
+    const data = await UserServices.getProfile(user.id);
 
     return {
       message: 'Profile retrieved successfully!',
-      data: user,
+      data,
     };
   }),
 

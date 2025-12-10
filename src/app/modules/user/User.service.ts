@@ -3,7 +3,7 @@ import { prisma } from '../../../utils/db';
 import { EUserRole, Prisma, User as TUser } from '../../../../prisma';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { deleteFile } from '../../middlewares/capture';
-import {
+import type {
   TApplyForDriver,
   TApproveUser,
   TSuperGetAllUser,
@@ -21,6 +21,7 @@ import { emailTemplate } from '../../../templates';
 import ms from 'ms';
 import { sendEmail } from '../../../utils/sendMail';
 import { hashPassword } from '../auth/Auth.utils';
+import { ReferServices } from '../refer/Refer.service';
 
 export const userOmit = {
   location: true,
@@ -36,7 +37,7 @@ export const userOmit = {
 };
 
 export const UserServices = {
-  async register({ password, name, email, phone }: TUserRegister) {
+  async register({ password, name, email, phone, refer_id }: TUserRegister) {
     AuthServices.validEmailORPhone({ email, phone });
 
     //! check if user already exists
@@ -68,7 +69,7 @@ export const UserServices = {
     }
 
     //! finally create user and in return omit auth fields
-    return prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         name,
         email,
@@ -81,6 +82,16 @@ export const UserServices = {
       },
       omit: userOmit,
     });
+
+    //? Handle reference bonus if refer_id is provided
+    if (refer_id) {
+      await ReferServices.handleReferenceBonus({
+        user_id: user.id,
+        refer_id,
+      });
+    }
+
+    return user;
   },
 
   async updateUser({
@@ -263,5 +274,19 @@ export const UserServices = {
       },
       omit: userOmit,
     });
+  },
+
+  async getProfile(user_id: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: user_id },
+      omit: userOmit,
+    });
+
+    const refer_slug = await ReferServices.getReferSlug(user_id);
+
+    return {
+      ...user,
+      refer_slug,
+    };
   },
 };

@@ -5,12 +5,13 @@ import { UserControllers } from '../user/User.controller';
 import { UserValidations } from '../user/User.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
 import auth from '../../middlewares/auth';
+import { ReferValidations } from '../refer/Refer.validation';
 
 const router = Router();
 
 router.post(
   '/register',
-  purifyRequest(UserValidations.register),
+  purifyRequest(UserValidations.register, ReferValidations.refer),
   UserControllers.register,
 );
 

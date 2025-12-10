@@ -1,0 +1,12 @@
+model Refer {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  user_id String @db.ObjectId
+
+  slug      Int     @unique
+  is_active Boolean @default(true)
+
+  user           User   @relation("ReferUser", fields: [user_id], references: [id], onDelete: Cascade)
+  referred_users User[] @relation("UserRefer")
+
+  @@map("refers")
+}

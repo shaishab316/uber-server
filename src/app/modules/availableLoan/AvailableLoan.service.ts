@@ -15,7 +15,10 @@ export const AvailableLoanServices = {
   async update({ loan_id, ...payload }: TAvailableLoanUpdateArgs) {
     return prisma.availableLoan.update({
       where: { id: loan_id },
-      data: payload,
+      data: {
+        ...payload,
+        image: payload.image ?? undefined,
+      },
     });
   },
 
@@ -58,9 +61,9 @@ export const AvailableLoanServices = {
     };
   },
 
-  async getLoanById(load_id: string) {
+  async getLoanById(loan_id: string) {
     return prisma.availableLoan.findUnique({
-      where: { id: load_id },
+      where: { id: loan_id },
     });
   },
 };

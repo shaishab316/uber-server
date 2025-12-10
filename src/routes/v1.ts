@@ -14,6 +14,7 @@ import { TransactionRoutes } from '../app/modules/transaction/Transaction.route'
 import { injectRoutes } from '../utils/router/injectRouter';
 import { NewsFeedRoutes } from '../app/modules/newsFeed/NewsFeed.route';
 import { NotificationRoutes } from '../app/modules/notification/Notification.route';
+import { ReferRoutes } from '../app/modules/refer/Refer.route';
 
 const appRouter = Router();
 
@@ -41,6 +42,7 @@ export default injectRoutes(appRouter, {
   '/chats': [auth.all, ChatRoutes.user],
   '/trips': [auth.all, TripRoutes.user],
   '/notifications': [auth.all, NotificationRoutes.all],
+  '/refers': [auth.all, ReferRoutes.all],
 
   // Driver auth
   '/drivers': [auth.driver, DriverRoutes.driver],

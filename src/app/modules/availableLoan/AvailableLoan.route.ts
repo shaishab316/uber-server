@@ -28,6 +28,12 @@ const admin = Router();
     AvailableLoanControllers.getAllLoans,
   );
 
+  admin.get(
+    '/available-loans/:loan_id',
+    purifyRequest(QueryValidations.exists('loan_id', 'availableLoan')),
+    AvailableLoanControllers.getLoanById,
+  );
+
   /**
    * create new loan
    */
@@ -98,8 +104,8 @@ const driver = Router();
   );
 
   driver.get(
-    '/:load_id',
-    purifyRequest(QueryValidations.exists('load_id', 'availableLoan')),
+    '/:loan_id',
+    purifyRequest(QueryValidations.exists('loan_id', 'availableLoan')),
     AvailableLoanControllers.getLoanById,
   );
 }

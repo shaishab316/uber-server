@@ -34,7 +34,7 @@ export const AvailableLoanValidations = {
       description: z.string().optional(),
       interest_rate: z.coerce.number().optional(),
       terms: z.string().optional(),
-      image: z.string().optional(),
+      image: z.string().optional().nullable(),
     }),
   }),
 

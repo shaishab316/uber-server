@@ -20,4 +20,5 @@ enum ETransactionType {
   TOPUP
   EXPENSE
   WITHDRAW
+  EARNED
 }
