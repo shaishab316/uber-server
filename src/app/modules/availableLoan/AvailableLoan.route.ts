@@ -20,6 +20,15 @@ const admin = Router();
   );
 
   /**
+   * get all available loans
+   */
+  admin.get(
+    '/available-loans',
+    purifyRequest(QueryValidations.list),
+    AvailableLoanControllers.getAllLoans,
+  );
+
+  /**
    * create new loan
    */
   admin.post(

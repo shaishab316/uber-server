@@ -6,6 +6,7 @@ import {
 import { prisma } from '../../../utils/db';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { TList } from '../query/Query.interface';
+import { userOmit } from '../user/User.service';
 import { transactionSearchableFields as searchableFields } from './Transaction.constant';
 
 export const TransactionServices = {
@@ -156,6 +157,14 @@ export const TransactionServices = {
       where,
       skip: (page - 1) * limit,
       take: limit,
+      include: {
+        user: {
+          omit: userOmit,
+        },
+        driver: {
+          omit: userOmit,
+        },
+      },
     });
 
     const total = await prisma.transaction.count({

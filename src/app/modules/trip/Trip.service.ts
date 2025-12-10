@@ -39,6 +39,7 @@ import chalk from 'chalk';
 import { AvailableDriverServices } from '../availableDriver/AvailableDriver.service';
 import ms from 'ms';
 import { calculateTripFare } from '../../../utils/uber/tripFareHelper';
+import { ChatServices } from '../chat/Chat.service';
 
 export const TripServices = {
   async requestForTrip({
@@ -262,6 +263,12 @@ export const TripServices = {
       omit: tripOmit,
     });
 
+    //? easily access in chat service
+    const chat = await ChatServices.getChat({
+      driver_id,
+      user_id: updatedTrip.passenger_id,
+    });
+
     // Notify passenger that driver accepted the trip
     SocketServices.getIO()
       ?.to(updatedTrip.passenger_id)
@@ -272,6 +279,7 @@ export const TripServices = {
           data: updatedTrip,
           meta: {
             trip_id,
+            chat_id: chat.id,
           },
         }),
       );

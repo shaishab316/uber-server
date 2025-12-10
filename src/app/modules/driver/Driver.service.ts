@@ -196,8 +196,8 @@ export const DriverServices = {
           totalPages: Math.ceil(total / limit),
         } satisfies TPagination,
         totalOnlineTime: totalOnlineTime._sum.duration_sec ?? 0,
-        successRate,
-        totalEarnings: totalEarnings._sum.total_cost ?? 0,
+        successRate: successRate.toFixed(2),
+        totalEarnings: (totalEarnings._sum.total_cost ?? 0).toFixed(2),
       },
       trips,
     };

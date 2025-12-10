@@ -9,8 +9,9 @@ model Transaction {
   type                  ETransactionType @default(TOPUP)
   payment_method        String           @default("unknown")
 
-  user User   @relation(fields: [user_id], references: [id])
-  Trip Trip[]
+  user   User   @relation("UserTransaction", fields: [user_id], references: [id], onDelete: Cascade)
+  driver User?  @relation("DriverTransaction", fields: [driver_id], references: [id], onDelete: Cascade)
+  Trip   Trip[]
 
   @@map("transactions")
 }
