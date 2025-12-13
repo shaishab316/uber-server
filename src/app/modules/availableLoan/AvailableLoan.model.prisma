@@ -2,12 +2,13 @@ model AvailableLoan {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   timestamp DateTime @default(now()) @updatedAt
 
-  name          String
-  amount        Float
-  description   String
-  interest_rate Float
-  terms         String
-  image         String
+  name                    String
+  amount                  Float
+  description             String
+  interest_rate           Float
+  terms                   String
+  estimated_approval_time String
+  image                   String
 
   loans Loan[]
 

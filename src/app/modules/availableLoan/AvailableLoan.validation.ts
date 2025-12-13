@@ -21,6 +21,9 @@ export const AvailableLoanValidations = {
       image: z.string({
         error: 'Image is required',
       }),
+      estimated_approval_time: z.string({
+        error: 'Estimated approval time is required',
+      }),
     }),
   }),
 
@@ -35,6 +38,7 @@ export const AvailableLoanValidations = {
       interest_rate: z.coerce.number().optional(),
       terms: z.string().optional(),
       image: z.string().optional().nullable(),
+      estimated_approval_time: z.string().optional(),
     }),
   }),
 

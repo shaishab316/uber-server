@@ -106,6 +106,20 @@ export const MessageServices = {
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { created_at: 'desc' },
+      include: {
+        user: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+        driver: {
+          select: {
+            name: true,
+            avatar: true,
+          },
+        },
+      },
     });
 
     const total = await prisma.message.count({ where });

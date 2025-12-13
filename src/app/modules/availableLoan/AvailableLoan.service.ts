@@ -1,3 +1,4 @@
+import { ELoanStatus } from '../../../../prisma';
 import { prisma } from '../../../utils/db';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { TList } from '../query/Query.interface';
@@ -39,6 +40,7 @@ export const AvailableLoanServices = {
       include: {
         loans: {
           where: { driver_id },
+          orderBy: { start_date: 'desc' },
         },
       },
     });
@@ -49,6 +51,7 @@ export const AvailableLoanServices = {
       loans: loans.map(({ loans, ...loan }) => ({
         ...loan,
         is_taken: Boolean(loans.length),
+        status: loans[0]?.status || ELoanStatus.PENDING,
       })),
       meta: {
         pagination: {

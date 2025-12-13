@@ -49,7 +49,10 @@ export const ChatControllers = {
     return {
       message: 'Inbox chats retrieved successfully!',
       meta,
-      data: chats,
+      data: chats.map(({ user, driver, ...chat }) => ({
+        ...chat,
+        opponent: user ?? driver,
+      })),
     };
   }),
 
