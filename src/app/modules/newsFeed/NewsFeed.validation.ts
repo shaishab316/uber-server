@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EUserRole } from '../../../../prisma';
+import { ENewsFeedCategory, EUserRole } from '../../../../prisma';
 
 export const NewsFeedValidations = {
   create: z.object({
@@ -9,6 +9,7 @@ export const NewsFeedValidations = {
       body: z.string().optional(),
       image: z.string(),
       role: z.enum(EUserRole).default(EUserRole.USER),
+      category: z.enum(ENewsFeedCategory),
     }),
   }),
 
@@ -20,6 +21,7 @@ export const NewsFeedValidations = {
       body: z.string().optional(),
       image: z.string().optional(),
       role: z.enum(EUserRole).default(EUserRole.USER),
+      category: z.enum(ENewsFeedCategory).optional(),
     }),
   }),
 
@@ -31,7 +33,7 @@ export const NewsFeedValidations = {
 
   getAllNews: z.object({
     query: z.object({
-      role: z.enum(EUserRole).default(EUserRole.USER),
+      category: z.enum(ENewsFeedCategory).optional(),
     }),
   }),
 };

@@ -3,14 +3,9 @@ import { deleteFile } from '../../middlewares/capture';
 import { TNewsCreate, TNewsEdit, TNewsGetAll } from './NewsFeed.interface';
 
 export const NewsFeedServices = {
-  async createNewsFeed({ title, content, body, image }: TNewsCreate) {
+  async createNewsFeed(payload: TNewsCreate) {
     return prisma.newsFeed.create({
-      data: {
-        title,
-        content,
-        body,
-        image,
-      },
+      data: payload,
     });
   },
 
@@ -45,8 +40,8 @@ export const NewsFeedServices = {
     });
   },
 
-  async getAllNews({ limit, page, role }: TNewsGetAll) {
-    const where = { role };
+  async getAllNews({ limit, page, role, category }: TNewsGetAll) {
+    const where = { role, category };
 
     const newsFeeds = await prisma.newsFeed.findMany({
       where,

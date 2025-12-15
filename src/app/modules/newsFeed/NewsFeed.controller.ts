@@ -31,8 +31,11 @@ export const NewsFeedControllers = {
     });
   }),
 
-  getAllNews: catchAsync(async ({ query }, res) => {
-    const { meta, newsFeeds } = await NewsFeedServices.getAllNews(query);
+  getAllNews: catchAsync(async ({ query, user }, res) => {
+    const { meta, newsFeeds } = await NewsFeedServices.getAllNews({
+      ...query,
+      role: user.role,
+    });
 
     serveResponse(res, {
       message: 'NewsFeeds fetched successfully!',

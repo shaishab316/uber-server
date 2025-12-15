@@ -38,15 +38,24 @@ const ChatSocket: TSocketHandler = (io, socket) => {
         if (chat?.driver_id !== user.id) throw error;
       }
 
-      const message = await MessageServices.createMsg(msgData);
+      const {
+        user: xUser,
+        driver: xDriver,
+        ...message
+      } = await MessageServices.createMsg(msgData);
+      const opponent = xUser ?? xDriver;
 
       const targetUserId = isUser ? chat?.driver_id : chat?.user_id;
       if (targetUserId) {
         io.to(targetUserId).emit(
           'message:new',
           socketResponse({
-            message: `New message from ${user.name}`,
-            data: message,
+            message: `New message from ${opponent?.name}`,
+            data: {
+              ...message,
+              is_sender: false,
+              opponent,
+            },
             meta: { chat_id },
           }),
         );

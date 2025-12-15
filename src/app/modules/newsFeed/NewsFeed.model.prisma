@@ -6,6 +6,13 @@ model NewsFeed {
   body        String?
   image       String
   role        EUserRole @default(USER)
+  category    String
 
   @@map("news_feeds")
+}
+
+enum ENewsFeedCategory {
+  MORE_WAY_TO_USE
+  SAVE_EVERYONE
+  NEWS_AND_PROMOTIONS
 }

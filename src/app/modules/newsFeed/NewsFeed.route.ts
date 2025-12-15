@@ -4,6 +4,7 @@ import { NewsFeedValidations } from './NewsFeed.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
 import capture from '../../middlewares/capture';
+import auth from '../../middlewares/auth';
 
 export const imageCapture = capture({
   image: {
@@ -40,6 +41,7 @@ const free = Router();
 {
   free.get(
     '/',
+    auth.all,
     purifyRequest(QueryValidations.list, NewsFeedValidations.getAllNews),
     NewsFeedControllers.getAllNews,
   );
