@@ -1,3 +1,37 @@
+# [4.3.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.2.0...v4.3.0) (2025-12-14)
+
+
+### Features
+
+* add endpoint to retrieve available loans and update transaction model relationships ([9bf01b7](https://github.com/Alpha-Bytes-Department/uber-server/commit/9bf01b706b748e7b1429bb0aaaf90bf043b17d1f))
+* add MJML email templates for account verification and password reset ([c8fb21c](https://github.com/Alpha-Bytes-Department/uber-server/commit/c8fb21c09975235f2247c3d150b652ac3cb91371))
+* Add trip counts and simplify status validation ([3e3df4e](https://github.com/Alpha-Bytes-Department/uber-server/commit/3e3df4e0163ba13d8cbc793739f0d152cc303dde))
+* Add trip rating feature and improve transaction handling ([dd7967e](https://github.com/Alpha-Bytes-Department/uber-server/commit/dd7967ef53b4554ec22760b7fe9499529cea8884))
+* Associate loans with available loans by ID ([e338092](https://github.com/Alpha-Bytes-Department/uber-server/commit/e338092d74588e10fdf45fed9b93b2a6c26f0b2f))
+* enhance available loan model and service with estimated approval time and loan status ([7647e86](https://github.com/Alpha-Bytes-Department/uber-server/commit/7647e863102ac4c050b5ea313cc9eed5c59a6a24))
+* Enhance loan management by adding driver-specific loan data and updating user model ([8b9d3fe](https://github.com/Alpha-Bytes-Department/uber-server/commit/8b9d3fe95e3bc37a7ffe593bec5d6a375a5afa97))
+* Enhance trip model with days, user retrieval and validation ([c183ac4](https://github.com/Alpha-Bytes-Department/uber-server/commit/c183ac49e4bd61a360812088ba50e39903b7bae5))
+* Implement admin module with overview endpoint and user online status ([0bf2738](https://github.com/Alpha-Bytes-Department/uber-server/commit/0bf2738027442490345e1fab4a250e1579dea2ec))
+* Implement admin transaction retrieval via new service ([35b6690](https://github.com/Alpha-Bytes-Department/uber-server/commit/35b669039f3f49bc3466b0d0367ccbb7385f138b))
+* Implement admin user approval functionality ([1fdfb60](https://github.com/Alpha-Bytes-Department/uber-server/commit/1fdfb6058ee11ef5aade3086e28ae579dc499c42))
+* Implement Available Loan feature with CRUD operations ([37901da](https://github.com/Alpha-Bytes-Department/uber-server/commit/37901da449a96aefd0e65fc6e66618bb45a220f6))
+* Implement driver earnings view & fix various issues ([5845757](https://github.com/Alpha-Bytes-Department/uber-server/commit/584575731398682f6860a63d567ceb20ff6c8b50))
+* Implement Facebook and Google login with access tokens ([c1c3f0f](https://github.com/Alpha-Bytes-Department/uber-server/commit/c1c3f0f338e45f34fb5a03e5522aab8bd44e2b1a))
+* Implement image upload/deletion for NewsFeeds with pagination ([5be947b](https://github.com/Alpha-Bytes-Department/uber-server/commit/5be947bd7f2b75f3f3dc2c9f7e43aaa49b88baee))
+* Implement NewsFeed module with CRUD operations and API integration ([411ebb8](https://github.com/Alpha-Bytes-Department/uber-server/commit/411ebb8a71094d12f71fad6440ea1b93310c6680))
+* Implement Notification module with real-time updates ([2c19c46](https://github.com/Alpha-Bytes-Department/uber-server/commit/2c19c46f80d52ca91cdcab786374871442d3f4c2))
+* Implement payment notifications for driver and user ([d8d0fa3](https://github.com/Alpha-Bytes-Department/uber-server/commit/d8d0fa360ea586bcbc796086d91894ae59aee0ab))
+* Implement push notifications via OneSignal and update dependencies ([87797a9](https://github.com/Alpha-Bytes-Department/uber-server/commit/87797a90ed0254c0dca21faf16e16a1363a8a7e3))
+* Implement real-time updates and improve trip management ([4635e81](https://github.com/Alpha-Bytes-Department/uber-server/commit/4635e81c2a8494c2b6da4148191a7670651b7da6))
+* implement referral system with user references and bonuses ([30de75f](https://github.com/Alpha-Bytes-Department/uber-server/commit/30de75f90bee6c60d4bd792dff2587d8cd6011d1))
+* Implement role-based filtering for news feed ([7c24cb1](https://github.com/Alpha-Bytes-Department/uber-server/commit/7c24cb1c2f401ad37860cf836fbd9d2f0fb30b2e))
+* Implement user activity tracking module ([fff56a3](https://github.com/Alpha-Bytes-Department/uber-server/commit/fff56a331e8293af5d412a134c4af54826c136b4))
+* include user role in chat message retrieval to determine message sender ([0206eb4](https://github.com/Alpha-Bytes-Department/uber-server/commit/0206eb44852c12eeb226fc7d22f6b24cfdb9988a))
+* Migrate user model to single onesignal_id ([2441417](https://github.com/Alpha-Bytes-Department/uber-server/commit/244141797778d4d8435e26630ccaedf49fea2311))
+* Refactor loan routes and controllers, add new loan management endpoints ([1ae5130](https://github.com/Alpha-Bytes-Department/uber-server/commit/1ae5130c24da502133b829e4ad9b07b6a2189884))
+* update referral bonus handling and include refer_id in user return data ([a426be8](https://github.com/Alpha-Bytes-Department/uber-server/commit/a426be8ec5864dddb09e718d1d79329dca521128))
+* Use simple-git-hooks for pre-commit tasks ([2cf5d13](https://github.com/Alpha-Bytes-Department/uber-server/commit/2cf5d13951439ff926169fd0ce4300b716934b3b))
+
 # [4.2.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.1.0...v4.2.0) (2025-10-15)
 
 
