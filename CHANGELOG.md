@@ -1,3 +1,10 @@
+# [4.4.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.3.0...v4.4.0) (2025-12-15)
+
+
+### Features
+
+* enhance news feed functionality with user role and category support ([f323548](https://github.com/Alpha-Bytes-Department/uber-server/commit/f323548f176d9811c45cff0a17760a30ade4e8e4))
+
 # [4.3.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.2.0...v4.3.0) (2025-12-14)
 
 
