@@ -255,7 +255,7 @@ export const TripServices = {
         `Driver ${trip.driver?.name} is already assigned to this trip`,
       );
 
-    const updatedTrip = await prisma.trip.update({
+    const updatedTrip: any = await prisma.trip.update({
       where: { id: trip_id },
       data: {
         driver_id,
@@ -276,6 +276,7 @@ export const TripServices = {
             name: true,
             avatar: true,
             phone: true,
+            location: true,
           },
         },
       },
@@ -287,6 +288,19 @@ export const TripServices = {
       driver_id,
       user_id: updatedTrip.passenger_id,
     });
+
+    try {
+      const { distance, duration } = await getDistanceAndTime(
+        updatedTrip.driver!.location!.geo,
+        updatedTrip.pickup_address.geo,
+      );
+
+      updatedTrip.driver_distance = distance;
+      updatedTrip.driver_duration = duration;
+    } catch (error) {
+      updatedTrip.driver_distance = 0;
+      updatedTrip.driver_duration = 0;
+    }
 
     // Notify passenger that driver accepted the trip
     SocketServices.getIO()
@@ -349,7 +363,7 @@ export const TripServices = {
         'Trip start otp is incorrect',
       );
 
-    const updatedTrip = await prisma.trip.update({
+    const updatedTrip: any = await prisma.trip.update({
       where: { id: trip_id },
       data: {
         status: ETripStatus.STARTED,
@@ -361,6 +375,7 @@ export const TripServices = {
             name: true,
             avatar: true,
             phone: true,
+            location: true,
           },
         },
         passenger: {
@@ -376,6 +391,19 @@ export const TripServices = {
         eOtp: undefined,
       },
     });
+
+    try {
+      const { distance, duration } = await getDistanceAndTime(
+        updatedTrip.driver!.location!.geo,
+        updatedTrip.dropoff_address.geo,
+      );
+
+      updatedTrip.dropoff_driver_distance = distance;
+      updatedTrip.dropoff_driver_duration = duration;
+    } catch {
+      updatedTrip.dropoff_driver_distance = 0;
+      updatedTrip.dropoff_driver_duration = 0;
+    }
 
     // Notify passenger that trip has started
     SocketServices.getIO()
@@ -810,7 +838,7 @@ export const TripServices = {
     const { user } = socket.data;
 
     const userSelectableField = {
-      select: { name: true, avatar: true, phone: true },
+      select: { name: true, avatar: true, phone: true, location: true },
     };
     const where: Prisma.TripWhereInput = {
       OR: [{ status: ETripStatus.ACCEPTED }, { status: ETripStatus.STARTED }],
@@ -822,13 +850,31 @@ export const TripServices = {
       where.passenger_id = user.id;
     }
 
-    const trip = await prisma.trip.findFirst({
+    const trip: any = await prisma.trip.findFirst({
       where,
       include: {
         driver: userSelectableField,
         passenger: userSelectableField,
       },
     });
+
+    try {
+      try {
+        const { distance, duration } = await getDistanceAndTime(
+          trip.driver!.location!.geo,
+          trip.pickup_address.geo,
+        );
+
+        trip.driver_distance = distance;
+        trip.driver_duration = duration;
+      } catch {
+        trip.driver_distance = 0;
+        trip.driver_duration = 0;
+      }
+    } catch {
+      trip.driver_distance = 0;
+      trip.driver_duration = 0;
+    }
 
     if (trip) {
       if (user.role === EUserRole.DRIVER)
