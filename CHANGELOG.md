@@ -1,3 +1,10 @@
+# [4.5.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.4.0...v4.5.0) (2026-01-01)
+
+
+### Features
+
+* add fare estimation functionality with vehicle support ([c4aef4a](https://github.com/Alpha-Bytes-Department/uber-server/commit/c4aef4a269ec2c9de46a9d30476835ecb6d9e517))
+
 # [4.4.0](https://github.com/Alpha-Bytes-Department/uber-server/compare/v4.3.0...v4.4.0) (2025-12-15)
 
 
