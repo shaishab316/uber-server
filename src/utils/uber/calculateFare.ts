@@ -143,7 +143,7 @@ export const calculateFare = ({
   return {
     basePrice: subtotal,
     additionalKmPrice: additionalKmCharge,
-    passengerSurcharge,
+    passengerSurcharge: passengerAges.length ?? 0,
     waitingFee,
     stopFee,
     totalPrice: +totalPrice.toFixed(2),

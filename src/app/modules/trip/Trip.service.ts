@@ -85,6 +85,7 @@ export const TripServices = {
       pickup_address,
       dropoff_address,
       stops,
+      vehicle,
     } as any);
 
     const estimatedFare = fareResult.total;

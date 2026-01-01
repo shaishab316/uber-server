@@ -14,6 +14,12 @@ const user = Router();
   );
 
   user.post(
+    '/estimate-fare',
+    purifyRequest(TripValidations.requestForTrip),
+    TripControllers.calculateFare,
+  );
+
+  user.post(
     '/request-for-trip',
     purifyRequest(TripValidations.requestForTrip),
     TripControllers.requestForTrip,

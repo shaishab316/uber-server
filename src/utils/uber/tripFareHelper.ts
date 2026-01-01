@@ -1,3 +1,4 @@
+import { EVehicle } from '../../../prisma';
 import config from '../../config';
 import {
   calculateFare,
@@ -21,6 +22,7 @@ interface Trip {
   pickup_address: TLocation;
   dropoff_address: TLocation;
   stops: TLocation[];
+  vehicle: EVehicle;
 }
 
 interface FareBreakdown {

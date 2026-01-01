@@ -30,7 +30,8 @@ export const TripValidations = {
       pickup_address: locationSchema,
       dropoff_address: locationSchema,
       stops: z.array(locationSchema).optional(),
-      passenger_ages: z.array(z.coerce.number()),
+      passenger_ages: z.array(z.coerce.number()).default([]),
+      passenger_count: z.coerce.number().default(1),
     }),
   }),
 

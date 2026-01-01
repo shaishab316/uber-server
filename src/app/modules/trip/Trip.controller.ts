@@ -1,12 +1,57 @@
+/* eslint-disable prefer-const */
 import { EUserRole } from '../../../../prisma';
+import getDistanceAndTime from '../../../utils/location/getDistanceAndTime';
+import { calculateTripFare } from '../../../utils/uber/tripFareHelper';
 import catchAsync from '../../middlewares/catchAsync';
+import { TRequestForTrip } from './Trip.interface';
 import { TripServices } from './Trip.service';
 
 export const TripControllers = {
+  calculateFare: catchAsync(async ({ body }) => {
+    let {
+      dropoff_address,
+      pickup_address,
+      stops,
+      passenger_ages,
+      vehicle,
+      passenger_count,
+    } = body as TRequestForTrip;
+
+    const { distance } = await getDistanceAndTime(
+      pickup_address.geo,
+      dropoff_address.geo,
+    );
+
+    // Calculate estimated fare using the new pricing system
+    const fareResult = await calculateTripFare({
+      distance_km: distance.value / 1000, // Convert meters to km
+      passenger_ages:
+        passenger_ages.length > 0
+          ? passenger_ages
+          : Array(passenger_count).fill(18), // Default age 18 if not provided
+      passenger_count,
+      requested_at: new Date(),
+      accepted_at: null,
+      started_at: null,
+      pickup_address,
+      dropoff_address,
+      stops,
+      vehicle,
+    } as any);
+
+    return {
+      message: 'Fare calculated successfully!',
+      data: fareResult,
+    };
+  }),
+
   requestForTrip: catchAsync(async ({ body, user }) => {
     const trip = await TripServices.requestForTrip({
       ...body,
       passenger_id: user.id,
+      passenger_ages: body.passenger_ages.length
+        ? body.passenger_ages
+        : Array(body.passenger_count).fill(18), // Default age 18 if not provided
     });
 
     return {
