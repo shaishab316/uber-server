@@ -235,12 +235,21 @@ export const TripServices = {
         driver: {
           select: {
             name: true,
+            avatar: true,
+            phone: true,
+          },
+        },
+        passenger: {
+          select: {
+            name: true,
+            avatar: true,
+            phone: true,
           },
         },
       },
     });
 
-    if (trip?.driver_id)
+    if (trip?.driver_id && trip.driver_id !== driver_id)
       throw new ServerError(
         StatusCodes.CONFLICT,
         `Driver ${trip.driver?.name} is already assigned to this trip`,
@@ -258,6 +267,15 @@ export const TripServices = {
         passenger: {
           select: {
             name: true,
+            avatar: true,
+            phone: true,
+          },
+        },
+        driver: {
+          select: {
+            name: true,
+            avatar: true,
+            phone: true,
           },
         },
       },
@@ -276,7 +294,7 @@ export const TripServices = {
       .emit(
         'trip:accepted',
         socketResponse({
-          message: `${updatedTrip?.passenger?.name} accepted your trip request`,
+          message: `${updatedTrip?.passenger?.name} xxxxx accepted your trip request`,
           data: updatedTrip,
           meta: {
             trip_id,
@@ -302,6 +320,15 @@ export const TripServices = {
         driver: {
           select: {
             name: true,
+            avatar: true,
+            phone: true,
+          },
+        },
+        passenger: {
+          select: {
+            name: true,
+            avatar: true,
+            phone: true,
           },
         },
       },
@@ -329,10 +356,18 @@ export const TripServices = {
         started_at: new Date(),
       },
       include: {
+        driver: {
+          select: {
+            name: true,
+            avatar: true,
+            phone: true,
+          },
+        },
         passenger: {
           select: {
             name: true,
             avatar: true,
+            phone: true,
           },
         },
       },
@@ -388,6 +423,15 @@ export const TripServices = {
         driver: {
           select: {
             name: true,
+            avatar: true,
+            phone: true,
+          },
+        },
+        passenger: {
+          select: {
+            name: true,
+            avatar: true,
+            phone: true,
           },
         },
       },
@@ -413,9 +457,18 @@ export const TripServices = {
         arrived_at: new Date(),
       },
       include: {
+        driver: {
+          select: {
+            name: true,
+            avatar: true,
+            phone: true,
+          },
+        },
         passenger: {
           select: {
             name: true,
+            avatar: true,
+            phone: true,
           },
         },
       },
@@ -450,6 +503,15 @@ export const TripServices = {
         driver: {
           select: {
             name: true,
+            avatar: true,
+            phone: true,
+          },
+        },
+        passenger: {
+          select: {
+            name: true,
+            avatar: true,
+            phone: true,
           },
         },
       },
@@ -747,7 +809,9 @@ export const TripServices = {
   }) {
     const { user } = socket.data;
 
-    const userSelectableField = { select: { name: true, avatar: true } };
+    const userSelectableField = {
+      select: { name: true, avatar: true, phone: true },
+    };
     const where: Prisma.TripWhereInput = {
       OR: [{ status: ETripStatus.ACCEPTED }, { status: ETripStatus.STARTED }],
     };
@@ -775,7 +839,7 @@ export const TripServices = {
         JSON.stringify({
           success: true,
           statusCode: StatusCodes.OK,
-          message: `Trip ${trip.status.toLowerCase()} successfully`,
+          message: `Trip ${trip.status.toLowerCase()} successfully from recover trip`,
           data: trip,
           meta: {
             trip_id: trip.id,

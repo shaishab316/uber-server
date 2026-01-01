@@ -104,7 +104,7 @@ export const TripControllers = {
     });
 
     return {
-      message: 'Trip accepted successfully!',
+      message: 'Trip started successfully!',
     };
   }),
 
