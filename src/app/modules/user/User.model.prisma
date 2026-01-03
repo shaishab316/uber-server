@@ -31,6 +31,7 @@ model User {
 
   last_online_at DateTime?
   rating         Float     @default(5.0)
+  rating_count   Int       @default(0)
   available_loan Float     @default(10000.0)
   loan_taken     Float     @default(0.0)
   active_loan    Float     @default(0.0)

@@ -41,6 +41,17 @@ import ms from 'ms';
 import { calculateTripFare } from '../../../utils/uber/tripFareHelper';
 import { ChatServices } from '../chat/Chat.service';
 
+export const userTripSelectableField = {
+  select: {
+    name: true,
+    avatar: true,
+    phone: true,
+    location: true,
+    rating: true,
+    rating_count: true,
+  } satisfies Prisma.UserSelect,
+};
+
 export const TripServices = {
   async requestForTrip({
     dropoff_address,
@@ -264,21 +275,8 @@ export const TripServices = {
         accepted_at: new Date(),
       },
       include: {
-        passenger: {
-          select: {
-            name: true,
-            avatar: true,
-            phone: true,
-          },
-        },
-        driver: {
-          select: {
-            name: true,
-            avatar: true,
-            phone: true,
-            location: true,
-          },
-        },
+        passenger: userTripSelectableField,
+        driver: userTripSelectableField,
       },
       omit: tripOmit,
     });
@@ -295,8 +293,10 @@ export const TripServices = {
         updatedTrip.pickup_address.geo,
       );
 
-      updatedTrip.driver_distance = distance;
-      updatedTrip.driver_duration = duration;
+      console.log('{ distance, duration }', { distance, duration });
+
+      updatedTrip.driver_distance = distance.value;
+      updatedTrip.driver_duration = duration.value;
     } catch (error) {
       updatedTrip.driver_distance = 0;
       updatedTrip.driver_duration = 0;
@@ -370,21 +370,8 @@ export const TripServices = {
         started_at: new Date(),
       },
       include: {
-        driver: {
-          select: {
-            name: true,
-            avatar: true,
-            phone: true,
-            location: true,
-          },
-        },
-        passenger: {
-          select: {
-            name: true,
-            avatar: true,
-            phone: true,
-          },
-        },
+        driver: userTripSelectableField,
+        passenger: userTripSelectableField,
       },
       omit: {
         ...tripOmit,
@@ -398,8 +385,8 @@ export const TripServices = {
         updatedTrip.dropoff_address.geo,
       );
 
-      updatedTrip.dropoff_driver_distance = distance;
-      updatedTrip.dropoff_driver_duration = duration;
+      updatedTrip.dropoff_driver_distance = distance.value;
+      updatedTrip.dropoff_driver_duration = duration.value;
     } catch {
       updatedTrip.dropoff_driver_distance = 0;
       updatedTrip.dropoff_driver_duration = 0;
@@ -485,20 +472,8 @@ export const TripServices = {
         arrived_at: new Date(),
       },
       include: {
-        driver: {
-          select: {
-            name: true,
-            avatar: true,
-            phone: true,
-          },
-        },
-        passenger: {
-          select: {
-            name: true,
-            avatar: true,
-            phone: true,
-          },
-        },
+        driver: userTripSelectableField,
+        passenger: userTripSelectableField,
       },
       omit: tripOmit,
     });
@@ -561,11 +536,8 @@ export const TripServices = {
         completed_at: new Date(),
       },
       include: {
-        passenger: {
-          select: {
-            name: true,
-          },
-        },
+        passenger: userTripSelectableField,
+        driver: userTripSelectableField,
       },
       omit: tripOmit,
     });
@@ -837,9 +809,6 @@ export const TripServices = {
   }) {
     const { user } = socket.data;
 
-    const userSelectableField = {
-      select: { name: true, avatar: true, phone: true, location: true },
-    };
     const where: Prisma.TripWhereInput = {
       OR: [{ status: ETripStatus.ACCEPTED }, { status: ETripStatus.STARTED }],
     };
@@ -853,30 +822,25 @@ export const TripServices = {
     const trip: any = await prisma.trip.findFirst({
       where,
       include: {
-        driver: userSelectableField,
-        passenger: userSelectableField,
+        driver: userTripSelectableField,
+        passenger: userTripSelectableField,
       },
     });
 
-    try {
+    if (trip) {
       try {
         const { distance, duration } = await getDistanceAndTime(
           trip.driver!.location!.geo,
           trip.pickup_address.geo,
         );
 
-        trip.driver_distance = distance;
-        trip.driver_duration = duration;
+        trip.driver_distance = distance.value;
+        trip.driver_duration = duration.value;
       } catch {
         trip.driver_distance = 0;
         trip.driver_duration = 0;
       }
-    } catch {
-      trip.driver_distance = 0;
-      trip.driver_duration = 0;
-    }
 
-    if (trip) {
       if (user.role === EUserRole.DRIVER)
         Object.assign(trip, { sOtp: undefined, eOtp: undefined });
 
@@ -1016,7 +980,7 @@ export const TripServices = {
 
     return prisma.user.update({
       where: { id: trip?.driver?.id },
-      data: { rating: avgRating },
+      data: { rating: avgRating, rating_count: { increment: 1 } },
     });
   },
 };

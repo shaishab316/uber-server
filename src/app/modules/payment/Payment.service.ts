@@ -8,6 +8,7 @@ import { ETransactionType } from '../../../../prisma';
 import { SocketServices } from '../socket/Socket.service';
 import { socketResponse } from '../socket/Socket.utils';
 import { NotificationServices } from '../notification/Notification.service';
+import { userTripSelectableField } from '../trip/Trip.service';
 
 export const PaymentServices = {
   async topup({ amount, user_id }: TTopup) {
@@ -51,6 +52,10 @@ export const PaymentServices = {
   async pay({ trip_id, user_id }: { trip_id: string; user_id: string }) {
     const trip = await prisma.trip.findUniqueOrThrow({
       where: { id: trip_id },
+      include: {
+        passenger: userTripSelectableField,
+        driver: userTripSelectableField,
+      },
     });
 
     await NotificationServices.createNotification({
@@ -116,6 +121,10 @@ export const PaymentServices = {
 
       const updatedTrip = await prismaTxn.trip.update({
         where: { id: trip_id },
+        include: {
+          passenger: userTripSelectableField,
+          driver: userTripSelectableField,
+        },
         data: { transaction_id: transaction.id, paid_at: new Date() },
       });
 
