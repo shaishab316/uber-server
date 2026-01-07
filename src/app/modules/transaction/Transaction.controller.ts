@@ -12,7 +12,10 @@ export const TransactionControllers = {
     return {
       message: 'Transactions retrieved successfully!',
       meta,
-      data: transactions,
+      data: transactions.map(transaction => ({
+        ...transaction,
+        amount: transaction.amount.toFixed(2),
+      })),
     };
   }),
 
@@ -26,7 +29,10 @@ export const TransactionControllers = {
     return {
       message: 'Transactions retrieved successfully!',
       meta,
-      data: transactions,
+      data: transactions.map(transaction => ({
+        ...transaction,
+        amount: transaction.amount.toFixed(2),
+      })),
     };
   }),
 
@@ -37,7 +43,10 @@ export const TransactionControllers = {
     return {
       message: 'Transactions retrieved successfully!',
       meta,
-      data: transactions,
+      data: transactions.map(transaction => ({
+        ...transaction,
+        amount: transaction.amount.toFixed(2),
+      })),
     };
   }),
 };

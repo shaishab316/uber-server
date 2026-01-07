@@ -34,7 +34,7 @@ const user = Router();
     TripControllers.cancelTrip,
   );
 
-  user.get(
+  user.post(
     '/:tripId/pay',
     purifyRequest(QueryValidations.exists('tripId', 'trip')),
     PaymentControllers.pay,

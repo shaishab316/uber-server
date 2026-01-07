@@ -2,9 +2,8 @@ import { UserServices } from './User.service';
 import catchAsync from '../../middlewares/catchAsync';
 import { StatusCodes } from 'http-status-codes';
 import { AuthServices } from '../auth/Auth.service';
-import { EUserRole, User as TUser } from '../../../../prisma';
+import { User as TUser } from '../../../../prisma';
 import { prisma } from '../../../utils/db';
-import ServerError from '../../../errors/ServerError';
 import { enum_decode } from '../../../utils/transform/enum';
 import { capitalize } from '../../../utils/transform/capitalize';
 
@@ -115,12 +114,6 @@ export const UserControllers = {
   }),
 
   applyForDriver: catchAsync(async ({ body, user }) => {
-    if (user.role === EUserRole.DRIVER)
-      throw new ServerError(
-        StatusCodes.BAD_REQUEST,
-        'You are already a driver',
-      );
-
     const data = await UserServices.applyForDriver({
       user_id: user.id,
       ...body,

@@ -1,14 +1,17 @@
 import type { Express, Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import multer, { FileFilterCallback, StorageEngine } from 'multer';
-import ServerError from '../../errors/ServerError';
 import catchAsync from './catchAsync';
-import { errorLogger, logger } from '../../utils/logger';
 import chalk from 'chalk';
-import { json } from '../../utils/transform/json';
 import path from 'path';
 import fs from 'fs/promises';
-import { existsSync } from 'fs';
+import { createWriteStream, existsSync } from 'fs';
+import ora from 'ora';
+import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import { logger } from '../../utils/logger';
+import ServerError from '../../errors/ServerError';
+import { capitalize } from '../../utils/transform/capitalize';
 
 export const fileValidators = {
   images: {
@@ -55,14 +58,14 @@ export const ensureUploadDirs = async (): Promise<void> => {
       ),
     );
   } catch (error) {
-    errorLogger.error('Failed to create upload directories:', error);
+    logger.error('Failed to create upload directories:' + error);
     throw error;
   }
 };
 
 // Initialize directories on module load
 ensureUploadDirs().catch(err =>
-  errorLogger.error('Upload directory initialization failed:', err),
+  logger.error('Upload directory initialization failed:' + err),
 );
 
 /**
@@ -71,6 +74,8 @@ ensureUploadDirs().catch(err =>
 const capture = (fields: UploadFields) =>
   catchAsync(async (req, res, next) => {
     req.tempFiles ??= [];
+
+    const spinner = ora(chalk.yellow('Uploading files...')).start();
 
     try {
       await new Promise<void>((resolve, reject) =>
@@ -94,24 +99,28 @@ const capture = (fields: UploadFields) =>
 
           req.tempFiles.push(...uploadedFiles);
         } else {
-          req.body[field] = fields[field].default ?? null;
+          req.body[field] = fields[field].default;
         }
       }
+
+      spinner.succeed(chalk.green('Files uploaded successfully'));
     } catch (error) {
-      errorLogger.error('File upload error:', error);
+      if (error instanceof Error) {
+        spinner.fail(chalk.red(`Error uploading files: ${error.message}`));
+      }
 
       // Set defaults on error
       for (const field of Object.keys(fields)) {
-        req.body[field] = fields[field].default ?? null;
+        req.body[field] = fields[field].default;
       }
     } finally {
       // Parse JSON data if exists
       if (req.body?.data) {
         try {
-          Object.assign(req.body, json(req.body.data));
+          Object.assign(req.body, JSON.parse(req.body.data));
           delete req.body.data;
         } catch (err) {
-          errorLogger.error('Failed to parse form data:', err);
+          logger.error('Failed to parse JSON data:' + err);
         }
       }
 
@@ -123,12 +132,16 @@ export default capture;
 
 /**
  * Delete file from local disk (optimized with async)
+ *
+ * @deprecated use {@link deleteFilesQueue}
  */
 export const deleteFile = async (filename: string): Promise<boolean> => {
   const sanitizedFilename = path.basename(filename);
 
   try {
-    logger.info(chalk.yellow(`🗑️ Deleting file: '${sanitizedFilename}'`));
+    const spinner = ora(
+      chalk.yellow(`Deleting file '${sanitizedFilename}'...`),
+    ).start();
 
     // Use Promise.all to check all directories concurrently
     const deletePromises = fileTypes.map(async fileType => {
@@ -145,27 +158,26 @@ export const deleteFile = async (filename: string): Promise<boolean> => {
     const deletedFrom = results.filter(Boolean);
 
     if (deletedFrom.length > 0) {
-      logger.info(
+      spinner.succeed(
         chalk.green(
-          `✔ File '${sanitizedFilename}' deleted from ${deletedFrom.join(', ')}`,
+          `File '${sanitizedFilename}' deleted from ${deletedFrom.join(', ')}`,
         ),
       );
       return true;
     }
 
-    errorLogger.error(chalk.red(`❌ File '${sanitizedFilename}' not found!`));
+    spinner.fail(chalk.red(`File '${sanitizedFilename}' not found`));
     return false;
   } catch (error: any) {
-    errorLogger.error(
-      chalk.red(`❌ Failed to delete '${sanitizedFilename}'`),
-      error?.stack ?? error,
-    );
+    logger.error(`Failed to delete file '${sanitizedFilename}':` + error);
     return false;
   }
 };
 
 /**
  * Delete multiple files concurrently
+ *
+ * @deprecated use {@link deleteFilesQueue}
  */
 export const deleteFiles = async (filenames: string[]): Promise<boolean[]> => {
   return Promise.all(filenames.map(deleteFile));
@@ -227,7 +239,8 @@ const fileFilter =
 
     const mime = file.mimetype.toLowerCase();
 
-    if (validator.test(mime)) {
+    //? if mime is application/octet-stream, it's a binary file, so it's valid, but we need to check the file extension
+    if (mime === 'application/octet-stream' || validator.test(mime)) {
       return cb(null, true);
     }
 
@@ -301,3 +314,47 @@ export const fileExists = async (fileUrl: string): Promise<boolean> => {
     return false;
   }
 };
+
+export async function downloadFile({
+  fileType,
+  url,
+}: {
+  url?: string | null;
+  fileType: (typeof fileTypes)[number];
+}) {
+  if (!url) return;
+
+  const spinner = ora(`Downloading ${fileType} from: ${url}`).start();
+  try {
+    const fileName = `${uuidv4()}.png`;
+    const destinationPath = path.join(UPLOAD_DIR, fileType, fileName);
+
+    const response = await axios({
+      url,
+      responseType: 'stream',
+    });
+
+    const writer = createWriteStream(destinationPath);
+
+    response.data.pipe(writer);
+
+    await new Promise((resolve, reject) => {
+      writer.on('finish', () => resolve(true));
+      writer.on('error', reject);
+    });
+
+    spinner.succeed(
+      chalk.green(
+        `${capitalize(fileType)} downloaded successfully: ${destinationPath}`,
+      ),
+    );
+
+    return `/${fileType}/${fileName}`;
+  } catch (error) {
+    if (error instanceof Error) {
+      spinner.fail(chalk.red(`Error downloading ${fileType}`));
+      logger.error(error.message);
+    }
+    throw error;
+  }
+}

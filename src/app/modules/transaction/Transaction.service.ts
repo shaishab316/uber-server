@@ -42,6 +42,9 @@ export const TransactionServices = {
       skip: (page - 1) * limit,
       take: limit,
       omit,
+      orderBy: {
+        created_at: 'desc',
+      },
     });
 
     const total = await prisma.transaction.count({
@@ -102,6 +105,9 @@ export const TransactionServices = {
       skip: (page - 1) * limit,
       take: limit,
       omit,
+      orderBy: {
+        created_at: 'desc',
+      },
     });
 
     const total = await prisma.transaction.count({
@@ -164,6 +170,9 @@ export const TransactionServices = {
         driver: {
           omit: userOmit,
         },
+      },
+      orderBy: {
+        created_at: 'desc',
       },
     });
 

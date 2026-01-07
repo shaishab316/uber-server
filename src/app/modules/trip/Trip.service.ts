@@ -49,6 +49,8 @@ export const userTripSelectableField = {
     location: true,
     rating: true,
     rating_count: true,
+
+    driver_info: true,
   } satisfies Prisma.UserSelect,
 };
 
@@ -61,22 +63,21 @@ export const TripServices = {
     passenger_id,
     passenger_ages,
   }: TRequestForTrip) {
-    //! TODO: uncomment it
-    // const existingTrip = await prisma.trip.findFirst({
-    //   where: {
-    //     passenger_id,
-    //     status: ETripStatus.REQUESTED,
-    //   },
-    //   select: {
-    //     id: true,
-    //   },
-    // });
+    const existingTrip = await prisma.trip.findFirst({
+      where: {
+        passenger_id,
+        status: ETripStatus.REQUESTED,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-    // if (existingTrip)
-    //   throw new ServerError(
-    //     StatusCodes.CONFLICT,
-    //     'You have a pending trip with id ' + existingTrip.id,
-    //   );
+    if (existingTrip)
+      throw new ServerError(
+        StatusCodes.CONFLICT,
+        'You have a pending trip with id ' + existingTrip.id,
+      );
 
     const sOtp = otpGenerator(config.otp.length);
     const eOtp = otpGenerator(config.otp.length);
@@ -124,7 +125,7 @@ export const TripServices = {
         eOtp,
         total_cost: estimatedFare,
         duration_sec: duration.value,
-        distance_km: distance.value,
+        distance_km: distance.value / 1000, // Convert meters to km
         day: todayEnum,
       },
       omit: {
@@ -690,6 +691,19 @@ export const TripServices = {
   async sendTripRequest(driverId: string, trip: Partial<TTrip>): Promise<void> {
     const io = SocketServices.getIO();
 
+    const updatedTrip = await prisma.trip.findUnique({
+      where: { id: trip.id! },
+      select: {
+        exclude_driver_ids: true,
+        passenger: userTripSelectableField,
+      },
+    });
+
+    if (updatedTrip?.exclude_driver_ids?.includes(driverId)) {
+      // Driver has already rejected this trip, skip sending request
+      return;
+    }
+
     console.log(chalk.red(`Sending trip request to driver ${driverId}`));
 
     // notify driver about the trip request
@@ -697,7 +711,10 @@ export const TripServices = {
       'trip:request',
       socketResponse({
         message: 'Request for trip',
-        data: trip,
+        data: {
+          ...trip,
+          passenger: updatedTrip?.passenger,
+        },
         meta: { trip_id: trip.id },
       }),
     );
@@ -810,13 +827,21 @@ export const TripServices = {
     const { user } = socket.data;
 
     const where: Prisma.TripWhereInput = {
-      OR: [{ status: ETripStatus.ACCEPTED }, { status: ETripStatus.STARTED }],
+      status: {},
     };
 
     if (user.role === EUserRole.DRIVER) {
       where.driver_id = user.id;
+
+      where.status = {
+        in: [ETripStatus.REQUESTED],
+      };
     } else {
       where.passenger_id = user.id;
+
+      where.status = {
+        in: [ETripStatus.ACCEPTED, ETripStatus.STARTED, ETripStatus.ARRIVED],
+      };
     }
 
     const trip: any = await prisma.trip.findFirst({
@@ -841,6 +866,18 @@ export const TripServices = {
         trip.driver_duration = 0;
       }
 
+      console.log(
+        JSON.stringify({
+          success: true,
+          statusCode: StatusCodes.OK,
+          message: `Trip ${trip.status.toLowerCase()} successfully from recover trip`,
+          data: trip,
+          meta: {
+            trip_id: trip.id,
+          },
+        }),
+      );
+
       if (user.role === EUserRole.DRIVER)
         Object.assign(trip, { sOtp: undefined, eOtp: undefined });
 
@@ -854,7 +891,7 @@ export const TripServices = {
           meta: {
             trip_id: trip.id,
           },
-        } as TServeResponse<typeof trip>),
+        } satisfies TServeResponse<typeof trip>),
       );
     }
   },
@@ -910,6 +947,9 @@ export const TripServices = {
             avatar: true,
           },
         },
+      },
+      orderBy: {
+        requested_at: 'desc',
       },
     });
 
