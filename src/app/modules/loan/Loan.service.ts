@@ -7,7 +7,7 @@ import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 
 export const LoanServices = {
-  async startLoan({ driver, loan_id, ...payload }: TStartLoan) {
+  async startLoan({ user, loan_id, ...payload }: TStartLoan) {
     const loanDetails = await prisma.availableLoan.findUnique({
       where: { id: loan_id },
     });
@@ -20,9 +20,9 @@ export const LoanServices = {
       data: {
         ...payload,
         loan_id,
-        driver_id: driver.id,
+        user_id: user.id,
         amount: loanDetails.amount,
-        name: payload.name ?? driver.name,
+        name: payload.name ?? user.name,
       },
     });
   },
@@ -87,7 +87,7 @@ export const LoanServices = {
         }
 
         await tx.user.update({
-          where: { id: loan.driver_id },
+          where: { id: loan.user_id },
           data: {
             wallet: {
               update: {

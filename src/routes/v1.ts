@@ -15,6 +15,7 @@ import { injectRoutes } from '../utils/router/injectRouter';
 import { NewsFeedRoutes } from '../app/modules/newsFeed/NewsFeed.route';
 import { NotificationRoutes } from '../app/modules/notification/Notification.route';
 import { ReferRoutes } from '../app/modules/refer/Refer.route';
+import { AvailableLoanRoutes } from '../app/modules/availableLoan/AvailableLoan.route';
 
 const appRouter = Router();
 
@@ -43,6 +44,7 @@ export default injectRoutes(appRouter, {
   '/trips': [auth.all, TripRoutes.user],
   '/notifications': [auth.all, NotificationRoutes.all],
   '/refers': [auth.all, ReferRoutes.all],
+  '/available-loans': [auth.all, AvailableLoanRoutes.all],
 
   // Driver auth
   '/drivers': [auth.driver, DriverRoutes.driver],

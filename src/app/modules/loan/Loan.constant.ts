@@ -1,8 +1,8 @@
 import { Loan as TLoan } from '../../../../prisma';
 
-export const loanSearchableFields: (keyof TLoan)[] = [
+export const loanSearchableFields = [
   'bank_account_number',
-  'driver_id',
+  'user_id',
   'problem',
   'name',
-];
+] as const satisfies Array<keyof TLoan>;

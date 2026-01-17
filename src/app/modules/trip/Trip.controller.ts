@@ -93,6 +93,7 @@ export const TripControllers = {
 
     return {
       message: 'Trip accepted successfully!',
+      data: body,
     };
   }),
 
@@ -154,8 +155,11 @@ export const TripControllers = {
     };
   }),
 
-  ratingTrip: catchAsync(async ({ body }) => {
-    await TripServices.ratingTrip(body);
+  ratingTrip: catchAsync(async ({ body, user }) => {
+    await TripServices.ratingTrip({
+      ...body,
+      reviewer_id: user.id,
+    });
 
     return {
       message: 'Trip rated successfully!',

@@ -82,15 +82,15 @@ const admin = Router();
   );
 }
 
-const driver = Router();
+const all = Router();
 {
-  driver.get(
+  all.get(
     '/',
     purifyRequest(QueryValidations.list),
     AvailableLoanControllers.getAllLoans,
   );
 
-  driver.post(
+  all.post(
     '/',
     capture({
       document: {
@@ -103,11 +103,11 @@ const driver = Router();
     LoanControllers.startLoan,
   );
 
-  driver.get(
+  all.get(
     '/:loan_id',
     purifyRequest(QueryValidations.exists('loan_id', 'availableLoan')),
     AvailableLoanControllers.getLoanById,
   );
 }
 
-export const AvailableLoanRoutes = { admin, driver };
+export const AvailableLoanRoutes = { admin, all };

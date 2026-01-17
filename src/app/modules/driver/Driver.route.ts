@@ -7,7 +7,6 @@ import { TripRoutes } from '../trip/Trip.route';
 import { injectRoutes } from '../../../utils/router/injectRouter';
 import { TransactionRoutes } from '../transaction/Transaction.route';
 import { DriverValidations } from './Driver.validation';
-import { AvailableLoanRoutes } from '../availableLoan/AvailableLoan.route';
 
 const admin = Router();
 {
@@ -34,7 +33,6 @@ const driver = injectRoutes(Router(), {
   '/available-drivers': [AvailableDriverRoutes.driver],
   '/trips': [TripRoutes.driver],
   '/transactions': [TransactionRoutes.driver],
-  '/available-loans': [AvailableLoanRoutes.driver],
 });
 {
   driver.get(

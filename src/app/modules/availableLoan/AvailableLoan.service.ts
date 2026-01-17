@@ -29,17 +29,13 @@ export const AvailableLoanServices = {
     });
   },
 
-  async getAllLoans({
-    limit,
-    page,
-    driver_id,
-  }: TList & { driver_id?: string }) {
+  async getAllLoans({ limit, page, user_id }: TList & { user_id?: string }) {
     const loans = await prisma.availableLoan.findMany({
       skip: (page - 1) * limit,
       take: limit,
       include: {
         loans: {
-          where: { driver_id },
+          where: { user_id },
           orderBy: { start_date: 'desc' },
         },
       },

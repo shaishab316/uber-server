@@ -11,4 +11,6 @@ export type TGetTripHistory = z.infer<
 >['query'] &
   TList & { driver_id?: string; passenger_id?: string };
 
-export type TRatingTrip = z.infer<typeof TripValidations.ratingTrip>['body'];
+export type TRatingTrip = z.infer<typeof TripValidations.ratingTrip>['body'] & {
+  reviewer_id: string;
+};

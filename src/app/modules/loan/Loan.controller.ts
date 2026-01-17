@@ -2,10 +2,10 @@ import catchAsync from '../../middlewares/catchAsync';
 import { LoanServices } from './Loan.service';
 
 export const LoanControllers = {
-  startLoan: catchAsync(async ({ body, user: driver }) => {
+  startLoan: catchAsync(async ({ body, user }) => {
     const data = await LoanServices.startLoan({
       ...body,
-      driver,
+      user,
     });
 
     return {

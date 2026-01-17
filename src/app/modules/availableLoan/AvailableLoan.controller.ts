@@ -32,19 +32,19 @@ export const AvailableLoanControllers = {
     });
   }),
 
-  getAllLoans: catchAsync(async ({ query, user: driver }, res) => {
+  getAllLoans: catchAsync(async ({ query, user }, res) => {
     const { loans, meta } = await AvailableLoanServices.getAllLoans({
       ...query,
-      driver_id: driver.id,
+      user_id: user.id,
     });
 
     serveResponse(res, {
       message: 'AvailableLoans fetched successfully!',
       meta: {
         ...meta,
-        available_loan: driver.available_loan,
-        loan_taken: driver.loan_taken,
-        active_loan: driver.active_loan,
+        available_loan: user.available_loan,
+        loan_taken: user.loan_taken,
+        active_loan: user.active_loan,
       },
       data: loans,
     });

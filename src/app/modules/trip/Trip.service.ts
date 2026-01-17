@@ -40,6 +40,7 @@ import { AvailableDriverServices } from '../availableDriver/AvailableDriver.serv
 import ms from 'ms';
 import { calculateTripFare } from '../../../utils/uber/tripFareHelper';
 import { ChatServices } from '../chat/Chat.service';
+import { NotificationServices } from '../notification/Notification.service';
 
 export const userTripSelectableField = {
   select: {
@@ -191,6 +192,7 @@ export const TripServices = {
     const trip = (await prisma.trip.findUnique({
       where: { id: trip_id },
       include: { passenger: { select: { name: true } } },
+      omit: tripOmit,
     }))!;
 
     if (!cancelAbleTripStatus.includes(trip.status))
@@ -223,6 +225,22 @@ export const TripServices = {
       passenger_id,
       reason,
     });
+
+    if (trip.driver_id) {
+      // Notify driver about trip cancellation
+      SocketServices.getIO()
+        ?.to(trip.driver_id)
+        .emit(
+          'trip:driver-cancelled',
+          socketResponse({
+            message: `${trip.passenger.name} canceled the trip`,
+            data: trip,
+            meta: {
+              trip_id,
+            },
+          }),
+        );
+    }
   },
 
   async acceptTrip({
@@ -279,7 +297,9 @@ export const TripServices = {
         passenger: userTripSelectableField,
         driver: userTripSelectableField,
       },
-      omit: tripOmit,
+      omit: {
+        exclude_driver_ids: true,
+      },
     });
 
     //? easily access in chat service
@@ -287,6 +307,8 @@ export const TripServices = {
       driver_id,
       user_id: updatedTrip.passenger_id,
     });
+
+    updatedTrip.chat_id = chat.id;
 
     try {
       const { distance, duration } = await getDistanceAndTime(
@@ -309,7 +331,7 @@ export const TripServices = {
       .emit(
         'trip:accepted',
         socketResponse({
-          message: `${updatedTrip?.passenger?.name} xxxxx accepted your trip request`,
+          message: `${updatedTrip?.passenger?.name} accepted your trip request`,
           data: updatedTrip,
           meta: {
             trip_id,
@@ -708,7 +730,7 @@ export const TripServices = {
 
     // notify driver about the trip request
     io?.to(driverId).emit(
-      'trip:request',
+      'trip:driver-request',
       socketResponse({
         message: 'Request for trip',
         data: {
@@ -834,7 +856,12 @@ export const TripServices = {
       where.driver_id = user.id;
 
       where.status = {
-        in: [ETripStatus.REQUESTED],
+        in: [
+          ETripStatus.REQUESTED,
+          ETripStatus.ACCEPTED,
+          ETripStatus.STARTED,
+          ETripStatus.ARRIVED,
+        ],
       };
     } else {
       where.passenger_id = user.id;
@@ -866,6 +893,26 @@ export const TripServices = {
         trip.driver_duration = 0;
       }
 
+      try {
+        //? No driver assigned
+        if (!trip.driver_id) return;
+
+        //? easily access in chat service
+        const chat = await ChatServices.getChat({
+          driver_id: trip.driver_id,
+          user_id: trip.passenger_id,
+        });
+
+        trip.chat_id = chat.id;
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(
+            'Error fetching chat during trip recovery:',
+            error.message,
+          );
+        }
+      }
+
       console.log(
         JSON.stringify({
           success: true,
@@ -874,6 +921,7 @@ export const TripServices = {
           data: trip,
           meta: {
             trip_id: trip.id,
+            chat_id: trip.chat_id,
           },
         }),
       );
@@ -881,8 +929,13 @@ export const TripServices = {
       if (user.role === EUserRole.DRIVER)
         Object.assign(trip, { sOtp: undefined, eOtp: undefined });
 
+      console.log(
+        '{{trip_event}}',
+        `trip:${user.role === EUserRole.DRIVER ? 'driver-' : ''}${trip.status.toLowerCase()}`,
+      );
+
       io?.to(user.id).emit(
-        `trip:${trip.status.toLowerCase()}`,
+        `trip:${user.role === EUserRole.DRIVER ? 'driver-' : ''}${trip.status.toLowerCase()}`,
         JSON.stringify({
           success: true,
           statusCode: StatusCodes.OK,
@@ -890,6 +943,7 @@ export const TripServices = {
           data: trip,
           meta: {
             trip_id: trip.id,
+            chat_id: trip.chat_id,
           },
         } satisfies TServeResponse<typeof trip>),
       );
@@ -994,7 +1048,7 @@ export const TripServices = {
     };
   },
 
-  async ratingTrip({ rating, trip_id }: TRatingTrip) {
+  async ratingTrip({ rating, trip_id, feedback, reviewer_id }: TRatingTrip) {
     const trip = await prisma.trip.findUnique({
       where: { id: trip_id },
       select: {
@@ -1014,9 +1068,27 @@ export const TripServices = {
       );
     }
 
+    //? Save review
+    await prisma.review.create({
+      data: {
+        user_id: trip.driver.id,
+        reviewer_id,
+        rating,
+        comment: feedback,
+        ref_trip_id: trip_id,
+      },
+    });
+
     const driverRating = trip?.driver?.rating || 0;
 
     const avgRating = Number(((driverRating + rating) / 2).toFixed(1));
+
+    //? Notify user about new review
+    await NotificationServices.createNotification({
+      user_id: trip.driver.id,
+      title: 'New Review Received',
+      message: `You received a ${rating}-star review. Your average rating is now ${avgRating}.`,
+    });
 
     return prisma.user.update({
       where: { id: trip?.driver?.id },

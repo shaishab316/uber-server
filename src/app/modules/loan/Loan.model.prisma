@@ -1,7 +1,7 @@
 model Loan {
   id         String      @id @default(auto()) @map("_id") @db.ObjectId
   start_date DateTime    @default(now())
-  driver_id  String      @db.ObjectId
+  user_id    String      @db.ObjectId
   loan_id    String      @db.ObjectId
   status     ELoanStatus @default(PENDING)
 
@@ -12,8 +12,8 @@ model Loan {
   bank_account_number String
   document            String // link to document image or pdf
 
-  driver User          @relation(fields: [driver_id], references: [id], onDelete: Cascade)
-  loan   AvailableLoan @relation(fields: [loan_id], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  loan AvailableLoan @relation(fields: [loan_id], references: [id], onDelete: Cascade)
 
   @@map("loans")
 }

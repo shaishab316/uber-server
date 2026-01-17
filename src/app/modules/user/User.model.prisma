@@ -53,6 +53,8 @@ model User {
   TransactionsAsDriver Transaction[]     @relation("DriverTransaction")
   user_refers          Refer[]           @relation("ReferUser")
   refer                Refer?            @relation("UserRefer", fields: [refer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  given_reviews        Review[]          @relation("ReviewerReviews")
+  received_reviews     Review[]          @relation("UserReviews")
 
   @@map("users")
 }

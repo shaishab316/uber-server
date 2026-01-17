@@ -9,5 +9,5 @@ export type TSuperGetAllLoans = z.infer<
   TList;
 
 export type TStartLoan = z.infer<typeof LoanValidations.startLoan>['body'] & {
-  driver: Pick<User, 'id' | 'name'>;
+  user: Pick<User, 'id' | 'name'>;
 };
