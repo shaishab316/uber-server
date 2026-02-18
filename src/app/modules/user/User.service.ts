@@ -55,10 +55,10 @@ export const UserServices = {
 
     try {
       if (email)
-        sendEmail({
+        await sendEmail({
           to: email,
           subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-          html: await emailTemplate({
+          html: emailTemplate({
             userName: name,
             otp,
             template: 'account_verify',

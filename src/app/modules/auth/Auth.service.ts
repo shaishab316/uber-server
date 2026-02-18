@@ -55,10 +55,10 @@ export const AuthServices = {
 
       try {
         if (email)
-          sendEmail({
+          await sendEmail({
             to: email,
             subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-            html: await emailTemplate({
+            html: emailTemplate({
               userName: user.name,
               otp,
               template: 'account_verify',
@@ -161,10 +161,10 @@ export const AuthServices = {
 
     try {
       if (email)
-        sendEmail({
+        await sendEmail({
           to: email,
           subject: `Your ${config.server.name} Account Verification OTP is ⚡ ${otp} ⚡.`,
-          html: await emailTemplate({
+          html: emailTemplate({
             userName: user.name,
             otp,
             template: 'account_verify',
@@ -200,10 +200,10 @@ export const AuthServices = {
 
     try {
       if (email)
-        sendEmail({
+        await sendEmail({
           to: email,
           subject: `Your ${config.server.name} Password Reset OTP is ⚡ ${otp} ⚡.`,
-          html: await emailTemplate({
+          html: emailTemplate({
             userName: user.name,
             otp,
             template: 'reset_password',
