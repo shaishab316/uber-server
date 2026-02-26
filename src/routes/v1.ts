@@ -14,6 +14,7 @@ import { NewsFeedRoutes } from '../app/modules/newsFeed/NewsFeed.route';
 import { NotificationRoutes } from '../app/modules/notification/Notification.route';
 import { ReferRoutes } from '../app/modules/refer/Refer.route';
 import { AvailableLoanRoutes } from '../app/modules/availableLoan/AvailableLoan.route';
+import { AzulRoutes } from '../app/modules/azul/Azul.route';
 
 export default injectRoutes(Router(), {
   '/context-pages': [ContextPageRoutes.user],
@@ -22,6 +23,7 @@ export default injectRoutes(Router(), {
   '/auth': [AuthRoutes],
   '/payments': [PaymentRoutes.user],
   '/news-feeds': [NewsFeedRoutes.free],
+  '/azul': [AzulRoutes],
 
   // Free auth
   '/profile': [auth.all, UserRoutes.user],
