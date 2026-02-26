@@ -128,6 +128,15 @@ export const TripServices = {
         duration_sec: duration.value,
         distance_km: distance.value / 1000, // Convert meters to km
         day: todayEnum,
+
+        //? Store initial fare breakdown for later use in case of fare adjustments or disputes
+        price_breakdown: {
+          base_fare: estimatedFare,
+          distance_fare: fareResult.details.distance,
+          time_fare: fareResult.details.waiting,
+          platform_fee: fareResult.app,
+          driver_earning: fareResult.driver,
+        },
       },
       omit: {
         ...tripOmit,
