@@ -282,6 +282,13 @@ export const UserServices = {
   async getProfile(user_id: string) {
     const user = await prisma.user.findUnique({
       where: { id: user_id },
+      include: {
+        wallet: {
+          select: {
+            balance: true,
+          },
+        },
+      },
       omit: userOmit,
     });
 

@@ -1,4 +1,7 @@
+import { StatusCodes } from 'http-status-codes';
+import config from '../../../config';
 import catchAsync from '../../middlewares/catchAsync';
+import type { TVerifyPayment } from '../azul/Azul.interface';
 import type { TCheckoutSession, TGenerateTopupLink } from './Topup.interface';
 import { TopupServices } from './Topup.service';
 
@@ -29,5 +32,18 @@ export const TopupControllers = {
       ...query,
       res,
     });
+  }),
+
+  /**
+   * Handles the redirect from AZUL after payment processing by validating the incoming query parameters, verifying the payment using the AZUL service, and then redirecting the user to the appropriate checkout page based on the topup session ID. If the payment verification fails, an error is thrown indicating that the transaction data is malformed or unauthorized.
+   */
+  verifyPayment: catchAsync<TVerifyPayment>(async ({ query }, res) => {
+    const data = await TopupServices.verifyPayment(query);
+
+    res
+      .status(StatusCodes.PERMANENT_REDIRECT)
+      .redirect(
+        `${config.url.href}/api/v1/topup/checkout?session=${data.topup_id}`,
+      );
   }),
 };

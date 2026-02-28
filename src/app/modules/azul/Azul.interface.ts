@@ -1,3 +1,6 @@
+import type { z } from 'zod';
+import type { AzulValidation } from './Azul.validation';
+
 /***************************************/
 /********** Service Interface **********/
 /***************************************/
@@ -43,4 +46,15 @@ export type TInitiatePaymentResult = {
     //? Important
     AuthHash: string;
   };
+};
+
+/***************************************/
+/********* Validation Interface ********/
+/***************************************/
+
+export type TVerifyPayment = z.infer<typeof AzulValidation.verifyPayment>;
+export type TVerifyPaymentPayload = TVerifyPayment['query'];
+export type TVerifyPaymentResult = {
+  topup_id: string;
+  amount: number;
 };

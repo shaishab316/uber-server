@@ -3,6 +3,7 @@ import purifyRequest from '../../middlewares/purifyRequest';
 import { TopupValidations } from './Topup.validation';
 import { TopupControllers } from './Topup.controller';
 import auth from '../../middlewares/auth';
+import { AzulValidation } from '../azul/Azul.validation';
 
 const router = Router();
 
@@ -23,6 +24,15 @@ router.get(
   '/checkout',
   purifyRequest(TopupValidations.checkoutSession),
   TopupControllers.checkoutSession,
+);
+
+/**
+ * Endpoint to handle the redirect from AZUL after payment processing. Validates the incoming query parameters using the AzulValidation schema and verifies the payment by checking the authenticity of the data and ensuring that the transaction was successful.
+ */
+router.get(
+  '/azul-verify-payment',
+  purifyRequest(AzulValidation.verifyPayment),
+  TopupControllers.verifyPayment,
 );
 
 export const TopupRoutes = router;

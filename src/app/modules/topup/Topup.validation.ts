@@ -11,6 +11,12 @@ const _ = {
     .positive()
     .transform(val => (val * 100) | 0), // Convert to cents and ensure it's an integer
   provider: z.enum(ETopupProvider),
+  session: z
+    .string()
+    .length(24)
+    .refine(exists('topup'), {
+      error: ({ input }) => `Topup session with id "${input}" does not exist`,
+    }),
 };
 
 /**
@@ -32,13 +38,7 @@ export const TopupValidations = {
    */
   checkoutSession: z.object({
     query: z.object({
-      session: z
-        .string()
-        .length(24)
-        .refine(exists('topup'), {
-          error: ({ input }) =>
-            `Topup session with id "${input}" does not exist`,
-        }),
+      session: _.session,
     }),
   }),
 };
