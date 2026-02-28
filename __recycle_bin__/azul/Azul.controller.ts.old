@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
-import ServerError from '../../../errors/ServerError';
-import catchAsync from '../../middlewares/catchAsync';
-import { azulServices } from './Azul.service';
+import ServerError from '../../src/errors/ServerError';
+import catchAsync from '../../src/app/middlewares/catchAsync';
+import { azulServices } from '../../src/app/modules/azul/Azul.service';
 
 export const AzulControllers = {
   initiatePayment: catchAsync(async ({ body }) => {

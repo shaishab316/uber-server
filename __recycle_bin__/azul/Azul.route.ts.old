@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { AzulControllers } from './Azul.controller';
+import { AzulControllers } from './Azul.controller.ts.old';
 
 const router = Router();
 
