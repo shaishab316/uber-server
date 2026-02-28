@@ -16,4 +16,13 @@ router.post(
   TopupControllers.generateTopupLink,
 );
 
+/**
+ * Handle the checkout session for a topup. Validates the session query parameter and processes the payment flow based on the provider specified in the topup session. Currently supports AZUL as a payment provider.
+ */
+router.get(
+  '/checkout',
+  purifyRequest(TopupValidations.checkoutSession),
+  TopupControllers.checkoutSession,
+);
+
 export const TopupRoutes = router;

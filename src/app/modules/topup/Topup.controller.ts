@@ -1,5 +1,5 @@
 import catchAsync from '../../middlewares/catchAsync';
-import type { TGenerateTopupLink } from './Topup.interface';
+import type { TCheckoutSession, TGenerateTopupLink } from './Topup.interface';
 import { TopupServices } from './Topup.service';
 
 /**
@@ -19,5 +19,15 @@ export const TopupControllers = {
       message: 'Topup link generated successfully',
       data,
     };
+  }),
+
+  /**
+   * Handles the checkout session for a topup by validating the session ID, retrieving the corresponding topup session from the database, and initiating the appropriate payment flow based on the provider specified in the topup session. Currently supports AZUL as a payment provider. If the session is not found or if an unsupported provider is specified, an appropriate error is thrown.
+   */
+  checkoutSession: catchAsync<TCheckoutSession>(async ({ query }, res) => {
+    await TopupServices.checkoutSession({
+      ...query,
+      res,
+    });
   }),
 };
