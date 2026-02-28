@@ -1,0 +1,22 @@
+model Topup {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  requested_at DateTime @default(now())
+
+  user_id String?
+
+  amount Int //? in cents
+
+  completed_at DateTime?
+  is_completed Boolean   @default(false)
+
+  provider ETopupProvider
+
+  user User? @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([user_id, is_completed])
+  @@map("topups")
+}
+
+enum ETopupProvider {
+  AZUL
+}
