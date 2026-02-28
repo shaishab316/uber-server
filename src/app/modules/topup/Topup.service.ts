@@ -7,6 +7,7 @@ import type {
   TCheckoutSessionPayload,
   TGenerateTopupLinkPayload,
 } from './Topup.interface';
+import { azulTopupCheckoutTemplate } from './Topup.template';
 
 /**
  * Service for handling topup-related operations, such as generating topup links and processing payments.
@@ -44,6 +45,7 @@ export const TopupServices = {
       include: {
         user: {
           select: {
+            id: true,
             name: true,
             avatar: true,
           },
@@ -64,13 +66,15 @@ export const TopupServices = {
     }
   },
 
+  /**
+   * Handles the checkout process for AZUL payments by rendering an HTML template with the necessary data from the topup session. The rendered HTML is sent as the response to the client, allowing them to proceed with the payment through AZUL's platform. The template includes dynamic data such as the amount, user information, and provider details, which are populated based on the topup session retrieved from the database.
+   */
   async checkoutAzulPayment({
     res,
-    // ...topupSession
+    ...topupSession
   }: TCheckoutAzulPaymentPayload) {
     res.contentType('text/html');
     res.statusCode = StatusCodes.OK;
-    res.write('<h1>Azul payment flow coming soon...</h1>');
-    res.end();
+    res.send(azulTopupCheckoutTemplate(topupSession));
   },
 };

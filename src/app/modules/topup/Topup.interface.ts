@@ -24,7 +24,11 @@ export type TCheckoutSessionPayload = TCheckoutSession['query'] & {
 /************************************/
 
 export type TCheckoutAzulPaymentPayload = TTopup & {
-  user: Pick<TUser, 'name' | 'avatar'> | null;
+  user: Pick<TUser, 'id' | 'name' | 'avatar'> | null;
 } & {
   res: Response;
 };
+export type TCheckoutAzulPaymentTemplateData = Omit<
+  TCheckoutAzulPaymentPayload,
+  'res'
+>;
