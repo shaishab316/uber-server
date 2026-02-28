@@ -5,7 +5,10 @@ import { exists } from '../../../utils/db/exists';
  * Shared validation schemas for the Azul module. These schemas are used to validate incoming requests related to AZUL payment operations, ensuring that the data conforms to expected formats and constraints.`
  */
 const _ = {
-  amount: z.coerce.number().positive(),
+  amount: z
+    .string()
+    .regex(/^\d+$/)
+    .refine(n => Number(n) > 0, 'Must be positive'),
   order_number: z
     .string()
     .length(24)

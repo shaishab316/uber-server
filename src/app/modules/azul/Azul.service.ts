@@ -95,7 +95,7 @@ export const AzulServices = {
   verifyPayment(payload: TVerifyPaymentPayload): TVerifyPaymentResult {
     const hashFields: string[] = [
       payload.OrderNumber,
-      payload.Amount.toString(),
+      payload.Amount,
       payload.AuthorizationCode,
       payload.DateTime,
       payload.ResponseCode,
@@ -124,9 +124,6 @@ export const AzulServices = {
 
     return {
       topup_id: payload.OrderNumber,
-
-      //? if database amount don't match the payload amount, then need to update
-      amount: payload.Amount,
     };
   },
 };

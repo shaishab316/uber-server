@@ -56,5 +56,4 @@ export type TVerifyPayment = z.infer<typeof AzulValidation.verifyPayment>;
 export type TVerifyPaymentPayload = TVerifyPayment['query'];
 export type TVerifyPaymentResult = {
   topup_id: string;
-  amount: number;
 };

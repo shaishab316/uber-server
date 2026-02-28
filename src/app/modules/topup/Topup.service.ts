@@ -10,8 +10,7 @@ import type {
 import { azulTopupCheckoutTemplate } from './Topup.template';
 import type { TVerifyPaymentPayload } from '../azul/Azul.interface';
 import { AzulServices } from '../azul/Azul.service';
-import { debug } from 'node:util';
-import type { Prisma } from '../../../../prisma';
+import { debuglog as debug } from 'node:util';
 
 /**
  * AzulServices provides methods to interact with the AZUL payment gateway, including initiating payments by generating the required payload and authentication hash for AZUL's hosted payment page, as well as verifying payments by validating the incoming query parameters from AZUL's redirect after payment processing.
@@ -94,7 +93,7 @@ export const TopupServices = {
     /**
      * Step 1: Verify the authenticity of the incoming payment data from AZUL by validating the authentication hash and ensuring that the transaction was successful based on the response code and ISO code. If the data is valid, extract the topup ID and amount from the payload for further processing.
      */
-    const { topup_id, amount } = AzulServices.verifyPayment(payload);
+    const { topup_id } = AzulServices.verifyPayment(payload);
 
     return prisma.$transaction(async tx => {
       const topup = await tx.topup.findUnique({
@@ -122,23 +121,15 @@ export const TopupServices = {
 
       debugLog('Payment verified successfully for topup_id:', {
         topup_id,
-        amount,
         topup,
       });
-
-      const topupUpdateData: Prisma.TopupUpdateInput = { is_completed: true };
-
-      //? If the amount in the database doesn't match the amount from the payload, update it to ensure consistency. This can happen if there was a change in the topup amount after the payment was initiated but before it was completed.
-      if (topup.amount !== amount) {
-        topupUpdateData.amount = amount;
-      }
 
       /**
        * Step 4: Update the topup record in the database to mark it as completed and ensure that the amount is accurate. Then, increment the user's wallet balance by the amount of the topup. This step finalizes the payment process by reflecting the successful transaction in the database and updating the user's available balance for future transactions. Finally, return the topup ID as a confirmation of successful processing.
        */
       await tx.topup.update({
         where: { id: topup_id },
-        data: topupUpdateData,
+        data: { is_completed: true },
       });
 
       /**
@@ -148,7 +139,7 @@ export const TopupServices = {
         where: { user_id: topup.user_id },
         data: {
           balance: {
-            increment: Number((amount / 100).toFixed(2)),
+            increment: Number((topup.amount / 100).toFixed(2)),
           },
         },
       });
