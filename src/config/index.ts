@@ -304,12 +304,12 @@ const config = {
       declined: (session_id: string) =>
         env('azul declined url', 'http://localhost:3000/payment/declined', {
           regex: '^https?:\\/\\/.*$|^$',
-        }) + `?session_id=${session_id}`,
+        }) + `?type=declined&session=${session_id}`,
       cancel: (session_id: string) =>
         env('azul cancel url', 'http://localhost:3000/payment/cancel', {
           regex: '^https?:\\/\\/.*$|^$',
           down: 'Azul info - end',
-        }) + `?session_id=${session_id}`,
+        }) + `?type=cancel&session=${session_id}`,
     },
 
     certs: {

@@ -95,14 +95,45 @@ export const TopupServices = {
      */
     const { topup_id } = AzulServices.verifyPayment(payload);
 
-    return prisma.$transaction(async tx => {
+    await prisma.$transaction(async tx => {
+      /**
+       * Step 2: Atomically mark the topup as completed ONLY if it hasn't been
+       * completed yet (is_completed: false). This is a single DB operation —
+       * no separate find + check + update — which eliminates the race condition
+       * where two simultaneous AZUL callbacks could both pass the is_completed
+       * check before either one writes to the DB.
+       *
+       * updateMany returns { count: number }
+       *   count === 1  → we just completed it, proceed to update wallet
+       *   count === 0  → another callback already completed it, skip wallet update
+       */
+      const { count: isNew } = await tx.topup.updateMany({
+        where: {
+          id: topup_id,
+          is_completed: false, // ← KEY: only matches if NOT yet completed
+        },
+        data: {
+          is_completed: true,
+        },
+      });
+
+      if (!isNew) {
+        debugLog('Topup already completed, skipping wallet update:', {
+          topup_id,
+        });
+
+        return; //? Exit early if this topup was already completed by another callback
+      }
+
+      /**
+       * Step 3: Now fetch the topup to get the amount and user_id.
+       * We do this AFTER the atomic update, so we know we're the
+       * "winner" of the race. No other callback can reach this point.
+       */
       const topup = await tx.topup.findUnique({
         where: { id: topup_id },
       });
 
-      /**
-       * Step 2: Ensure that topup and topup user exist.
-       */
       if (!topup?.user_id) {
         throw new ServerError(
           StatusCodes.NOT_FOUND,
@@ -110,30 +141,14 @@ export const TopupServices = {
         );
       }
 
-      /**
-       * Step 3: If the topup is already completed, return the topup ID without making any changes to the database. This prevents duplicate processing of the same payment in case of multiple callbacks from AZUL or if the user refreshes the page after completing the payment. If the topup is not completed, proceed to update the topup status and increment the user's wallet balance accordingly.
-       */
-      if (topup.is_completed) {
-        return {
-          topup_id,
-        };
-      }
-
-      debugLog('Payment verified successfully for topup_id:', {
+      debugLog('Payment verified successfully, updating wallet:', {
         topup_id,
         topup,
       });
 
       /**
-       * Step 4: Update the topup record in the database to mark it as completed and ensure that the amount is accurate. Then, increment the user's wallet balance by the amount of the topup. This step finalizes the payment process by reflecting the successful transaction in the database and updating the user's available balance for future transactions. Finally, return the topup ID as a confirmation of successful processing.
-       */
-      await tx.topup.update({
-        where: { id: topup_id },
-        data: { is_completed: true },
-      });
-
-      /**
-       * Step 5: Increment the user's wallet balance by the amount of the topup. This is done after marking the topup as completed to ensure that only successful transactions result in a balance update. The amount is divided by 100 to convert it from cents to dollars (or the appropriate currency unit) before incrementing the balance.
+       * Step 4: Increment the user's wallet balance.
+       * Amount stored in DB is in cents → divide by 100 for real currency value.
        */
       await tx.wallet.update({
         where: { user_id: topup.user_id },
@@ -143,10 +158,8 @@ export const TopupServices = {
           },
         },
       });
-
-      return {
-        topup_id,
-      };
     });
+
+    return { topup_id };
   },
 };
