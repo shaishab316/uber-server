@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { cleanupStaleTopups } from './app/modules/topup/Topup.cron';
 import { debuglog as debug } from 'node:util';
 import { Server } from 'node:http';
+import { errorLogger } from './utils/logger';
 
 const debugLog = debug('app:cron:index');
 
@@ -26,7 +27,7 @@ export const registerCronJobs = (server: Server) => {
         await fn();
         debugLog('[%s] done in %dms', name, Date.now() - start);
       } catch (err) {
-        debugLog('[%s] failed: %o', name, err);
+        errorLogger.error('[%s] failed: %o', name, err);
       }
     });
 

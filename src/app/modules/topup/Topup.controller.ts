@@ -41,7 +41,7 @@ export const TopupControllers = {
     const data = await TopupServices.verifyPayment(query);
 
     res
-      .status(StatusCodes.PERMANENT_REDIRECT)
+      .status(StatusCodes.MOVED_TEMPORARILY)
       .redirect(
         `${config.url.href}/api/v1/topup/checkout?session=${data.topup_id}`,
       );

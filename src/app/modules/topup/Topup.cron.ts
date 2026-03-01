@@ -4,11 +4,9 @@ import { debuglog as debug } from 'node:util';
 export const debugLog = debug('app:cron:topup');
 
 /**
- * Deletes all uncompleted topup sessions older than 1 hour.
- * AZUL's hosted payment page expires in ~30 minutes, so any
- * uncompleted topup older than 1 hour is guaranteed to be dead.
- *
- * Recommended schedule: every day at 2 AM → "0 2 * * *"
+ * Deletes topup records that were requested more than 24 hours ago and are still not completed.
+ * This helps to keep the database clean from stale topup requests that were never completed.
+ * Scheduled to run once a day at 2 AM via cron job.
  */
 export const cleanupStaleTopups = async () => {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
