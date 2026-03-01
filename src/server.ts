@@ -8,5 +8,5 @@ startServer().then(server => {
   SocketServices.init(server);
 
   //? Register cron jobs after server is up
-  registerCronJobs();
+  registerCronJobs(server);
 });

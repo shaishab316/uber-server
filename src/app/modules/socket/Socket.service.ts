@@ -22,7 +22,7 @@ export const SocketServices = {
     logger.info(chalk.green('🚀 Socket services initialized successfully'));
 
     // Attach cleanup on server close
-    server.on('close', this.cleanup);
+    server.once('close', this.cleanup);
 
     // Use single namespace
     io.use(auth);

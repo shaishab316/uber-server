@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { cleanupStaleTopups } from './app/modules/topup/Topup.cron';
 import { debuglog as debug } from 'node:util';
+import { Server } from 'node:http';
 
 const debugLog = debug('app:cron:index');
 
@@ -16,7 +17,7 @@ const jobs = [
  * Registers all cron jobs and wires up graceful shutdown.
  * Call once during server startup.
  */
-export const registerCronJobs = () => {
+export const registerCronJobs = (server: Server) => {
   const tasks = jobs.map(({ name, schedule, fn }) => {
     const task = cron.schedule(schedule, async () => {
       debugLog('[%s] started', name);
@@ -33,15 +34,11 @@ export const registerCronJobs = () => {
     return task;
   });
 
-  // Graceful shutdown — stop all tasks before exit
-  const stop = (signal: string) => {
-    debugLog('Received %s, stopping cron jobs...', signal);
+  //? Stop all cron jobs when server is closing
+  server.once('close', () => {
     tasks.forEach(t => t.stop());
     debugLog('All cron jobs stopped.');
-  };
-
-  process.once('SIGINT', () => stop('SIGINT'));
-  process.once('SIGTERM', () => stop('SIGTERM'));
+  });
 };
 
 type TCronJob = {
