@@ -36,6 +36,8 @@ export const AzulValidation = {
       ErrorDescription: z.string().default(''),
       RRN: z.string().default(''),
       AuthHash: z.string(),
+      AzulOrderId: z.string().default(''),
+      CardNumber: z.string().default(''),
     }),
   }),
 };

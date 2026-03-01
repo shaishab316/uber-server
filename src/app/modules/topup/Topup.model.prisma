@@ -11,9 +11,12 @@ model Topup {
 
   provider ETopupProvider
 
+  provider_metadata Json? //? if completed, this will contain the provider's response
+
   user User? @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([user_id, is_completed])
+  @@index([is_completed, requested_at])
   @@map("topups")
 }
 

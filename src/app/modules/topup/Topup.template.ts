@@ -5,11 +5,34 @@ import type { TCheckoutAzulPaymentTemplateData } from './Topup.interface';
 export const azulTopupCheckoutTemplate = (
   session: TCheckoutAzulPaymentTemplateData,
 ) => {
+  // ── Cast provider_metadata ─────────────────────────────────────────────────
+  const meta = session.provider_metadata as {
+    azul_order_id?: string;
+    rrn?: string;
+    auth_code?: string;
+    card_number?: string;
+  } | null;
+
+  // ── Mask helpers (server-side, never expose full values to client) ─────────
+  const maskMiddle = (val?: string) => {
+    if (!val) return '—';
+    if (val.length <= 6) return '*'.repeat(val.length);
+    return val.slice(0, 3) + '*'.repeat(val.length - 6) + val.slice(-3);
+  };
+
+  // Card already comes pre-masked from AZUL (e.g. "54240000****0015")
+  const maskedCard = meta?.card_number ?? null;
+  const maskedRrn = maskMiddle(meta?.rrn);
+  const maskedAzulId = maskMiddle(meta?.azul_order_id);
+  const maskedAuthCode = meta?.auth_code
+    ? meta.auth_code.slice(0, 2) + '****'
+    : null;
+
   // ── Compute Azul payload server-side ──────────────────────────────────────
   const azulData =
     !session.is_completed &&
     AzulServices.initiatePayment({
-      amount: session.amount, //? in cents
+      amount: session.amount,
       order_number: session.id,
       custom_field_1_label: 'User ID',
       custom_field_1_value: session.user_id ?? '',
@@ -36,7 +59,7 @@ export const azulTopupCheckoutTemplate = (
     .fade-in  { animation: fadeIn  0.45s ease both; }
     .shimmer  { animation: shimmer 2.5s  infinite;  }
     .spinning { animation: spin    0.8s  linear infinite; }
-    .shake    { animation: shake  0.5s  ease; }
+    .shake    { animation: shake   0.5s  ease; }
   </style>
 </head>
 <body class="bg-zinc-950 min-h-screen flex items-center justify-center p-4">
@@ -64,7 +87,6 @@ export const azulTopupCheckoutTemplate = (
         <p class="text-white font-semibold text-base truncate">${session.user?.name ?? 'Guest'}</p>
         <p class="text-zinc-500 text-xs font-mono mt-0.5 truncate">${session.user_id ? 'ID: ' + session.user_id : '—'}</p>
       </div>
-      <!-- Badge is set by JS below based on URL ?type= param -->
       <span id="status-badge" class="flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium border
         ${
           session.is_completed
@@ -117,9 +139,52 @@ export const azulTopupCheckoutTemplate = (
           <span class="text-zinc-300">Total</span>
           <span class="text-white text-base">$${(session.amount / 100).toFixed(2)}</span>
         </div>
+
+        ${
+          meta
+            ? `
+        <div class="border-t border-zinc-800 pt-3 space-y-2">
+          ${
+            maskedCard
+              ? `
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">Card</span>
+            <span class="text-zinc-300 font-mono tracking-wider">${maskedCard}</span>
+          </div>`
+              : ''
+          }
+          ${
+            maskedAuthCode
+              ? `
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">Auth Code</span>
+            <span class="text-zinc-300 font-mono">${maskedAuthCode}</span>
+          </div>`
+              : ''
+          }
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">Ref (RRN)</span>
+            <span class="text-zinc-400 font-mono text-xs">${maskedRrn}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">Azul Ref</span>
+            <span class="text-zinc-400 font-mono text-xs">${maskedAzulId}</span>
+          </div>
+          ${
+            session.completed_at
+              ? `
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">Paid At</span>
+            <span class="text-zinc-400 text-xs">${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(session.completed_at)}</span>
+          </div>`
+              : ''
+          }
+        </div>`
+            : ''
+        }
       </div>
 
-      <!-- Error message banner (hidden by default, shown by JS) -->
+      <!-- Error banner (shown by JS for declined/cancel) -->
       <div id="error-banner" class="hidden rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-red-400 text-xs leading-relaxed"></div>
 
       <!-- Button -->
@@ -143,10 +208,10 @@ export const azulTopupCheckoutTemplate = (
           ${
             session.is_completed
               ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                <span id="btn-text">Payment Successful</span>`
+               <span id="btn-text">Payment Successful</span>`
               : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <span id="btn-text">Confirm &amp; Pay</span>
-                <svg id="btn-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`
+               <span id="btn-text">Confirm &amp; Pay</span>
+               <svg id="btn-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`
           }
         </span>
       </button>
@@ -160,54 +225,43 @@ export const azulTopupCheckoutTemplate = (
   </div>
 
   <script>
-    // ── Read URL state (type=declined|cancel, ErrorDescription) ───────────────
-    const __params__  = new URLSearchParams(location.search);
-    const __type__    = __params__.get('type');      // 'declined' | 'cancel' | null
-    const __errDesc__ = __params__.get('ErrorDescription');
-    const __errMsg__  = __params__.get('ResponseMessage');
+    const __params__      = new URLSearchParams(location.search);
+    const __type__        = __params__.get('type');
+    const __errDesc__     = __params__.get('ErrorDescription');
+    const __errMsg__      = __params__.get('ResponseMessage');
     const __isCompleted__ = ${session.is_completed ? 'true' : 'false'};
 
     const badge = document.getElementById('status-badge');
     const btn   = document.getElementById('btn');
-    const btnBg = document.getElementById('btn-bg');
     const card  = document.getElementById('checkout-card');
 
     if (__isCompleted__) {
-      // ── Celebration 🎉 ────────────────────────────────────────────────────
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.55 }, colors: ['#a78bfa','#6366f1','#34d399','#ffffff'] });
       setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: 0.5 }, angle: 60,  colors: ['#f472b6','#fbbf24'] }), 350);
       setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: 0.5 }, angle: 120, colors: ['#38bdf8','#a78bfa'] }), 600);
 
     } else if (__type__ === 'declined') {
-      // ── Declined state ────────────────────────────────────────────────────
       badge.className = 'flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium border bg-red-500/10 text-red-400 border-red-500/20';
       badge.textContent = 'Declined';
 
-      // Shake the card
       card.classList.add('shake');
       card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
 
-      // Show error banner
       const banner = document.getElementById('error-banner');
       const msg = decodeURIComponent(__errDesc__ || __errMsg__ || 'Your payment was declined. Please try a different card.');
       banner.textContent = '⚠️ ' + msg;
       banner.classList.remove('hidden');
 
-      // Update button → retry (re-enable, keep purple)
       btn.disabled = false;
       btn.querySelector('#btn-text').textContent = 'Try Again';
 
     } else if (__type__ === 'cancel') {
-      // ── Cancelled state ───────────────────────────────────────────────────
       badge.className = 'flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium border bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
       badge.textContent = 'Cancelled';
 
       const banner = document.getElementById('error-banner');
       banner.textContent = 'ℹ️ Payment was cancelled. You can try again below.';
-      banner.className = banner.className
-        .replace('bg-red-500/10 text-red-400 border-red-500/20', 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20')
-        .replace('hidden', '');
-      banner.classList.remove('hidden');
+      banner.className = 'rounded-xl bg-zinc-500/10 border border-zinc-500/20 px-4 py-3 text-zinc-400 text-xs leading-relaxed';
     }
 
     ${
@@ -219,31 +273,21 @@ export const azulTopupCheckoutTemplate = (
     function submitToAzul() {
       const existing = document.getElementById('__azul__');
       if (existing) existing.remove();
-
       const f = document.createElement('form');
-      f.id = '__azul__';
-      f.method = 'POST';
-      f.action = __azulUrl__;
-      f.style.display = 'none';
-
+      f.id = '__azul__'; f.method = 'POST'; f.action = __azulUrl__; f.style.display = 'none';
       Object.entries(__azulPayload__).forEach(([name, value]) => {
         const input = document.createElement('input');
-        input.type  = 'hidden';
-        input.name  = name;
-        input.value = String(value ?? '');
+        input.type = 'hidden'; input.name = name; input.value = String(value ?? '');
         f.appendChild(input);
       });
-
       document.body.appendChild(f);
       f.submit();
     }
 
     function pay() {
-      const btn = document.getElementById('btn');
       btn.disabled = true;
       const arrow = document.getElementById('btn-arrow');
-      if (arrow) arrow.outerHTML =
-        '<svg id="btn-arrow" class="spinning" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
+      if (arrow) arrow.outerHTML = '<svg id="btn-arrow" class="spinning" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
       document.getElementById('btn-text').textContent = 'Redirecting…';
       submitToAzul();
     }

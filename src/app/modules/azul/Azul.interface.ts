@@ -48,6 +48,13 @@ export type TInitiatePaymentResult = {
   };
 };
 
+export type TAzulProviderMetadata = {
+  azul_order_id: string;
+  rrn: string;
+  auth_code: string;
+  card_number: string;
+};
+
 /***************************************/
 /********* Validation Interface ********/
 /***************************************/

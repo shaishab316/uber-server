@@ -8,7 +8,10 @@ import type {
   TGenerateTopupLinkPayload,
 } from './Topup.interface';
 import { azulTopupCheckoutTemplate } from './Topup.template';
-import type { TVerifyPaymentPayload } from '../azul/Azul.interface';
+import type {
+  TAzulProviderMetadata,
+  TVerifyPaymentPayload,
+} from '../azul/Azul.interface';
 import { AzulServices } from '../azul/Azul.service';
 import { debuglog as debug } from 'node:util';
 
@@ -114,6 +117,15 @@ export const TopupServices = {
         },
         data: {
           is_completed: true,
+          completed_at: new Date(),
+
+          //? store metadata from AZUL callback for reference (optional)
+          provider_metadata: {
+            azul_order_id: payload.AzulOrderId,
+            rrn: payload.RRN,
+            auth_code: payload.AuthorizationCode,
+            card_number: payload.CardNumber,
+          } satisfies TAzulProviderMetadata,
         },
       });
 
