@@ -25,15 +25,18 @@ export const azulTopupCheckoutTemplate = (
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>${config.server.name} — Checkout</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     body { font-family: 'Inter', sans-serif; }
     @keyframes fadeIn  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
     @keyframes shimmer { 0% { transform:translateX(-100%) skewX(-12deg); } 100% { transform:translateX(250%) skewX(-12deg); } }
     @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes shake   { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
     .fade-in  { animation: fadeIn  0.45s ease both; }
     .shimmer  { animation: shimmer 2.5s  infinite;  }
     .spinning { animation: spin    0.8s  linear infinite; }
+    .shake    { animation: shake  0.5s  ease; }
   </style>
 </head>
 <body class="bg-zinc-950 min-h-screen flex items-center justify-center p-4">
@@ -61,6 +64,7 @@ export const azulTopupCheckoutTemplate = (
         <p class="text-white font-semibold text-base truncate">${session.user?.name ?? 'Guest'}</p>
         <p class="text-zinc-500 text-xs font-mono mt-0.5 truncate">${session.user_id ? 'ID: ' + session.user_id : '—'}</p>
       </div>
+      <!-- Badge is set by JS below based on URL ?type= param -->
       <span id="status-badge" class="flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium border
         ${
           session.is_completed
@@ -72,7 +76,7 @@ export const azulTopupCheckoutTemplate = (
     </div>
 
     <!-- Checkout Card -->
-    <div class="bg-zinc-900 rounded-2xl p-5 space-y-5">
+    <div id="checkout-card" class="bg-zinc-900 rounded-2xl p-5 space-y-5">
 
       <!-- Header -->
       <div class="flex items-center justify-between">
@@ -115,6 +119,9 @@ export const azulTopupCheckoutTemplate = (
         </div>
       </div>
 
+      <!-- Error message banner (hidden by default, shown by JS) -->
+      <div id="error-banner" class="hidden rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-red-400 text-xs leading-relaxed"></div>
+
       <!-- Button -->
       <button id="btn" onclick="pay()"
         ${session.is_completed ? 'disabled' : ''}
@@ -153,6 +160,56 @@ export const azulTopupCheckoutTemplate = (
   </div>
 
   <script>
+    // ── Read URL state (type=declined|cancel, ErrorDescription) ───────────────
+    const __params__  = new URLSearchParams(location.search);
+    const __type__    = __params__.get('type');      // 'declined' | 'cancel' | null
+    const __errDesc__ = __params__.get('ErrorDescription');
+    const __errMsg__  = __params__.get('ResponseMessage');
+    const __isCompleted__ = ${session.is_completed ? 'true' : 'false'};
+
+    const badge = document.getElementById('status-badge');
+    const btn   = document.getElementById('btn');
+    const btnBg = document.getElementById('btn-bg');
+    const card  = document.getElementById('checkout-card');
+
+    if (__isCompleted__) {
+      // ── Celebration 🎉 ────────────────────────────────────────────────────
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.55 }, colors: ['#a78bfa','#6366f1','#34d399','#ffffff'] });
+      setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: 0.5 }, angle: 60,  colors: ['#f472b6','#fbbf24'] }), 350);
+      setTimeout(() => confetti({ particleCount: 60, spread: 50, origin: { y: 0.5 }, angle: 120, colors: ['#38bdf8','#a78bfa'] }), 600);
+
+    } else if (__type__ === 'declined') {
+      // ── Declined state ────────────────────────────────────────────────────
+      badge.className = 'flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium border bg-red-500/10 text-red-400 border-red-500/20';
+      badge.textContent = 'Declined';
+
+      // Shake the card
+      card.classList.add('shake');
+      card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+
+      // Show error banner
+      const banner = document.getElementById('error-banner');
+      const msg = decodeURIComponent(__errDesc__ || __errMsg__ || 'Your payment was declined. Please try a different card.');
+      banner.textContent = '⚠️ ' + msg;
+      banner.classList.remove('hidden');
+
+      // Update button → retry (re-enable, keep purple)
+      btn.disabled = false;
+      btn.querySelector('#btn-text').textContent = 'Try Again';
+
+    } else if (__type__ === 'cancel') {
+      // ── Cancelled state ───────────────────────────────────────────────────
+      badge.className = 'flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium border bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+      badge.textContent = 'Cancelled';
+
+      const banner = document.getElementById('error-banner');
+      banner.textContent = 'ℹ️ Payment was cancelled. You can try again below.';
+      banner.className = banner.className
+        .replace('bg-red-500/10 text-red-400 border-red-500/20', 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20')
+        .replace('hidden', '');
+      banner.classList.remove('hidden');
+    }
+
     ${
       !session.is_completed && azulData
         ? `
@@ -184,13 +241,14 @@ export const azulTopupCheckoutTemplate = (
     function pay() {
       const btn = document.getElementById('btn');
       btn.disabled = true;
-      document.getElementById('btn-arrow').outerHTML =
+      const arrow = document.getElementById('btn-arrow');
+      if (arrow) arrow.outerHTML =
         '<svg id="btn-arrow" class="spinning" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>';
       document.getElementById('btn-text').textContent = 'Redirecting…';
       submitToAzul();
     }
     `
-        : ''
+        : 'function pay(){}'
     }
   </script>
 </body>
