@@ -1,0 +1,68 @@
+import { Router } from 'express';
+import { AzulControllers } from './Azul.controller.ts.old';
+
+const router = Router();
+
+router.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to the AZUL payment module API',
+    endpoints: {
+      '/initiate': {
+        method: 'POST',
+      },
+      '/verify': {
+        method: 'POST',
+      },
+      '/datavault': {
+        method: 'POST',
+      },
+      '/datavault ': {
+        method: 'DELETE',
+      },
+    },
+  });
+});
+
+/**
+ * POST /api/payment/initiate
+ * Body: InitiatePaymentDTO
+ * Returns: {
+ *   message: string,
+ *   data: { paymentPageUrl, payload }
+ * }
+ * → Frontend submits payload as hidden form POST to paymentPageUrl
+ */
+router.post('/initiate', AzulControllers.initiatePayment);
+
+/**
+ * POST /api/payment/verify
+ * Body: AzulPaymentResponse (querystring params from AZUL redirect)
+ * Returns: {
+ *  message: string,
+ *  data: IVerifiedPaymentResult
+ * }
+ * → Call this from your ApprovedUrl / DeclinedUrl page
+ */
+router.post('/verify', AzulControllers.verifyPayment);
+
+/**
+ * POST /api/payment/datavault/create
+ * Returns: {
+ *   message: string,
+ *   data: { paymentPageUrl, payload }
+ * }
+ * → Save a card without charging it
+ */
+router.post('/datavault', AzulControllers.createDataVaultToken);
+
+/**
+ * DELETE /api/payment/datavault/delete
+ * Body: { token: string }
+ * Returns: {
+ *  message: string,
+ *  data: { paymentPageUrl, payload }
+ * }
+ */
+router.delete('/datavault', AzulControllers.deleteDataVaultToken);
+
+export const AzulRoutes = router;

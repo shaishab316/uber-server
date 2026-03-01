@@ -11,7 +11,9 @@ model Trip {
 
   distance_km  Float?
   duration_sec Int?
-  total_cost   Float  @default(0)
+
+  total_cost      Float              @default(0)
+  price_breakdown TripPriceBreakdown
 
   driver_id      String? @db.ObjectId
   passenger_id   String  @db.ObjectId
@@ -62,4 +64,18 @@ enum EDay {
   THURSDAY
   FRIDAY
   SATURDAY
+}
+
+type TripPriceBreakdown {
+  base_fare      Int?    @default(0)
+  distance_fare  Int?    @default(0)
+  time_fare      Int?    @default(0)
+  surge          Int?    @default(0)
+  discount       Int?    @default(0)
+  tax            Int?    @default(0)
+  tolls          Int?    @default(0)
+  platform_fee   Int?    @default(0)
+  driver_earning Int?    @default(0)
+  tip            Int?    @default(0)
+  notes          String? @default("")
 }

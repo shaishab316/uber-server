@@ -55,6 +55,7 @@ model User {
   refer                Refer?            @relation("UserRefer", fields: [refer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   given_reviews        Review[]          @relation("ReviewerReviews")
   received_reviews     Review[]          @relation("UserReviews")
+  topups               Topup[]
 
   @@map("users")
 }

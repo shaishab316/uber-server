@@ -3,14 +3,15 @@ model Transaction {
   created_at            DateTime         @default(now())
   updated_at            DateTime         @updatedAt
   stripe_transaction_id String?
-  user_id               String           @db.ObjectId
+  azul_order_id         String?
+  user_id               String?          @db.ObjectId
   driver_id             String?          @db.ObjectId
   amount                Float
   type                  ETransactionType @default(TOPUP)
   payment_method        String           @default("unknown")
 
-  user   User   @relation("UserTransaction", fields: [user_id], references: [id], onDelete: Cascade)
-  driver User?  @relation("DriverTransaction", fields: [driver_id], references: [id], onDelete: Cascade)
+  user   User?  @relation("UserTransaction", fields: [user_id], references: [id], onDelete: SetNull)
+  driver User?  @relation("DriverTransaction", fields: [driver_id], references: [id], onDelete: SetNull)
   Trip   Trip[]
 
   @@map("transactions")

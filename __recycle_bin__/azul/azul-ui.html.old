@@ -1,0 +1,1413 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AZUL Payment Tester</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0c10;
+        --surface: #111318;
+        --border: #1e2230;
+        --border2: #2a2f42;
+        --text: #e2e8f8;
+        --muted: #5a637a;
+        --accent2: #0099e6;
+        --green: #22c55e;
+        --red: #ef4444;
+        --yellow: #f59e0b;
+        --mono: 'JetBrains Mono', monospace;
+        --sans: 'Syne', sans-serif;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 13px;
+        min-height: 100vh;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(10, 12, 16, 0.93);
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border);
+        height: 52px;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .logo {
+        font-family: var(--sans);
+        font-size: 18px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #0099e6, #0057a8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .sep {
+        color: var(--border2);
+      }
+      .sub {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .env-pill {
+        margin-left: auto;
+        padding: 3px 11px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border: 1px solid var(--yellow);
+        color: var(--yellow);
+      }
+
+      .layout {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        animation: up 0.4s ease both;
+      }
+      .card:nth-child(2) {
+        animation-delay: 0.07s;
+      }
+      .card:nth-child(3) {
+        animation-delay: 0.14s;
+      }
+      .card:nth-child(4) {
+        animation-delay: 0.21s;
+      }
+      .card-full {
+        grid-column: 1/-1;
+      }
+      @keyframes up {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .card-hd {
+        padding: 13px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.014);
+      }
+      .icon {
+        width: 27px;
+        height: 27px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+      .ib {
+        background: rgba(0, 87, 168, 0.22);
+        border: 1px solid rgba(0, 87, 168, 0.38);
+      }
+      .ig {
+        background: rgba(34, 197, 94, 0.13);
+        border: 1px solid rgba(34, 197, 94, 0.28);
+      }
+      .io {
+        background: rgba(245, 158, 11, 0.13);
+        border: 1px solid rgba(245, 158, 11, 0.28);
+      }
+      .ir {
+        background: rgba(239, 68, 68, 0.13);
+        border: 1px solid rgba(239, 68, 68, 0.28);
+      }
+      .card-ttl {
+        font-family: var(--sans);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .card-bd {
+        padding: 20px;
+      }
+
+      .field {
+        margin-bottom: 13px;
+      }
+      .field label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border2);
+        border-radius: 6px;
+        padding: 9px 12px;
+        color: var(--text);
+        font-family: var(--mono);
+        font-size: 13px;
+        outline: none;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+        appearance: none;
+      }
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus {
+        border-color: var(--accent2);
+        box-shadow: 0 0 0 3px rgba(0, 153, 230, 0.11);
+      }
+      .field select option {
+        background: #1a1d24;
+      }
+      .field textarea {
+        resize: vertical;
+        min-height: 80px;
+        line-height: 1.6;
+      }
+      .r2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 10px 18px;
+        border-radius: 7px;
+        border: none;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-p {
+        background: linear-gradient(135deg, #0057a8, #0099e6);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(0, 87, 168, 0.33);
+      }
+      .btn-p:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0, 87, 168, 0.48);
+      }
+      .btn-o {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border2);
+      }
+      .btn-o:hover {
+        border-color: var(--accent2);
+        color: var(--accent2);
+        background: rgba(0, 153, 230, 0.05);
+      }
+      .btn-d {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(239, 68, 68, 0.28);
+      }
+      .btn-d:hover {
+        background: rgba(239, 68, 68, 0.18);
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+      .spin {
+        width: 13px;
+        height: 13px;
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: rot 0.55s linear infinite;
+        display: none;
+      }
+      .busy .spin {
+        display: block;
+      }
+      .busy .lbl {
+        display: none;
+      }
+      @keyframes rot {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 18px;
+      }
+      .tab {
+        padding: 9px 15px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--muted);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: all 0.14s;
+      }
+      .tab.on {
+        color: var(--accent2);
+        border-bottom-color: var(--accent2);
+      }
+      .tab:not(.on):hover {
+        color: var(--text);
+      }
+      .tp {
+        display: none;
+      }
+      .tp.on {
+        display: block;
+      }
+
+      .cfgbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 13px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        margin-bottom: 13px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--red);
+        flex-shrink: 0;
+        transition:
+          background 0.3s,
+          box-shadow 0.3s;
+      }
+      .dot.ok {
+        background: var(--green);
+        box-shadow: 0 0 7px var(--green);
+      }
+      .cfgurl {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--accent2);
+        font-family: var(--mono);
+        font-size: 12px;
+        outline: none;
+      }
+      .ping-btn {
+        flex-shrink: 0;
+        padding: 4px 11px;
+        font-size: 11px;
+        width: auto;
+      }
+
+      .logwrap {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        overflow: hidden;
+      }
+      .logtb {
+        padding: 7px 13px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .ldot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--border2);
+        transition: all 0.3s;
+      }
+      .ldot.g {
+        background: var(--green);
+        box-shadow: 0 0 5px var(--green);
+      }
+      .ldot.r {
+        background: var(--red);
+        box-shadow: 0 0 5px var(--red);
+      }
+      .ldot.y {
+        background: var(--yellow);
+        box-shadow: 0 0 5px var(--yellow);
+      }
+      .clr-btn {
+        margin-left: auto;
+        background: none;
+        border: none;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .clr-btn:hover {
+        color: var(--red);
+      }
+      .logbd {
+        padding: 13px;
+        font-size: 12px;
+        line-height: 1.75;
+        min-height: 110px;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: #8b9ac0;
+      }
+      .logbd::-webkit-scrollbar {
+        width: 3px;
+      }
+      .logbd::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
+      }
+      .le {
+        display: block;
+      }
+      .ts {
+        color: var(--muted);
+      }
+      .ok {
+        color: var(--green);
+      }
+      .er {
+        color: var(--red);
+      }
+      .inf {
+        color: var(--accent2);
+      }
+      .wa {
+        color: var(--yellow);
+      }
+      .k {
+        color: #a78bfa;
+      }
+      .sv {
+        color: #86efac;
+      }
+      .nv {
+        color: #fbbf24;
+      }
+      .hv {
+        color: #94a3b8;
+      }
+
+      .result-status {
+        padding: 11px 15px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 14px;
+        display: none;
+        border: 1px solid transparent;
+        animation: fi 0.3s ease;
+      }
+      @keyframes fi {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .rs-ok {
+        background: rgba(34, 197, 94, 0.08);
+        border-color: rgba(34, 197, 94, 0.25);
+        color: var(--green);
+      }
+      .rs-err {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.25);
+        color: var(--red);
+      }
+
+      .rtable {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .rtable tr {
+        border-bottom: 1px solid var(--border);
+      }
+      .rtable tr:last-child {
+        border-bottom: none;
+      }
+      .rtable td {
+        padding: 9px 0;
+        font-size: 12px;
+        vertical-align: top;
+      }
+      .rtable td:first-child {
+        color: var(--muted);
+        width: 150px;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding-right: 12px;
+        padding-top: 11px;
+      }
+      .iso {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .iso-ok {
+        background: rgba(34, 197, 94, 0.14);
+        color: var(--green);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+      }
+      .iso-er {
+        background: rgba(239, 68, 68, 0.14);
+        color: var(--red);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .pvwrap {
+        margin-top: 4px;
+      }
+      .pv-hd {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+      .pv {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 13px;
+        font-size: 11.5px;
+        line-height: 1.85;
+        max-height: 220px;
+        overflow-y: auto;
+        display: none;
+      }
+      .pv.on {
+        display: block;
+      }
+      .pv::-webkit-scrollbar {
+        width: 3px;
+      }
+      .pv::-webkit-scrollbar-thumb {
+        background: var(--border2);
+      }
+
+      .tc-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .tc-item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 10px 13px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        cursor: pointer;
+        transition: all 0.14s;
+      }
+      .tc-item:hover {
+        border-color: var(--accent2);
+        background: rgba(0, 153, 230, 0.04);
+      }
+      .brand {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+      .bv {
+        background: rgba(29, 78, 216, 0.18);
+        color: #60a5fa;
+        border: 1px solid rgba(29, 78, 216, 0.3);
+      }
+      .bm {
+        background: rgba(220, 38, 38, 0.14);
+        color: #fca5a5;
+        border: 1px solid rgba(220, 38, 38, 0.28);
+      }
+      .bd {
+        background: rgba(245, 158, 11, 0.14);
+        color: #fcd34d;
+        border: 1px solid rgba(245, 158, 11, 0.28);
+      }
+      .b3 {
+        background: rgba(139, 92, 246, 0.14);
+        color: #c4b5fd;
+        border: 1px solid rgba(139, 92, 246, 0.28);
+      }
+      .cnum {
+        font-size: 12px;
+        color: var(--text);
+        letter-spacing: 0.05em;
+        flex: 1;
+      }
+      .chint {
+        font-size: 10px;
+        color: var(--muted);
+        margin-left: auto;
+      }
+      .tc-item:hover .chint {
+        color: var(--accent2);
+      }
+
+      .div {
+        height: 1px;
+        background: var(--border);
+        margin: 15px 0;
+      }
+      .slbl {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 10px;
+      }
+
+      /* ── Response shape banner ── */
+      .shape-banner {
+        background: rgba(0, 87, 168, 0.08);
+        border: 1px solid rgba(0, 153, 230, 0.2);
+        border-radius: 8px;
+        padding: 12px 15px;
+        margin-bottom: 14px;
+        font-size: 11.5px;
+        line-height: 1.8;
+      }
+      .shape-key {
+        color: #a78bfa;
+      }
+      .shape-val {
+        color: #86efac;
+      }
+      .shape-dim {
+        color: var(--muted);
+      }
+
+      #toast {
+        position: fixed;
+        bottom: 26px;
+        right: 26px;
+        padding: 9px 17px;
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: 8px;
+        font-size: 12px;
+        color: var(--text);
+        z-index: 999;
+        transform: translateY(70px);
+        opacity: 0;
+        transition: all 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <span class="logo">AZUL</span>
+      <span class="sep">/</span>
+      <span class="sub">Payment Tester</span>
+      <span class="env-pill">TEST ENV</span>
+    </div>
+
+    <div id="toast"><span id="ti">✅</span><span id="tm"></span></div>
+
+    <div class="layout">
+      <!-- ══ LEFT: Controls ═════════════════════════════════════ -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="icon ib">⚙</div>
+          <span class="card-ttl">Server &amp; Actions</span>
+        </div>
+        <div class="card-bd">
+          <div class="cfgbar">
+            <div class="dot" id="dot"></div>
+            <input
+              class="cfgurl"
+              id="api-url"
+              value="http://localhost:3947/api/v1/azul"
+            />
+            <button class="btn btn-o ping-btn" onclick="ping()">Ping</button>
+          </div>
+
+          <!-- response shape reminder -->
+          <div class="shape-banner">
+            <span class="shape-dim">// serveResponse envelope</span><br />
+            <span class="shape-key">success</span> &nbsp;<span class="shape-val"
+              >true</span
+            >
+            <span class="shape-dim">| false</span><br />
+            <span class="shape-key">statusCode</span> &nbsp;<span
+              class="shape-val"
+              >200</span
+            >
+            <span class="shape-dim">| 400 | 500</span><br />
+            <span class="shape-key">message</span> &nbsp;<span class="shape-val"
+              >"Payment initiated successfully"</span
+            ><br />
+            <span class="shape-key">data</span> &nbsp;<span class="shape-dim"
+              >{ paymentPageUrl, payload } ← initiate</span
+            ><br />
+            <span class="shape-key">data</span> &nbsp;<span class="shape-dim"
+              >{ verified, approved, isoCode … } ← verify</span
+            >
+          </div>
+
+          <div class="tabs">
+            <div class="tab on" onclick="swTab('sale',this)">Sale</div>
+            <div class="tab" onclick="swTab('hold',this)">Hold</div>
+            <div class="tab" onclick="swTab('vault',this)">DataVault</div>
+            <div class="tab" onclick="swTab('verify',this)">Verify</div>
+          </div>
+
+          <!-- SALE -->
+          <div class="tp on" id="tp-sale">
+            <div class="r2">
+              <div class="field">
+                <label>Order Number</label><input id="s-ord" value="ORD-001" />
+              </div>
+              <div class="field">
+                <label>Amount (DOP)</label
+                ><input type="number" id="s-amt" value="150.00" step="0.01" />
+              </div>
+            </div>
+            <div class="r2">
+              <div class="field">
+                <label>ITBIS / Tax</label
+                ><input type="number" id="s-itb" value="27.00" step="0.01" />
+              </div>
+              <div class="field">
+                <label>Save Card?</label>
+                <select id="s-sv">
+                  <option value="0">No</option>
+                  <option value="1">Yes — save to DataVault</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label
+                >DataVault Token
+                <span style="color: var(--muted); font-weight: 400"
+                  >(optional)</span
+                ></label
+              ><input
+                id="s-dvt"
+                placeholder="FE1525FD… (pay with saved card)"
+              />
+            </div>
+            <div class="field">
+              <label>Locale</label>
+              <select id="s-loc">
+                <option value="ES">ES — Español</option>
+                <option value="EN">EN — English</option>
+              </select>
+            </div>
+            <button class="btn btn-p" id="btn-sale" onclick="doSale()">
+              <div class="spin"></div>
+              <span class="lbl">💳 &nbsp;POST /initiate</span>
+            </button>
+          </div>
+
+          <!-- HOLD -->
+          <div class="tp" id="tp-hold">
+            <p class="slbl">Pre-authorize / Hold funds</p>
+            <div class="r2">
+              <div class="field">
+                <label>Order Number</label><input id="h-ord" value="HOLD-001" />
+              </div>
+              <div class="field">
+                <label>Amount (DOP)</label
+                ><input type="number" id="h-amt" value="500.00" step="0.01" />
+              </div>
+            </div>
+            <div class="field">
+              <label>ITBIS</label
+              ><input type="number" id="h-itb" value="90.00" step="0.01" />
+            </div>
+            <button class="btn btn-p" id="btn-hold" onclick="doHold()">
+              <div class="spin"></div>
+              <span class="lbl">🔒 &nbsp;Hold → POST /initiate</span>
+            </button>
+            <div class="div"></div>
+            <p class="slbl">Capture or cancel a hold</p>
+            <div class="field">
+              <label
+                >AZUL Order ID
+                <span style="color: var(--muted); font-weight: 400"
+                  >(from Hold response)</span
+                ></label
+              ><input id="h-azid" placeholder="12345678" />
+            </div>
+            <div class="r2">
+              <button class="btn btn-o" onclick="doPost()">
+                Post (Capture)
+              </button>
+              <button class="btn btn-d" onclick="doVoid()">
+                Void (Cancel)
+              </button>
+            </div>
+          </div>
+
+          <!-- VAULT -->
+          <div class="tp" id="tp-vault">
+            <p class="slbl">
+              Save card — sends
+              <code style="color: var(--accent2)">POST /datavault</code>
+            </p>
+            <button class="btn btn-p" id="btn-vc" onclick="doVaultCreate()">
+              <div class="spin"></div>
+              <span class="lbl">🗝 &nbsp;Create DataVault Token</span>
+            </button>
+            <div class="div"></div>
+            <p class="slbl">
+              Delete saved card — sends
+              <code style="color: var(--red)">DELETE /datavault</code>
+            </p>
+            <div class="field">
+              <label>DataVault Token</label
+              ><input id="vd-tok" placeholder="FE1525FD..." />
+            </div>
+            <button class="btn btn-d" onclick="doVaultDelete()">
+              🗑 &nbsp;Delete Token
+            </button>
+          </div>
+
+          <!-- VERIFY -->
+          <div class="tp" id="tp-verify">
+            <p class="slbl" style="margin-bottom: 6px">
+              Verify AZUL redirect —
+              <code style="color: var(--accent2)">POST /verify</code>
+            </p>
+            <p
+              style="font-size: 11px; color: var(--muted); margin-bottom: 12px"
+            >
+              AZUL redirects to your
+              <code style="color: var(--accent2)">ApprovedUrl</code>/<code
+                style="color: var(--red)"
+                >DeclinedUrl</code
+              >
+              with querystring params.<br />
+              Paste them below → your server verifies the AuthHash and returns
+              <code style="color: var(--green)">IVerifiedPaymentResult</code>.
+            </p>
+            <div class="field">
+              <label>Querystring or JSON</label>
+              <textarea
+                id="vfy-in"
+                placeholder="OrderNumber=ORD-001&Amount=15000&IsoCode=00&AuthorizationCode=OK123&DateTime=20260217143000&ResponseCode=ISO8583&ResponseMessage=APROBADA&ErrorDescription=&RRN=000001&AuthHash=abc123..."
+              ></textarea>
+            </div>
+            <button class="btn btn-p" onclick="doVerify()">
+              🔍 &nbsp;Verify Response Hash
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ RIGHT: Test Cards ═══════════════════════════════════ -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="icon io">🃏</div>
+          <span class="card-ttl">Test Cards</span>
+        </div>
+        <div class="card-bd">
+          <p class="slbl">
+            Normal — Auth1/Auth2:
+            <code style="color: var(--accent2)">splitit</code>
+          </p>
+          <div class="tc-list">
+            <div class="tc-item" onclick="copyCard('5424000000000015')">
+              <span class="brand bm">Mastercard</span
+              ><span class="cnum">5424 0000 0000 0015</span
+              ><span class="chint">click to copy</span>
+            </div>
+            <div class="tc-item" onclick="copyCard('4260550000061840')">
+              <span class="brand bv">Visa</span
+              ><span class="cnum">4260 5500 0006 1840</span
+              ><span class="chint">click to copy</span>
+            </div>
+            <div class="tc-item" onclick="copyCard('6011000990139424')">
+              <span class="brand bd">Discover</span
+              ><span class="cnum">6011 0009 9013 9424</span
+              ><span class="chint">click to copy</span>
+            </div>
+          </div>
+
+          <div class="div"></div>
+
+          <p class="slbl">
+            3DS — Auth: <code style="color: var(--accent2)">3dsecure</code>
+          </p>
+          <div class="tc-list">
+            <div class="tc-item" onclick="copyCard('4761120000000004')">
+              <span class="brand b3">Visa 3DS</span
+              ><span class="cnum">4761 1200 0000 0004</span
+              ><span class="chint">frictionless</span>
+            </div>
+            <div class="tc-item" onclick="copyCard('4005520000000000')">
+              <span class="brand b3">Visa 3DS</span
+              ><span class="cnum">4005 5200 0000 0000</span
+              ><span class="chint">challenge ≤$100</span>
+            </div>
+          </div>
+
+          <div class="div"></div>
+
+          <p class="slbl">Your API routes (confirmed running ✅)</p>
+          <div class="logwrap">
+            <div class="logbd" style="min-height: auto; font-size: 12px">
+              <span class="sv">GET </span><span class="k">/api/v1/azul</span>
+              <span style="color: var(--muted)">← ping / welcome</span>
+              <span class="sv">POST </span
+              ><span class="k">/api/v1/azul/initiate</span>
+              <span style="color: var(--muted)"
+                >← sale / hold / post / void</span
+              >
+              <span class="sv">POST </span
+              ><span class="k">/api/v1/azul/verify</span>
+              <span style="color: var(--muted)"
+                >← verify AZUL redirect hash</span
+              >
+              <span class="sv">POST </span
+              ><span class="k">/api/v1/azul/datavault</span>
+              <span style="color: var(--muted)">← create token</span>
+              <span class="er">DELETE </span
+              ><span class="k">/api/v1/azul/datavault</span>
+              <span style="color: var(--muted)">← delete token</span>
+            </div>
+          </div>
+
+          <div class="div"></div>
+
+          <p class="slbl">IsoCode reference</p>
+          <div class="logwrap">
+            <div class="logbd" style="min-height: auto; font-size: 12px">
+              <span class="ok">00</span>
+              <span style="color: var(--muted)">→ Approved ✅</span>
+              <span class="er">01</span>
+              <span style="color: var(--muted)"
+                >→ Declined — refer to bank</span
+              >
+              <span class="er">05</span>
+              <span style="color: var(--muted)"
+                >→ Declined — do not honour</span
+              >
+              <span class="er">12</span>
+              <span style="color: var(--muted)">→ Invalid transaction</span>
+              <span class="er">51</span>
+              <span style="color: var(--muted)">→ Insufficient funds</span>
+              <span class="wa">54</span>
+              <span style="color: var(--muted)">→ Expired card</span>
+              <span class="er">57</span>
+              <span style="color: var(--muted)">→ Function not permitted</span>
+              <span class="wa">65</span>
+              <span style="color: var(--muted)">→ Exceeds limit</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAYLOAD + RESULT ════════════════════════════════════ -->
+      <div class="card card-full">
+        <div class="card-hd">
+          <div class="icon ig">📦</div>
+          <span class="card-ttl">Payload &amp; Result</span>
+          <span
+            id="ps"
+            style="margin-left: auto; font-size: 11px; color: var(--muted)"
+            >waiting...</span
+          >
+        </div>
+        <div class="card-bd">
+          <div id="rs" class="result-status"></div>
+          <div id="rt-wrap" style="display: none">
+            <table class="rtable" id="rt"></table>
+            <div class="div"></div>
+          </div>
+          <div class="pvwrap">
+            <p class="pv-hd">Payload sent to AZUL payment page</p>
+            <div id="pv" class="pv"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LOG ════════════════════════════════════════════════ -->
+      <div class="card card-full">
+        <div class="card-hd">
+          <div class="icon ir">📡</div>
+          <span class="card-ttl">Request Log</span>
+        </div>
+        <div class="card-bd" style="padding: 0">
+          <div class="logwrap" style="border: none; border-radius: 0">
+            <div class="logtb">
+              <div class="ldot" id="ld"></div>
+              <span id="ls">idle</span>
+              <button class="clr-btn" onclick="clearLog()">clear</button>
+            </div>
+            <div class="logbd" id="lb">
+              <span class="inf"
+                >// AZUL Tester — server:
+                http://localhost:3947/api/v1/azul</span
+              >
+              <span class="hv"
+                >// Response: { success, statusCode, message, data } ←
+                serveResponse shape</span
+              >
+              <span class="inf"
+                >// All API calls unwrap data from the envelope
+                automatically</span
+              >
+              <span style="color: var(--muted)"
+                >//
+                ────────────────────────────────────────────────────────────</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ─── Utils ────────────────────────────────────────────────────────────────────
+      const $ = id => document.getElementById(id);
+      const ts = () =>
+        new Date().toLocaleTimeString('en-US', { hour12: false });
+      const base = () => $('api-url').value.replace(/\/$/, '');
+
+      function toast(msg, icon = '✅') {
+        $('tm').textContent = msg;
+        $('ti').textContent = icon;
+        const t = $('toast');
+        t.classList.add('show');
+        clearTimeout(t._tid);
+        t._tid = setTimeout(() => t.classList.remove('show'), 2600);
+      }
+
+      function setLS(txt, cls) {
+        $('ls').textContent = txt;
+        $('ld').className = 'ldot ' + (cls || '');
+      }
+
+      function log(msg, cls = 'inf') {
+        const lb = $('lb'),
+          el = document.createElement('span');
+        el.className = `le ${cls}`;
+        el.innerHTML = `<span class="ts">[${ts()}]</span> ${msg}\n`;
+        lb.appendChild(el);
+        lb.scrollTop = lb.scrollHeight;
+      }
+
+      function logJSON(label, obj) {
+        log(label, 'inf');
+        const lb = $('lb'),
+          pre = document.createElement('span');
+        pre.className = 'le hv';
+        pre.style.paddingLeft = '14px';
+        pre.innerHTML =
+          JSON.stringify(obj, null, 2)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"([^"]+)":/g, '<span class="k">"$1":</span>')
+            .replace(/: "([^"]*)"/g, ': <span class="sv">"$1"</span>')
+            .replace(/: (true|false)/g, ': <span class="nv">$1</span>')
+            .replace(/: (\d+\.?\d*)/g, ': <span class="nv">$1</span>') + '\n';
+        lb.appendChild(pre);
+        lb.scrollTop = lb.scrollHeight;
+      }
+
+      function clearLog() {
+        $('lb').innerHTML = '<span class="inf">// cleared\n</span>';
+      }
+
+      function copyCard(n) {
+        navigator.clipboard
+          .writeText(n)
+          .then(() => toast('Card copied!', '📋'));
+      }
+
+      // ─── Tabs ─────────────────────────────────────────────────────────────────────
+      function swTab(name, el) {
+        document
+          .querySelectorAll('.tab')
+          .forEach(t => t.classList.remove('on'));
+        document.querySelectorAll('.tp').forEach(p => p.classList.remove('on'));
+        el.classList.add('on');
+        $(`tp-${name}`).classList.add('on');
+      }
+
+      // ─── Busy ─────────────────────────────────────────────────────────────────────
+      function busy(id, on) {
+        const b = $(id);
+        if (!b) return;
+        b.disabled = on;
+        b.classList.toggle('busy', on);
+      }
+
+      // ─── Show payload ─────────────────────────────────────────────────────────────
+      function showPayload(payload, url) {
+        $('ps').textContent = '✓ payload ready';
+        const pv = $('pv');
+        pv.classList.add('on');
+        pv.innerHTML = Object.entries(payload)
+          .map(([k, v]) => {
+            const cls =
+              k === 'AuthHash' ? 'wa' : typeof v === 'number' ? 'nv' : 'sv';
+            const val =
+              k === 'AuthHash'
+                ? String(v).slice(0, 36) + '…'
+                : v === ''
+                  ? '<span class="hv">""</span>'
+                  : v;
+            return `<span class="k" style="display:inline-block;width:210px">${k}</span><span class="${cls}">${val}</span>`;
+          })
+          .join('\n');
+        log(`→ Payment Page URL: ${url}`, 'ok');
+      }
+
+      // ─── Show verify result ───────────────────────────────────────────────────────
+      function showResult(d) {
+        const rw = $('rt-wrap');
+        rw.style.display = 'block';
+        const rs = $('rs'),
+          ok = d.approved ?? d.isoCode === '00',
+          iso = d.isoCode ?? '—';
+        rs.style.display = 'block';
+        rs.className = `result-status ${ok ? 'rs-ok' : 'rs-err'}`;
+        rs.innerHTML = `${ok ? '✅ APPROVED' : '❌ DECLINED'} &nbsp;·&nbsp; IsoCode: <span class="iso ${ok ? 'iso-ok' : 'iso-er'}">${iso}</span> &nbsp;·&nbsp; ${d.responseMessage ?? ''}`;
+        const rows = [
+          ['Order #', d.orderNumber],
+          [
+            'Amount',
+            d.amountFormatted ? `$${d.amountFormatted} DOP` : d.amount,
+          ],
+          ['Auth Code', d.authorizationCode || '—'],
+          ['ISO Code', iso],
+          ['RRN', d.rrn || '—'],
+          ['Date / Time', d.dateTime || '—'],
+          ['Message', d.responseMessage || '—'],
+          ['Error', d.errorDescription || '—'],
+          [
+            'Hash Verified',
+            d.verified != null ? (d.verified ? '✅ Yes' : '❌ No') : '—',
+          ],
+          ['DataVault', d.dataVaultToken || '—'],
+          ['AZUL Order ID', d.azulOrderId || '—'],
+        ];
+        $('rt').innerHTML = rows
+          .map(([l, v]) => `<tr><td>${l}</td><td>${v ?? '—'}</td></tr>`)
+          .join('');
+      }
+
+      // ─── Core API call — unwraps serveResponse ────────────────────────────────────
+      //  Your server always returns: { success, statusCode, message, data }
+      //  On success  → returns data (the actual payload)
+      //  On error    → returns null and logs the message
+      async function api(endpoint, body, btnId, method = 'POST') {
+        busy(btnId, true);
+        setLS('sending…', 'y');
+        log(`→ ${method} ${base()}${endpoint}`, 'inf');
+        if (body && Object.keys(body).length) logJSON('  request body', body);
+
+        try {
+          const res = await fetch(`${base()}${endpoint}`, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: body ? JSON.stringify(body) : undefined,
+          });
+
+          // ── Unwrap serveResponse: { success, statusCode, message, data }
+          const envelope = await res.json();
+          setLS(`${envelope.statusCode ?? res.status}`, res.ok ? 'g' : 'r');
+          logJSON(`← [${envelope.statusCode}] ${envelope.message}`, envelope);
+
+          if (!envelope.success) {
+            log(`✗ ${envelope.message}`, 'er');
+            toast(envelope.message ?? 'API error', '❌');
+            return null;
+          }
+
+          return envelope.data; // ← unwrapped, ready to use
+        } catch (e) {
+          setLS('unreachable', 'r');
+          log(`✗ Network error: ${e.message}`, 'er');
+          toast('Cannot reach server — is it running?', '🔴');
+          return null;
+        } finally {
+          busy(btnId, false);
+        }
+      }
+
+      // ─── Ping GET /api/v1/azul ────────────────────────────────────────────────────
+      async function ping() {
+        log(`Pinging ${base()} …`, 'inf');
+        setLS('pinging…', 'y');
+        try {
+          const res = await fetch(base());
+          const data = await res.json();
+          $('dot').classList.add('ok');
+          setLS('connected', 'g');
+          logJSON('← welcome', data);
+          toast('Server connected 🟢', '🟢');
+        } catch (e) {
+          $('dot').classList.remove('ok');
+          setLS('unreachable', 'r');
+          log(`✗ ${e.message}`, 'er');
+          toast('Cannot reach server', '🔴');
+        }
+      }
+
+      // ─── Submit hidden form to AZUL ───────────────────────────────────────────────
+      function submitToAzul(url, payload) {
+        $('__azul__')?.remove();
+        const f = document.createElement('form');
+        f.id = '__azul__';
+        f.method = 'POST';
+        f.action = url;
+        f.target = '_blank';
+        f.style.display = 'none';
+        Object.entries(payload).forEach(([n, v]) => {
+          const i = document.createElement('input');
+          i.type = 'hidden';
+          i.name = n;
+          i.value = String(v ?? '');
+          f.appendChild(i);
+        });
+        document.body.appendChild(f);
+        f.submit();
+        log('✓ Form submitted → AZUL page opened in new tab', 'ok');
+        toast('AZUL payment page opened in new tab', '💳');
+      }
+
+      // ─── Actions ──────────────────────────────────────────────────────────────────
+
+      // POST /initiate  (sale)
+      async function doSale() {
+        const body = {
+          orderNumber: $('s-ord').value.trim(),
+          amount: parseFloat($('s-amt').value),
+          itbis: parseFloat($('s-itb').value) || 0,
+          saveToDataVault: $('s-sv').value,
+          locale: $('s-loc').value,
+        };
+        const dvt = $('s-dvt').value.trim();
+        if (dvt) body.dataVaultToken = dvt;
+        if (!body.orderNumber || isNaN(body.amount)) {
+          toast('Order number and amount required', '⚠️');
+          return;
+        }
+        const data = await api('/initiate', body, 'btn-sale');
+        if (!data) return;
+        // data = IInitiatePaymentResult { paymentPageUrl, payload }
+        showPayload(data.payload, data.paymentPageUrl);
+        submitToAzul(data.paymentPageUrl, data.payload);
+      }
+
+      // POST /initiate  (hold)
+      async function doHold() {
+        const body = {
+          orderNumber: $('h-ord').value.trim(),
+          amount: parseFloat($('h-amt').value),
+          itbis: parseFloat($('h-itb').value) || 0,
+          trxType: 'Hold',
+        };
+        const data = await api('/initiate', body, 'btn-hold');
+        if (!data) return;
+        showPayload(data.payload, data.paymentPageUrl);
+        submitToAzul(data.paymentPageUrl, data.payload);
+      }
+
+      // POST /initiate  (post/capture)
+      async function doPost() {
+        const azulOrderId = $('h-azid').value.trim();
+        if (!azulOrderId) {
+          toast('AZUL Order ID required for Post', '⚠️');
+          return;
+        }
+        const body = {
+          orderNumber: $('h-ord').value.trim() || 'POST-001',
+          amount: parseFloat($('h-amt').value) || 500,
+          itbis: parseFloat($('h-itb').value) || 0,
+          trxType: 'Post',
+          azulOrderId,
+        };
+        const data = await api('/initiate', body, null);
+        if (!data) return;
+        showPayload(data.payload, data.paymentPageUrl);
+        submitToAzul(data.paymentPageUrl, data.payload);
+      }
+
+      // POST /initiate  (void)
+      async function doVoid() {
+        const azulOrderId = $('h-azid').value.trim();
+        if (!azulOrderId) {
+          toast('AZUL Order ID required for Void', '⚠️');
+          return;
+        }
+        const body = {
+          orderNumber: $('h-ord').value.trim() || 'VOID-001',
+          amount: parseFloat($('h-amt').value) || 500,
+          itbis: 0,
+          trxType: 'Void',
+          azulOrderId,
+        };
+        const data = await api('/initiate', body, null);
+        if (!data) return;
+        showPayload(data.payload, data.paymentPageUrl);
+        submitToAzul(data.paymentPageUrl, data.payload);
+      }
+
+      // POST /datavault  (create token)
+      async function doVaultCreate() {
+        const data = await api('/datavault', {}, 'btn-vc', 'POST');
+        if (!data) return;
+        showPayload(data.payload, data.paymentPageUrl);
+        submitToAzul(data.paymentPageUrl, data.payload);
+      }
+
+      // DELETE /datavault  (delete token)  ← matches router.delete('/datavault', ...)
+      async function doVaultDelete() {
+        const token = $('vd-tok').value.trim();
+        if (!token) {
+          toast('Enter a DataVault token', '⚠️');
+          return;
+        }
+        const data = await api('/datavault', { token }, null, 'DELETE');
+        if (!data) return;
+        showPayload(data.payload, data.paymentPageUrl);
+        submitToAzul(data.paymentPageUrl, data.payload);
+      }
+
+      // POST /verify  → returns IVerifiedPaymentResult
+      async function doVerify() {
+        const raw = $('vfy-in').value.trim();
+        if (!raw) {
+          toast('Paste AZUL redirect params', '⚠️');
+          return;
+        }
+        let body;
+        try {
+          body = JSON.parse(raw);
+        } catch {
+          body = Object.fromEntries(new URLSearchParams(raw));
+        }
+        const data = await api('/verify', body, null, 'POST');
+        if (!data) return;
+        // data = IVerifiedPaymentResult { verified, approved, orderNumber, amountFormatted, isoCode, … }
+        showResult(data);
+        if (data.approved) {
+          log('✅ APPROVED — IsoCode 00', 'ok');
+          toast('Verified — APPROVED ✅', '✅');
+        } else {
+          log(`❌ DECLINED — IsoCode ${data.isoCode}`, 'er');
+          toast(`Declined — IsoCode ${data.isoCode}`, '❌');
+        }
+      }
+
+      // ─── Auto-detect AZUL redirect in URL ────────────────────────────────────────
+      window.addEventListener('DOMContentLoaded', () => {
+        const p = new URLSearchParams(window.location.search);
+        if (p.has('OrderNumber') || p.has('IsoCode')) {
+          log('🔔 AZUL redirect detected in URL — loading Verify tab', 'wa');
+          document
+            .querySelectorAll('.tab')
+            .forEach((t, i) => t.classList.toggle('on', i === 3));
+          document
+            .querySelectorAll('.tp')
+            .forEach((tp, i) => tp.classList.toggle('on', i === 3));
+          $('vfy-in').value = p.toString();
+          toast('AZUL redirect detected — click Verify', '🔔');
+        }
+      });
+    </script>
+  </body>
+</html>

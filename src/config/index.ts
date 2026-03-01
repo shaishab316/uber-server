@@ -8,6 +8,7 @@ import { enum_decode } from '../utils/transform/enum';
 import Stripe from 'stripe';
 import { stripePaymentMethods } from '../app/modules/payment/Payment.constant';
 import { capitalize } from '../utils/transform/capitalize';
+import fs from 'fs';
 
 export const ms_regex = '^\\d+(ms|s|m|h|d|w|y)$';
 
@@ -266,6 +267,75 @@ const config = {
       },
     },
   },
+
+  azul: {
+    merchantId: env('azul merchant id', '', {
+      regex: '^\\d{11}$',
+      up: 'Azul info - start',
+    }),
+    merchantName: env('azul merchant name', '', {
+      regex: '^.{2,100}$',
+    }),
+    merchantType: env('azul merchant type', 'ECommerce', {
+      regex: '^.{2,50}$',
+    }),
+    currencyCode: env('azul currency code', '$', {
+      regex: '^.{1,5}$',
+    }),
+    authKey: env('azul auth key', 'enter_your_auth_key', {
+      regex: '^.{4,}$',
+    }),
+
+    urls: {
+      paymentPageTest: 'https://pruebas.azul.com.do/PaymentPage/',
+      paymentPageProd: 'https://pagos.azul.com.do/PaymentPage/Default.aspx',
+      paymentPageProdAlt:
+        'https://contpagos.azul.com.do/PaymentPage/Default.aspx',
+    },
+
+    redirectUrls: {
+      approved: env(
+        'azul approved url',
+        'http://localhost:3000/payment/approved',
+        {
+          regex: '^https?:\\/\\/.*$|^$',
+        },
+      ),
+      declined: (session_id: string) =>
+        env('azul declined url', 'http://localhost:3000/payment/declined', {
+          regex: '^https?:\\/\\/.*$|^$',
+        }) + `?type=declined&session=${session_id}`,
+      cancel: (session_id: string) =>
+        env('azul cancel url', 'http://localhost:3000/payment/cancel', {
+          regex: '^https?:\\/\\/.*$|^$',
+          down: 'Azul info - end',
+        }) + `?type=cancel&session=${session_id}`,
+    },
+
+    certs: {
+      certPath: path.resolve(
+        process.cwd(),
+        'src',
+        'certs',
+        'comercio_local.crt',
+      ),
+      keyPath: path.resolve(
+        process.cwd(),
+        'src',
+        'certs',
+        'comercio_local.key',
+      ),
+    },
+
+    // @abstract
+    loadCerts: () => ({ cert: Buffer.from([]), key: Buffer.from([]) }),
+  },
 };
+
+//@ override
+config.azul.loadCerts = () => ({
+  cert: fs.readFileSync(config.azul.certs.certPath),
+  key: fs.readFileSync(config.azul.certs.keyPath),
+});
 
 export default config;
