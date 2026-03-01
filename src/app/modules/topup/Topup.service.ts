@@ -32,16 +32,26 @@ export const TopupServices = {
     amount,
     provider,
   }: TGenerateTopupLinkPayload) {
-    const newTopup = await prisma.topup.create({
-      data: {
+    const existing = await prisma.topup.findFirst({
+      where: {
+        user_id,
         amount,
         provider,
-        user_id,
+        is_completed: false,
+        requested_at: {
+          gte: new Date(Date.now() - 30 * 60 * 1000), // within last 30 min
+        },
       },
     });
 
+    const topup =
+      existing ??
+      (await prisma.topup.create({
+        data: { amount, provider, user_id },
+      }));
+
     return {
-      url: `${config.url.href}/api/v1/topup/checkout?session=${newTopup.id}`,
+      url: `${config.url.href}/api/v1/topup/checkout?session=${topup.id}`,
     };
   },
 
