@@ -55,6 +55,23 @@ export const userTripSelectableField = {
   } satisfies Prisma.UserSelect,
 };
 
+const driverSearchTimeouts = new Map<string, NodeJS.Timeout>();
+
+function scheduleTripTimeout(tripId: string, fn: () => void, delay: number) {
+  const existing = driverSearchTimeouts.get(tripId);
+  if (existing) clearTimeout(existing);
+  const t = setTimeout(fn, delay);
+  driverSearchTimeouts.set(tripId, t);
+}
+
+function clearTripTimeout(tripId: string) {
+  const t = driverSearchTimeouts.get(tripId);
+  if (t) {
+    clearTimeout(t);
+    driverSearchTimeouts.delete(tripId);
+  }
+}
+
 export const TripServices = {
   async requestForTrip({
     dropoff_address,
@@ -222,6 +239,8 @@ export const TripServices = {
       },
     });
 
+    clearTripTimeout(trip_id);
+
     // Release any drivers reserved for this trip
     await prisma.availableDriver.updateMany({
       where: { trip_id },
@@ -310,6 +329,8 @@ export const TripServices = {
         exclude_driver_ids: true,
       },
     });
+
+    clearTripTimeout(trip_id);
 
     //? easily access in chat service
     const chat = await ChatServices.getChat({
@@ -574,6 +595,8 @@ export const TripServices = {
       omit: tripOmit,
     });
 
+    clearTripTimeout(trip_id);
+
     // Notify passenger that trip is completed
     SocketServices.getIO()
       ?.to(updatedTrip.passenger_id)
@@ -664,7 +687,7 @@ export const TripServices = {
     } catch (error) {
       console.error('Error finding nearest driver:', error);
       // Retry with backoff on error
-      setTimeout(() => this.retryFindDriver(trip.id!), 5000);
+      scheduleTripTimeout(trip.id!, () => this.retryFindDriver(trip.id!), 5000);
     }
   },
 
@@ -691,7 +714,7 @@ export const TripServices = {
 
     // Retry only if the trip is less than 5 minutes old
     if (timeout < ms('5m')) {
-      setTimeout(() => this.retryFindDriver(trip.id!), 5000);
+      scheduleTripTimeout(trip.id!, () => this.retryFindDriver(trip.id!), 5000);
     } else {
       io?.to(trip.passenger_id!).emit(
         'trip:close',
@@ -705,6 +728,8 @@ export const TripServices = {
           meta: { trip_id: trip.id },
         }),
       );
+
+      clearTripTimeout(trip.id!);
 
       // Finalize: release any reserved drivers for this trip to avoid stale locks
       try {
@@ -774,35 +799,39 @@ export const TripServices = {
 
   // Schedule check with cleanup
   scheduleDriverCheck(tripId: string): void {
-    setTimeout(async () => {
-      const updatedTrip = await prisma.trip.findUnique({
-        where: { id: tripId },
-        select: {
-          id: true,
-          driver_id: true,
-          status: true,
-        },
-      });
-
-      // Only retry if trip still needs a driver
-      if (
-        updatedTrip?.status === ETripStatus.REQUESTED &&
-        !updatedTrip.driver_id
-      ) {
-        // Fetch full trip data only when needed
-        const fullTrip = await prisma.trip.findUnique({
+    scheduleTripTimeout(
+      tripId,
+      async () => {
+        const updatedTrip = await prisma.trip.findUnique({
           where: { id: tripId },
-          omit: {
-            ...tripOmit,
-            exclude_driver_ids: undefined,
+          select: {
+            id: true,
+            driver_id: true,
+            status: true,
           },
         });
 
-        if (fullTrip) {
-          await this.findNearestDriver(fullTrip);
+        // Only retry if trip still needs a driver
+        if (
+          updatedTrip?.status === ETripStatus.REQUESTED &&
+          !updatedTrip.driver_id
+        ) {
+          // Fetch full trip data only when needed
+          const fullTrip = await prisma.trip.findUnique({
+            where: { id: tripId },
+            omit: {
+              ...tripOmit,
+              exclude_driver_ids: undefined,
+            },
+          });
+
+          if (fullTrip) {
+            await this.findNearestDriver(fullTrip);
+          }
         }
-      }
-    }, 5000);
+      },
+      5000,
+    );
   },
 
   async updateTripLocation({
@@ -1065,6 +1094,7 @@ export const TripServices = {
           select: {
             id: true,
             rating: true,
+            rating_count: true,
           },
         },
       },
@@ -1090,7 +1120,12 @@ export const TripServices = {
 
     const driverRating = trip?.driver?.rating || 0;
 
-    const avgRating = Number(((driverRating + rating) / 2).toFixed(1));
+    const avgRating = Number(
+      (
+        (driverRating * trip.driver.rating_count + rating) /
+        (trip.driver.rating_count + 1)
+      ).toFixed(1),
+    );
 
     //? Notify user about new review
     await NotificationServices.createNotification({
