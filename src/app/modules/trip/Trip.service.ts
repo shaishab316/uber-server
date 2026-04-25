@@ -756,7 +756,8 @@ export const TripServices = {
     });
 
     if (updatedTrip?.exclude_driver_ids?.includes(driverId)) {
-      // Driver has already rejected this trip, skip sending request
+      // Driver already rejected, find next immediately
+      await this.retryFindDriver(trip.id!);
       return;
     }
 
@@ -1045,29 +1046,19 @@ export const TripServices = {
       },
     });
 
-    const total = await prisma.trip.count({ where });
-
-    const activeTipCount = await prisma.trip.count({
-      where: {
-        status: {
-          not: {
-            in: [ETripStatus.CANCEL, ETripStatus.COMPLETED],
+    const [total, activeTipCount, completedTipCount, cancelledTripCount] =
+      await Promise.all([
+        prisma.trip.count({ where }),
+        prisma.trip.count({
+          where: {
+            status: {
+              not: { in: [ETripStatus.CANCEL, ETripStatus.COMPLETED] },
+            },
           },
-        },
-      },
-    });
-
-    const completedTipCount = await prisma.trip.count({
-      where: {
-        status: ETripStatus.COMPLETED,
-      },
-    });
-
-    const cancelledTripCount = await prisma.trip.count({
-      where: {
-        status: ETripStatus.CANCEL,
-      },
-    });
+        }),
+        prisma.trip.count({ where: { status: ETripStatus.COMPLETED } }),
+        prisma.trip.count({ where: { status: ETripStatus.CANCEL } }),
+      ]);
 
     return {
       meta: {
