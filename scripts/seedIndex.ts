@@ -1,18 +1,20 @@
 import chalk from 'chalk';
-import { logger } from '../src/utils/logger';
+import dns from 'dns';
 import { MongoClient } from 'mongodb';
 import config from '../src/config';
+
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 async function setupIndexes() {
   const client = new MongoClient(config.url.database);
 
-  logger.info(chalk.green('🚀 Database connecting...'));
+  console.log(chalk.green('🚀 Database connecting...'));
   await client.connect();
-  logger.info(chalk.green('🚀 Database connected successfully'));
+  console.log(chalk.green('🚀 Database connected successfully'));
 
   const db = client.db(config.server.db_name);
 
-  logger.info(chalk.green('🔑 DB Indexes setup started...'));
+  console.log(chalk.green('🔑 DB Indexes setup started...'));
   try {
     {
       await db
@@ -54,15 +56,45 @@ async function setupIndexes() {
           { background: true, name: 'location__2dsphere' },
         );
     }
+
+    {
+      await db
+        ?.collection('intercity')
+        .createIndex(
+          { 'pickup_address.geo': '2dsphere' },
+          { background: true, name: 'pickup_address__2dsphere' },
+        );
+
+      await db
+        ?.collection('intercity')
+        .createIndex(
+          { 'dropoff_address.geo': '2dsphere' },
+          { background: true, name: 'dropoff_address__2dsphere' },
+        );
+
+      await db
+        ?.collection('intercity')
+        .createIndex(
+          { 'vehicle_address.geo': '2dsphere' },
+          { background: true, name: 'vehicle_address__2dsphere' },
+        );
+
+      await db
+        ?.collection('intercity')
+        .createIndex(
+          { 'stops.geo': '2dsphere' },
+          { background: true, name: 'stops__2dsphere' },
+        );
+    }
   } finally {
-    logger.info(chalk.green('✅ DB Indexes setup successfully'));
+    console.log(chalk.green('✅ DB Indexes setup successfully'));
     await client.close();
     process.exit(0);
   }
 }
 
 setupIndexes().catch(error => {
-  logger.error(chalk.red('❌ DB Indexes setup failed'));
-  logger.error(error);
+  console.error(chalk.red('❌ DB Indexes setup failed'));
+  console.error(error);
   process.exit(1);
 });

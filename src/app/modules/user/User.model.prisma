@@ -57,6 +57,10 @@ model User {
   received_reviews     Review[]          @relation("UserReviews")
   topups               Topup[]
 
+  intercities           Intercity[]            @relation("IntercityDriver")
+  intercityJoinRequests IntercityJoinRequest[]
+  intercityBookings     IntercityBooking[]
+
   @@map("users")
 }
 

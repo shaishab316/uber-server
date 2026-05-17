@@ -1,0 +1,85 @@
+model Intercity {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  driver_id String? @db.ObjectId
+
+  status          IntercityStatus @default(SCHEDULED)
+  scheduled_at    DateTime?       @default(now())
+  available_seats Int?            @default(1)
+  total_seats     Int?            @default(1)
+  price_per_seat  Float?          @default(0.00)
+  notes           String?
+
+  day EDay @default(SUNDAY)
+
+  driver User? @relation("IntercityDriver", fields: [driver_id], references: [id], onDelete: Cascade)
+
+  vehicle               EVehicle
+  pickup_address        TLocation
+  dropoff_address       TLocation
+  vehicle_address       TLocation?
+  stops                 TLocation[]
+  intercityJoinRequests IntercityJoinRequest[]
+  intercityBookings     IntercityBooking[]
+
+  @@index([driver_id])
+  @@index([status])
+  @@map("intercity")
+}
+
+enum IntercityStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum JoinRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+model IntercityJoinRequest {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  intercity_id String @db.ObjectId
+  passenger_id String @db.ObjectId
+
+  status JoinRequestStatus @default(PENDING)
+
+  seats_requested Int @default(1)
+
+  pickup_location TLocation
+
+  message String?
+
+  intercity Intercity @relation(fields: [intercity_id], references: [id], onDelete: Cascade)
+  passenger User      @relation(fields: [passenger_id], references: [id], onDelete: Cascade)
+
+  requested_at DateTime  @default(now())
+  responded_at DateTime?
+
+  @@map("intercity_join_requests")
+}
+
+model IntercityBooking {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  intercity_id String @db.ObjectId
+  passenger_id String @db.ObjectId
+
+  seats_booked Int @default(1)
+
+  total_fare Float @default(0.00)
+
+  pickup_location TLocation
+
+  intercity Intercity @relation(fields: [intercity_id], references: [id], onDelete: Cascade)
+  passenger User      @relation(fields: [passenger_id], references: [id], onDelete: Cascade)
+
+  booked_at DateTime @default(now())
+
+  @@map("intercity_bookings")
+}

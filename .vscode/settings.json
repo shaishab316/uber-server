@@ -70,5 +70,6 @@
     "titleBar.inactiveBackground": "#c0a9aa99",
     "titleBar.inactiveForeground": "#15202b99"
   },
-  "peacock.color": "#c0a9aa"
+  "peacock.color": "#c0a9aa",
+  "cSpell.words": ["dropoff"]
 }
