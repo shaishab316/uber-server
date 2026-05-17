@@ -15,6 +15,7 @@ import { NotificationRoutes } from '../app/modules/notification/Notification.rou
 import { ReferRoutes } from '../app/modules/refer/Refer.route';
 import { AvailableLoanRoutes } from '../app/modules/availableLoan/AvailableLoan.route';
 import { TopupRoutes } from '../app/modules/topup/Topup.route';
+import { driverIntercityRoutes } from '../app/modules/intercity/Intercity.route';
 
 export default injectRoutes(Router(), {
   '/context-pages': [ContextPageRoutes.user],
@@ -36,6 +37,7 @@ export default injectRoutes(Router(), {
 
   // Driver auth
   '/drivers': [auth.driver, DriverRoutes.driver],
+  '/intercities': [auth.driver, driverIntercityRoutes],
 
   // Admin auth
   '/admin': [auth.admin, AdminRoutes],
