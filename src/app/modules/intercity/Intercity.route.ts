@@ -38,8 +38,8 @@ driver.get(
 driver.post(
   '/:intercityId/status',
   purifyRequest(
-    QueryValidations.exists('intercityId', 'intercity'),
     IntercityValidations.updateIntercityStatus,
+    QueryValidations.exists('intercityId', 'intercity'),
   ),
   IntercityControllers.updateIntercityStatus,
 );
@@ -48,8 +48,9 @@ driver.post(
 driver.post(
   '/:intercityId/join-requests/:requestId',
   purifyRequest(
-    QueryValidations.exists('intercityId', 'intercity'),
     IntercityValidations.handleJoinRequest,
+    QueryValidations.exists('intercityId', 'intercity'),
+    QueryValidations.exists('requestId', 'intercityJoinRequest'),
   ),
   IntercityControllers.handleJoinRequest,
 );

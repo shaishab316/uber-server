@@ -10,6 +10,7 @@ import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
 import { EDay } from '../../../../prisma';
 import { TPagination } from '../../../utils/server/serveResponse';
+import { NotificationServices } from '../notification/Notification.service';
 
 export const IntercityServices = {
   async createIntercity(data: TCreateIntercity) {
@@ -159,15 +160,12 @@ export const IntercityServices = {
     intercityId: string,
     data: TUpdateIntercityStatus,
   ) {
-    if (
-      data.driver_id !==
-      (
-        await prisma.intercity.findUnique({
-          where: { id: intercityId },
-          select: { driver_id: true },
-        })
-      )?.driver_id
-    ) {
+    const existingIntercity = await prisma.intercity.findUnique({
+      where: { id: intercityId },
+      select: { driver_id: true, status: true },
+    });
+
+    if (data.driver_id !== existingIntercity?.driver_id) {
       throw new ServerError(StatusCodes.FORBIDDEN, 'Unauthorized access');
     }
 
@@ -179,6 +177,58 @@ export const IntercityServices = {
         bookings: true,
       },
     });
+
+    const notificationPromises: Promise<any>[] = [];
+
+    const getStatusMessage = (status: string): string => {
+      switch (status) {
+        case 'ONGOING':
+          return 'Your ride is starting soon! Get ready for pickup.';
+        case 'COMPLETED':
+          return 'Your ride has been completed. Thank you for traveling with us!';
+        case 'CANCELLED':
+          return 'Unfortunately, your ride has been cancelled. We apologize for any inconvenience.';
+        default:
+          return 'Your ride status has been updated.';
+      }
+    };
+
+    // Notify booked passengers
+    intercity.bookings.forEach(booking => {
+      if (booking.passenger_id) {
+        notificationPromises.push(
+          NotificationServices.createNotification({
+            user_id: booking.passenger_id,
+            title:
+              data.status === 'ONGOING'
+                ? '🚗 Your ride is on the way!'
+                : `Ride ${data.status}`,
+            message: getStatusMessage(data.status),
+          }),
+        );
+      }
+    });
+
+    // Notify join request passengers when scheduled ride is cancelled
+    if (
+      existingIntercity?.status === 'SCHEDULED' &&
+      data.status === 'CANCELLED'
+    ) {
+      intercity.join_requests.forEach(request => {
+        if (request.passenger_id) {
+          notificationPromises.push(
+            NotificationServices.createNotification({
+              user_id: request.passenger_id,
+              title: '❌ Intercity Ride Cancelled',
+              message:
+                'The intercity ride you were waiting to join has been cancelled. Your seat refund (if any) will be processed shortly.',
+            }),
+          );
+        }
+      });
+    }
+
+    await Promise.all(notificationPromises);
 
     return intercity;
   },

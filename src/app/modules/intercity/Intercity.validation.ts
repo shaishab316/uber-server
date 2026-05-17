@@ -43,13 +43,13 @@ export const IntercityValidations = {
 
   updateIntercityStatus: z.object({
     body: z.object({
-      status: z.string().transform(enum_encode).pipe(z.enum(IntercityStatus)),
+      status: z.enum(IntercityStatus),
     }),
   }),
 
   handleJoinRequest: z.object({
     body: z.object({
-      status: z.string().transform(enum_encode).pipe(z.enum(JoinRequestStatus)),
+      status: z.enum(JoinRequestStatus),
     }),
   }),
 
