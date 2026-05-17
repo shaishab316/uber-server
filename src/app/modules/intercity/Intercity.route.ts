@@ -13,6 +13,13 @@ driver.post(
   IntercityControllers.createIntercity,
 );
 
+// Find nearby intercity rides
+driver.get(
+  '/search/nearby',
+  purifyRequest(IntercityValidations.findNearby, QueryValidations.list),
+  IntercityControllers.findNearby,
+);
+
 // Get all driver's intercity rides
 driver.get(
   '/my',

@@ -4,6 +4,7 @@ import {
   TUpdateIntercityStatus,
   THandleJoinRequest,
   TGetIntercityRides,
+  TFindNearbyIntercities,
 } from './Intercity.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
@@ -66,7 +67,7 @@ export const IntercityServices = {
         skip,
         take: limit,
         include: {
-          intercityJoinRequests: {
+          join_requests: {
             select: {
               id: true,
               passenger_id: true,
@@ -75,7 +76,7 @@ export const IntercityServices = {
               pickup_location: true,
             },
           },
-          intercityBookings: {
+          bookings: {
             select: {
               id: true,
               passenger_id: true,
@@ -116,7 +117,7 @@ export const IntercityServices = {
             rating: true,
           },
         },
-        intercityJoinRequests: {
+        join_requests: {
           include: {
             passenger: {
               select: {
@@ -128,7 +129,7 @@ export const IntercityServices = {
             },
           },
         },
-        intercityBookings: {
+        bookings: {
           include: {
             passenger: {
               select: {
@@ -174,8 +175,8 @@ export const IntercityServices = {
       where: { id: intercityId },
       data: { status: data.status },
       include: {
-        intercityJoinRequests: true,
-        intercityBookings: true,
+        join_requests: true,
+        bookings: true,
       },
     });
 
@@ -217,5 +218,204 @@ export const IntercityServices = {
     });
 
     return updated;
+  },
+
+  async findNearbyIntercities(query: TFindNearbyIntercities) {
+    const skip = (query.page - 1) * query.limit;
+    const radiusInMeters = query.radius * 1000; // Convert km to meters
+
+    // Use MongoDB aggregation pipeline with $geoNear operator
+    const pipeline = [
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [query.long, query.lat],
+          },
+          distanceField: 'distance',
+          spherical: true,
+          maxDistance: radiusInMeters,
+          key: 'pickup_address.geo',
+          query: {
+            status: 'SCHEDULED',
+          },
+        },
+      },
+      { $skip: skip },
+      { $limit: query.limit },
+      {
+        $lookup: {
+          from: 'users',
+          let: { driver_id: '$driver_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ['$_id', '$$driver_id'],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                avatar: 1,
+                rating: 1,
+                phone: 1,
+              },
+            },
+          ],
+          as: 'driver',
+        },
+      },
+      {
+        $addFields: {
+          driver: {
+            $cond: [
+              { $gt: [{ $size: '$driver' }, 0] },
+              { $arrayElemAt: ['$driver', 0] },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'intercity_join_requests',
+          localField: '_id',
+          foreignField: 'intercity_id',
+          as: 'join_requests',
+        },
+      },
+      {
+        $lookup: {
+          from: 'intercity_bookings',
+          localField: '_id',
+          foreignField: 'intercity_id',
+          as: 'bookings',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          driver_id: 1,
+          status: 1,
+          scheduled_at: 1,
+          available_seats: 1,
+          total_seats: 1,
+          price_per_seat: 1,
+          notes: 1,
+          day: 1,
+          vehicle: 1,
+          pickup_address: 1,
+          dropoff_address: 1,
+          stops: 1,
+          distance: 1,
+          'driver._id': 1,
+          'driver.name': 1,
+          'driver.avatar': 1,
+          'driver.rating': 1,
+          'driver.phone': 1,
+          'join_requests._id': 1,
+          'join_requests.status': 1,
+          'bookings._id': 1,
+          'bookings.seats_booked': 1,
+        },
+      },
+    ];
+
+    const intercities = (await prisma.intercity.aggregateRaw({
+      pipeline,
+    })) as unknown as any[];
+
+    // Get total count for pagination
+    const countPipeline = [
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [query.long, query.lat],
+          },
+          distanceField: 'distance',
+          spherical: true,
+          maxDistance: radiusInMeters,
+          key: 'pickup_address.geo',
+          query: {
+            status: 'SCHEDULED',
+          },
+        },
+      },
+      {
+        $count: 'total',
+      },
+    ];
+
+    const countResult = (await prisma.intercity.aggregateRaw({
+      pipeline: countPipeline,
+    })) as unknown as any[];
+
+    const total = countResult?.[0]?.total || 0;
+
+    // Map results to match expected format and convert BSON to JSON
+    const enrichedData = intercities.map((intercity: any) => {
+      const getId = (val: any) => {
+        if (!val) return null;
+        if (typeof val === 'string') return val;
+        if (val.$oid) return val.$oid;
+        return val.toString?.() || val;
+      };
+
+      const getDate = (val: any) => {
+        if (!val) return null;
+        if (val.$date) return new Date(val.$date);
+        return new Date(val);
+      };
+
+      return {
+        id: getId(intercity._id),
+        driver_id: getId(intercity.driver_id),
+        status: intercity.status,
+        scheduled_at: getDate(intercity.scheduled_at),
+        available_seats: intercity.available_seats,
+        total_seats: intercity.total_seats,
+        price_per_seat: intercity.price_per_seat,
+        notes: intercity.notes,
+        day: intercity.day,
+        vehicle: intercity.vehicle,
+        pickup_address: intercity.pickup_address,
+        dropoff_address: intercity.dropoff_address,
+        stops: intercity.stops || [],
+        distance: intercity.distance,
+        driver: intercity.driver
+          ? {
+              id: getId(intercity.driver._id),
+              name: intercity.driver.name,
+              avatar: intercity.driver.avatar,
+              rating: intercity.driver.rating,
+              phone: intercity.driver.phone,
+            }
+          : null,
+        join_requests: (intercity.join_requests || []).map((req: any) => ({
+          id: getId(req._id),
+          status: req.status,
+        })),
+        bookings: (intercity.bookings || []).map((booking: any) => ({
+          id: getId(booking._id),
+          seats_booked: booking.seats_booked,
+        })),
+      };
+    });
+
+    return {
+      data: enrichedData,
+      meta: {
+        pagination: {
+          total,
+          page: query.page,
+          limit: query.limit,
+          totalPages: Math.ceil(total / query.limit),
+        } satisfies TPagination,
+      },
+    };
   },
 };

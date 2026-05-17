@@ -14,13 +14,14 @@ model Intercity {
 
   driver User? @relation("IntercityDriver", fields: [driver_id], references: [id], onDelete: Cascade)
 
-  vehicle               EVehicle
-  pickup_address        TLocation
-  dropoff_address       TLocation
-  vehicle_address       TLocation?
-  stops                 TLocation[]
-  intercityJoinRequests IntercityJoinRequest[]
-  intercityBookings     IntercityBooking[]
+  vehicle         EVehicle
+  pickup_address  TLocation
+  dropoff_address TLocation
+  vehicle_address TLocation?
+  stops           TLocation[]
+
+  join_requests IntercityJoinRequest[]
+  bookings      IntercityBooking[]
 
   @@index([driver_id])
   @@index([status])

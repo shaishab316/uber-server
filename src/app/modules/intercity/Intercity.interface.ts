@@ -17,3 +17,8 @@ export type THandleJoinRequest = z.infer<
 export type TGetIntercityRides = TList & {
   driver_id: string;
 };
+
+export type TFindNearbyIntercities = z.infer<
+  typeof IntercityValidations.findNearby
+>['query'] &
+  TList;
