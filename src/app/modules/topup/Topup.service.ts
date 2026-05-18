@@ -13,12 +13,10 @@ import type {
   TVerifyPaymentPayload,
 } from '../azul/Azul.interface';
 import { AzulServices } from '../azul/Azul.service';
-import { debuglog as debug } from 'node:util';
 
 /**
  * AzulServices provides methods to interact with the AZUL payment gateway, including initiating payments by generating the required payload and authentication hash for AZUL's hosted payment page, as well as verifying payments by validating the incoming query parameters from AZUL's redirect after payment processing.
  */
-export const debugLog = debug('app:payment:topup');
 
 /**
  * Service for handling topup-related operations, such as generating topup links and processing payments.
@@ -140,7 +138,7 @@ export const TopupServices = {
       });
 
       if (!isNew) {
-        debugLog('Topup already completed, skipping wallet update:', {
+        console.log('Topup already completed, skipping wallet update:', {
           topup_id,
         });
 
@@ -163,7 +161,7 @@ export const TopupServices = {
         );
       }
 
-      debugLog('Payment verified successfully, updating wallet:', {
+      console.log('Payment verified successfully, updating wallet:', {
         topup_id,
         topup,
       });

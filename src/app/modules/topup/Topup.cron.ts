@@ -1,7 +1,4 @@
 import { prisma } from '../../../utils/db';
-import { debuglog as debug } from 'node:util';
-
-export const debugLog = debug('app:cron:topup');
 
 /**
  * Deletes topup records that were requested more than 24 hours ago and are still not completed.
@@ -18,7 +15,7 @@ export const cleanupStaleTopups = async () => {
     },
   });
 
-  debugLog(
+  console.log(
     'Stale topup cleanup — removed: %d (cutoff: %s)',
     count,
     cutoff.toISOString(),

@@ -84,4 +84,9 @@ driver.post(
   IntercityControllers.handleJoinRequest,
 );
 
+// Trigger intercity reminders (for testing)
+if (process.env.NODE_ENV === 'development') {
+  driver.post('/cron/trigger-reminders', IntercityControllers.triggerReminders);
+}
+
 export { driver as driverIntercityRoutes };

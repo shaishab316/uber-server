@@ -8,12 +8,10 @@ import type {
   TVerifyPaymentPayload,
   TVerifyPaymentResult,
 } from './Azul.interface';
-import { debuglog as debug } from 'node:util';
 
 /**
  * AzulServices provides methods to interact with the AZUL payment gateway, including initiating payments by generating the required payload and authentication hash for AZUL's hosted payment page, as well as verifying payments by validating the incoming query parameters from AZUL's redirect after payment processing.
  */
-export const debugLog = debug('app:payment:azul');
 
 export const azul_payment_page_url =
   process.env.NODE_ENV === 'production'
@@ -49,7 +47,7 @@ export const AzulServices = {
 
     const authHash = generateAuthHash(hashFields, config.azul.authKey);
 
-    debugLog('Generated AZUL payment initiation payload with auth hash:', {
+    console.log('Generated AZUL payment initiation payload with auth hash:', {
       payload,
       hashFields,
       authHash,
@@ -109,7 +107,7 @@ export const AzulServices = {
     const isValid =
       expectedAuthHash === payload.AuthHash && payload.IsoCode === '00';
 
-    debugLog('Verifying AZUL payment response:', {
+    console.log('Verifying AZUL payment response:', {
       payload,
       expectedAuthHash,
       isValid,

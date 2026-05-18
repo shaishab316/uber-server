@@ -19,6 +19,12 @@ export const NotificationServices = {
       await sendPushNotification([user.onesignal_id], payload.message);
     }
 
+    console.log(
+      'Creating notification for user %s: %s',
+      payload.user_id,
+      payload.message,
+    );
+
     //? create a new notification
     return prisma.notification.create({
       data: payload,

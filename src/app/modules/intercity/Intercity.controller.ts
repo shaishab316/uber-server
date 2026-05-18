@@ -1,5 +1,6 @@
 import catchAsync from '../../middlewares/catchAsync';
 import { IntercityServices } from './Intercity.service';
+import { sendIntercityReminders } from './Intercity.cron';
 
 export const IntercityControllers = {
   createIntercity: catchAsync(async ({ body, user }) => {
@@ -113,6 +114,15 @@ export const IntercityControllers = {
       message: 'Join requests retrieved successfully!',
       data,
       meta,
+    };
+  }),
+
+  triggerReminders: catchAsync(async () => {
+    await sendIntercityReminders();
+
+    return {
+      message: 'Intercity reminders triggered successfully!',
+      data: null,
     };
   }),
 };
