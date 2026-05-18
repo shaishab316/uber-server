@@ -268,8 +268,34 @@ export const IntercityServices = {
       },
     });
 
-    // Notify passenger
+    // Notify passenger and create booking if accepted
     if (data.status === 'ACCEPTED') {
+      if (joinRequest.status !== 'ACCEPTED') {
+        // Create intercity booking
+        await prisma.intercityBooking.create({
+          data: {
+            intercity_id: joinRequest.intercity_id,
+            passenger_id: joinRequest.passenger_id,
+            seats_booked: joinRequest.seats_requested,
+            total_fare:
+              (intercity?.price_per_seat || 0) * joinRequest.seats_requested,
+            pickup_location: joinRequest.pickup_location,
+          },
+        });
+
+        // Update available seats
+        if (intercity) {
+          const newAvailableSeats =
+            (intercity.available_seats || 0) - joinRequest.seats_requested;
+          await prisma.intercity.update({
+            where: { id: joinRequest.intercity_id },
+            data: {
+              available_seats: Math.max(0, newAvailableSeats),
+            },
+          });
+        }
+      }
+
       await NotificationServices.createNotification({
         user_id: joinRequest.passenger_id,
         title: '✅ Join Request Accepted',

@@ -2,6 +2,11 @@ import { prisma } from '../../../utils/db';
 import { NotificationServices } from '../notification/Notification.service';
 
 export const sendIntercityReminders = async () => {
+  console.log(
+    'Running intercity reminders cron job at %s',
+    new Date().toISOString(),
+  );
+
   try {
     // Get all scheduled intercity rides
     const intercities = await prisma.intercity.findMany({
@@ -25,19 +30,32 @@ export const sendIntercityReminders = async () => {
       },
     });
 
+    console.log('Found %d scheduled intercity rides', intercities.length);
+
     const now = new Date();
+
     const notificationPromises: Promise<any>[] = [];
 
     for (const intercity of intercities) {
       if (!intercity.scheduled_at) continue;
+
+      console.log(
+        `Now: ${now.toISOString()}, Intercity ID: ${intercity.id}, Scheduled At: ${intercity.scheduled_at.toISOString()}`,
+      );
 
       // Calculate minutes until scheduled time
       const minutesUntilScheduled = Math.floor(
         (intercity.scheduled_at.getTime() - now.getTime()) / (1000 * 60),
       );
 
+      console.log(
+        'Intercity %s is scheduled in %d minutes',
+        intercity.id,
+        minutesUntilScheduled,
+      );
+
       // Check if we should send 30-minute reminder
-      if (minutesUntilScheduled === 30 || minutesUntilScheduled === 29) {
+      if (minutesUntilScheduled <= 30 || minutesUntilScheduled >= 27) {
         console.log(
           'Sending 30-minute reminder for intercity %s',
           intercity.id,
@@ -67,7 +85,7 @@ export const sendIntercityReminders = async () => {
       }
 
       // Check if we should send 15-minute reminder
-      if (minutesUntilScheduled === 15 || minutesUntilScheduled === 14) {
+      if (minutesUntilScheduled <= 15 || minutesUntilScheduled >= 12) {
         console.log(
           'Sending 15-minute reminder for intercity %s',
           intercity.id,
