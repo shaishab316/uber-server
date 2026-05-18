@@ -268,6 +268,22 @@ export const IntercityServices = {
       },
     });
 
+    // Notify passenger
+    if (data.status === 'ACCEPTED') {
+      await NotificationServices.createNotification({
+        user_id: joinRequest.passenger_id,
+        title: '✅ Join Request Accepted',
+        message: `Your join request for the intercity ride has been accepted! You have ${joinRequest.seats_requested} seat(s) reserved.`,
+      });
+    } else if (data.status === 'REJECTED') {
+      await NotificationServices.createNotification({
+        user_id: joinRequest.passenger_id,
+        title: '❌ Join Request Rejected',
+        message:
+          'Unfortunately, your join request for the intercity ride has been rejected by the driver.',
+      });
+    }
+
     return updated;
   },
 

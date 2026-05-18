@@ -75,6 +75,7 @@ driver.get(
 // Accept/Reject join request
 driver.post(
   '/:intercityId/join-requests/:requestId',
+  auth.driver,
   purifyRequest(
     IntercityValidations.handleJoinRequest,
     QueryValidations.exists('intercityId', 'intercity'),
