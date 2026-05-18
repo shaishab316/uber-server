@@ -100,4 +100,19 @@ export const IntercityControllers = {
       data: joinRequest,
     };
   }),
+
+  getJoinRequests: catchAsync(async ({ params, query, user }) => {
+    const { data, meta } = await IntercityServices.getJoinRequests(
+      params.intercityId,
+      user.id,
+      parseInt(query.page as string) || 1,
+      parseInt(query.limit as string) || 10,
+    );
+
+    return {
+      message: 'Join requests retrieved successfully!',
+      data,
+      meta,
+    };
+  }),
 };

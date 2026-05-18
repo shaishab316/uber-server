@@ -61,6 +61,17 @@ driver.post(
   IntercityControllers.sendJoinRequest,
 );
 
+// Get join requests for intercity
+driver.get(
+  '/:intercityId/requests',
+  auth.driver,
+  purifyRequest(
+    QueryValidations.exists('intercityId', 'intercity'),
+    QueryValidations.list,
+  ),
+  IntercityControllers.getJoinRequests,
+);
+
 // Accept/Reject join request
 driver.post(
   '/:intercityId/join-requests/:requestId',

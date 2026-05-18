@@ -568,4 +568,62 @@ export const IntercityServices = {
 
     return joinRequest;
   },
+
+  async getJoinRequests(
+    intercityId: string,
+    driverId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    // Verify driver owns this intercity
+    const intercity = await prisma.intercity.findUnique({
+      where: { id: intercityId },
+      select: { driver_id: true },
+    });
+
+    if (!intercity) {
+      throw new ServerError(StatusCodes.NOT_FOUND, 'Intercity ride not found');
+    }
+
+    if (intercity.driver_id !== driverId) {
+      throw new ServerError(StatusCodes.FORBIDDEN, 'Unauthorized access');
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [joinRequests, total] = await Promise.all([
+      prisma.intercityJoinRequest.findMany({
+        where: { intercity_id: intercityId },
+        skip,
+        take: limit,
+        include: {
+          passenger: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              avatar: true,
+              rating: true,
+            },
+          },
+        },
+        orderBy: { requested_at: 'desc' },
+      }),
+      prisma.intercityJoinRequest.count({
+        where: { intercity_id: intercityId },
+      }),
+    ]);
+
+    return {
+      data: joinRequests,
+      meta: {
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        } satisfies TPagination,
+      },
+    };
+  },
 };
