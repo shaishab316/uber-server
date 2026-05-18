@@ -3,12 +3,14 @@ import { IntercityControllers } from './Intercity.controller';
 import { IntercityValidations } from './Intercity.validation';
 import purifyRequest from '../../middlewares/purifyRequest';
 import { QueryValidations } from '../query/Query.validation';
+import auth from '../../middlewares/auth';
 
 const driver = Router();
 
 // Create intercity ride
 driver.post(
   '/',
+  auth.driver,
   purifyRequest(IntercityValidations.createIntercity),
   IntercityControllers.createIntercity,
 );
@@ -16,6 +18,7 @@ driver.post(
 // Find nearby intercity rides
 driver.get(
   '/search/nearby',
+  auth.all,
   purifyRequest(IntercityValidations.findNearby, QueryValidations.list),
   IntercityControllers.findNearby,
 );
@@ -23,6 +26,7 @@ driver.get(
 // Get all driver's intercity rides
 driver.get(
   '/my',
+  auth.all,
   purifyRequest(QueryValidations.list),
   IntercityControllers.getDriverIntercities,
 );
@@ -30,6 +34,7 @@ driver.get(
 // Get specific intercity details
 driver.get(
   '/:intercityId',
+  auth.all,
   purifyRequest(QueryValidations.exists('intercityId', 'intercity')),
   IntercityControllers.getIntercityDetails,
 );
@@ -37,11 +42,23 @@ driver.get(
 // Update intercity status
 driver.post(
   '/:intercityId/status',
+  auth.driver,
   purifyRequest(
     IntercityValidations.updateIntercityStatus,
     QueryValidations.exists('intercityId', 'intercity'),
   ),
   IntercityControllers.updateIntercityStatus,
+);
+
+// Send join request to intercity
+driver.post(
+  '/:intercityId/join',
+  auth.user,
+  purifyRequest(
+    IntercityValidations.sendJoinRequest,
+    QueryValidations.exists('intercityId', 'intercity'),
+  ),
+  IntercityControllers.sendJoinRequest,
 );
 
 // Accept/Reject join request

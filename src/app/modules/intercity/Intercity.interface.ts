@@ -22,3 +22,7 @@ export type TFindNearbyIntercities = z.infer<
   typeof IntercityValidations.findNearby
 >['query'] &
   TList;
+
+export type TSendJoinRequest = z.infer<
+  typeof IntercityValidations.sendJoinRequest
+>['body'] & { passenger_id: string };

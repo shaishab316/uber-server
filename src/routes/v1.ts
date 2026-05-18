@@ -37,7 +37,7 @@ export default injectRoutes(Router(), {
 
   // Driver auth
   '/drivers': [auth.driver, DriverRoutes.driver],
-  '/intercities': [auth.driver, driverIntercityRoutes],
+  '/intercities': [driverIntercityRoutes],
 
   // Admin auth
   '/admin': [auth.admin, AdminRoutes],

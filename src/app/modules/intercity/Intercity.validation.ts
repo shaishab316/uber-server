@@ -60,4 +60,11 @@ export const IntercityValidations = {
       radius: z.coerce.number().min(1).default(50), // in km
     }),
   }),
+  sendJoinRequest: z.object({
+    body: z.object({
+      seats_requested: z.coerce.number().min(1).max(7),
+      pickup_location: locationSchema,
+      message: z.string().optional(),
+    }),
+  }),
 };

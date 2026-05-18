@@ -5,6 +5,7 @@ import {
   THandleJoinRequest,
   TGetIntercityRides,
   TFindNearbyIntercities,
+  TSendJoinRequest,
 } from './Intercity.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
@@ -467,5 +468,104 @@ export const IntercityServices = {
         } satisfies TPagination,
       },
     };
+  },
+
+  async sendJoinRequest(intercityId: string, data: TSendJoinRequest) {
+    // Check if intercity exists
+    const intercity = await prisma.intercity.findUnique({
+      where: { id: intercityId },
+      select: {
+        id: true,
+        driver_id: true,
+        available_seats: true,
+        status: true,
+      },
+    });
+
+    if (!intercity) {
+      throw new ServerError(StatusCodes.NOT_FOUND, 'Intercity ride not found');
+    }
+
+    if (intercity.status !== 'SCHEDULED') {
+      throw new ServerError(
+        StatusCodes.BAD_REQUEST,
+        'This intercity ride is not accepting requests',
+      );
+    }
+
+    // Check if user already has a pending or accepted request for this intercity
+    const existingRequest = await prisma.intercityJoinRequest.findFirst({
+      where: {
+        intercity_id: intercityId,
+        passenger_id: data.passenger_id,
+        status: {
+          in: ['PENDING', 'ACCEPTED'],
+        },
+      },
+    });
+
+    if (existingRequest) {
+      throw new ServerError(
+        StatusCodes.BAD_REQUEST,
+        'You already have a pending or accepted request for this ride',
+      );
+    }
+
+    if (!intercity.available_seats) {
+      throw new ServerError(
+        StatusCodes.BAD_REQUEST,
+        'No seats available for this ride',
+      );
+    }
+
+    // Check if requested seats exceed available seats
+    if (data.seats_requested > intercity.available_seats) {
+      throw new ServerError(
+        StatusCodes.BAD_REQUEST,
+        `Only ${intercity.available_seats} seats available`,
+      );
+    }
+
+    // Create join request
+    const joinRequest = await prisma.intercityJoinRequest.create({
+      data: {
+        intercity_id: intercityId,
+        passenger_id: data.passenger_id,
+        seats_requested: data.seats_requested,
+        pickup_location: data.pickup_location,
+        message: data.message,
+      },
+      include: {
+        intercity: {
+          select: {
+            id: true,
+            driver_id: true,
+            pickup_address: true,
+            dropoff_address: true,
+            available_seats: true,
+            price_per_seat: true,
+          },
+        },
+        passenger: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+
+    // Notify driver
+    if (intercity.driver_id) {
+      await NotificationServices.createNotification({
+        user_id: intercity.driver_id,
+        title: '🚗 New Join Request',
+        message: `A passenger requested to join your intercity ride. They need ${data.seats_requested} seat(s).`,
+      });
+    }
+
+    return joinRequest;
   },
 };

@@ -85,4 +85,19 @@ export const IntercityControllers = {
       meta,
     };
   }),
+
+  sendJoinRequest: catchAsync(async ({ params, body, user }) => {
+    const joinRequest = await IntercityServices.sendJoinRequest(
+      params.intercityId,
+      {
+        ...body,
+        passenger_id: user.id,
+      },
+    );
+
+    return {
+      message: 'Join request sent successfully!',
+      data: joinRequest,
+    };
+  }),
 };
