@@ -210,19 +210,30 @@ export const IntercityServices = {
       }
     });
 
-    // Notify join request passengers when scheduled ride is cancelled
-    if (
-      existingIntercity?.status === 'SCHEDULED' &&
-      data.status === 'CANCELLED'
-    ) {
+    // Notify join request passengers for all status updates
+    if (intercity.join_requests.length > 0) {
       intercity.join_requests.forEach(request => {
         if (request.passenger_id) {
+          let notificationTitle = `Ride ${data.status}`;
+          let notificationMessage = getStatusMessage(data.status);
+
+          if (data.status === 'ONGOING') {
+            notificationTitle = '🚗 Your ride is on the way!';
+          } else if (data.status === 'CANCELLED') {
+            notificationTitle = '❌ Intercity Ride Cancelled';
+            notificationMessage =
+              'The intercity ride you were waiting to join has been cancelled. Your seat refund (if any) will be processed shortly.';
+          } else if (data.status === 'COMPLETED') {
+            notificationTitle = '✅ Ride Completed';
+            notificationMessage =
+              'Your intercity ride has been completed. Thank you for traveling with us!';
+          }
+
           notificationPromises.push(
             NotificationServices.createNotification({
               user_id: request.passenger_id,
-              title: '❌ Intercity Ride Cancelled',
-              message:
-                'The intercity ride you were waiting to join has been cancelled. Your seat refund (if any) will be processed shortly.',
+              title: notificationTitle,
+              message: notificationMessage,
             }),
           );
         }
