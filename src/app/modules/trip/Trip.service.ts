@@ -42,6 +42,8 @@ import { calculateTripFare } from '../../../utils/uber/tripFareHelper';
 import { ChatServices } from '../chat/Chat.service';
 import { NotificationServices } from '../notification/Notification.service';
 
+const tripOtpLength = 3;
+
 export const userTripSelectableField = {
   select: {
     name: true,
@@ -97,8 +99,8 @@ export const TripServices = {
         'You have a pending trip with id ' + existingTrip.id,
       );
 
-    const sOtp = otpGenerator(config.otp.length);
-    const eOtp = otpGenerator(config.otp.length);
+    const sOtp = otpGenerator(tripOtpLength);
+    const eOtp = otpGenerator(tripOtpLength);
 
     const { distance, duration } = await getDistanceAndTime(
       pickup_address.geo,

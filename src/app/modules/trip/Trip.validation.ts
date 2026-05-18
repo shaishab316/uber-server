@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { ETripStatus, EVehicle } from '../../../../prisma';
 import { enum_encode } from '../../../utils/transform/enum';
 import { exists } from '../../../utils/db/exists';
-import config from '../../../config';
+
+const tripOtpLength = 3;
 
 export const locationSchema = z.object({
   geo: z.tuple([
@@ -53,10 +54,7 @@ export const TripValidations = {
         .string({
           error: 'Start Otp is missing',
         })
-        .length(
-          config.otp.length,
-          `Start Otp must be ${config.otp.length} digits`,
-        ),
+        .length(tripOtpLength, `Start Otp must be ${tripOtpLength} digits`),
     }),
   }),
 
@@ -74,10 +72,7 @@ export const TripValidations = {
         .string({
           error: 'End Otp is missing',
         })
-        .length(
-          config.otp.length,
-          `End Otp must be ${config.otp.length} digits`,
-        ),
+        .length(tripOtpLength, `End Otp must be ${tripOtpLength} digits`),
     }),
   }),
 
