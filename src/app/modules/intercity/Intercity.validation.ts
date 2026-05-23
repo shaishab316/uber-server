@@ -67,4 +67,9 @@ export const IntercityValidations = {
       message: z.string().optional(),
     }),
   }),
+
+  updateIntercityLocation: z.object({
+    location: locationSchema,
+    intercity_id: z.string(),
+  }),
 };
