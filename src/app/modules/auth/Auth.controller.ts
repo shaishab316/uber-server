@@ -144,8 +144,11 @@ export const AuthControllers = {
     };
   }),
 
-  facebookLogin: catchAsync(async ({ body }, res) => {
-    const user = await AuthServices.facebookLogin(body);
+  facebookLogin: catchAsync(async ({ body, query }, res) => {
+    const user = await AuthServices.facebookLogin({
+      ...body,
+      ...query,
+    });
 
     const { access_token, refresh_token } = AuthServices.retrieveToken(
       user.id!,
@@ -162,8 +165,11 @@ export const AuthControllers = {
     };
   }),
 
-  googleLogin: catchAsync(async ({ body }, res) => {
-    const user = await AuthServices.googleLogin(body);
+  googleLogin: catchAsync(async ({ body, query }, res) => {
+    const user = await AuthServices.googleLogin({
+      ...body,
+      ...query,
+    });
 
     const { access_token, refresh_token } = AuthServices.retrieveToken(
       user.id!,

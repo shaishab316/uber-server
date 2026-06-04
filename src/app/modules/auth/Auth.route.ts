@@ -29,13 +29,13 @@ router.post(
 
 router.post(
   '/facebook-login',
-  purifyRequest(AuthValidations.facebookLogin),
+  purifyRequest(AuthValidations.facebookLogin, ReferValidations.refer),
   AuthControllers.facebookLogin,
 );
 
 router.post(
   '/google-login',
-  purifyRequest(AuthValidations.googleLogin),
+  purifyRequest(AuthValidations.googleLogin, ReferValidations.refer),
   AuthControllers.googleLogin,
 );
 

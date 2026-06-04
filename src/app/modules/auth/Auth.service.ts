@@ -31,7 +31,12 @@ import { downloadImage } from '../../../utils/downloadImage';
 import { ReferServices } from '../refer/Refer.service';
 
 export const AuthServices = {
-  async login({ password, email, phone }: TUserLogin): Promise<Partial<TUser>> {
+  async login({
+    password,
+    email,
+    phone,
+    onesignal_id,
+  }: TUserLogin): Promise<Partial<TUser>> {
     this.validEmailORPhone({ email, phone });
 
     const user = await prisma.user.findFirst({
@@ -45,6 +50,15 @@ export const AuthServices = {
 
     if (!user)
       throw new ServerError(StatusCodes.NOT_FOUND, "User doesn't exist");
+
+    if (onesignal_id) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          onesignal_id,
+        },
+      });
+    }
 
     if (!(await verifyPassword(password, user.password))) {
       throw new ServerError(StatusCodes.UNAUTHORIZED, 'Incorrect password');
@@ -268,7 +282,11 @@ export const AuthServices = {
     });
   },
 
-  async facebookLogin({ access_token, refer_id }: TFacebookLogin) {
+  async facebookLogin({
+    access_token,
+    refer_id,
+    onesignal_id,
+  }: TFacebookLogin) {
     try {
       const payload = await facebookUser(access_token);
 
@@ -295,6 +313,15 @@ export const AuthServices = {
         }
       }
 
+      if (onesignal_id) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            onesignal_id,
+          },
+        });
+      }
+
       return user;
     } catch (error) {
       if (error instanceof Error)
@@ -304,7 +331,7 @@ export const AuthServices = {
     }
   },
 
-  async googleLogin({ access_token, refer_id }: TGoogleLogin) {
+  async googleLogin({ access_token, refer_id, onesignal_id }: TGoogleLogin) {
     try {
       const payload = await googleUser(access_token);
 
@@ -329,6 +356,15 @@ export const AuthServices = {
             refer_id,
           });
         }
+      }
+
+      if (onesignal_id) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            onesignal_id,
+          },
+        });
       }
 
       return user;

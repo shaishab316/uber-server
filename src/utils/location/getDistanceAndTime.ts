@@ -14,6 +14,8 @@ export default async function getDistanceAndTime(
     )}&destinations=${encodeURIComponent(`${destination[1]},${destination[0]}`)}&key=${config.google_map_key}&mode=${vehicleType}`,
   );
 
+  console.log(`[getDistanceAndTime] ${JSON.stringify(data)}`);
+
   return {
     distance: data?.rows[0]?.elements[0]?.distance,
     duration: data?.rows[0]?.elements[0]?.duration,

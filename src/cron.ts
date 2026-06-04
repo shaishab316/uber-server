@@ -12,7 +12,7 @@ const jobs = [
   },
   {
     name: 'intercity:send-reminders',
-    schedule: '*/5 * * * *', // every 5 minutes
+    schedule: '*/15 * * * *', // every 15 minutes
     fn: sendIntercityReminders,
   },
 ] satisfies TCronJob[];

@@ -55,7 +55,7 @@ export const sendIntercityReminders = async () => {
       );
 
       // Check if we should send 30-minute reminder
-      if (minutesUntilScheduled <= 30 || minutesUntilScheduled >= 27) {
+      if (minutesUntilScheduled >= 23 && minutesUntilScheduled <= 37) {
         console.log(
           'Sending 30-minute reminder for intercity %s',
           intercity.id,
@@ -85,7 +85,7 @@ export const sendIntercityReminders = async () => {
       }
 
       // Check if we should send 15-minute reminder
-      if (minutesUntilScheduled <= 15 || minutesUntilScheduled >= 12) {
+      if (minutesUntilScheduled >= 8 && minutesUntilScheduled <= 22) {
         console.log(
           'Sending 15-minute reminder for intercity %s',
           intercity.id,

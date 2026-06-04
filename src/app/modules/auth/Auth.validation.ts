@@ -9,6 +9,7 @@ export const AuthValidations = {
       password: z
         .string({ error: 'Password is missing' })
         .min(6, 'Password must be at least 6 characters long'),
+      onesignal_id: z.string().optional(),
     }),
   }),
 
@@ -42,6 +43,7 @@ export const AuthValidations = {
       access_token: z
         .string({ error: 'Access token is missing' })
         .nonempty('Access token is required'),
+      onesignal_id: z.string().optional(),
     }),
   }),
 
@@ -50,6 +52,7 @@ export const AuthValidations = {
       access_token: z
         .string({ error: 'Access token is missing' })
         .nonempty('Access token is required'),
+      onesignal_id: z.string().optional(),
     }),
   }),
 };
