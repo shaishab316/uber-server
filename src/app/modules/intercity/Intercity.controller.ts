@@ -71,14 +71,17 @@ export const IntercityControllers = {
     };
   }),
 
-  findNearby: catchAsync(async ({ query }) => {
-    const { data, meta } = await IntercityServices.findNearbyIntercities({
-      lat: parseFloat(query.lat as string),
-      long: parseFloat(query.long as string),
-      radius: parseFloat(query.radius as string) || 50,
-      page: parseInt(query.page as string) || 1,
-      limit: parseInt(query.limit as string) || 10,
-    });
+  findNearby: catchAsync(async ({ query, user }) => {
+    const { data, meta } = await IntercityServices.findNearbyIntercities(
+      user.id,
+      {
+        lat: parseFloat(query.lat as string),
+        long: parseFloat(query.long as string),
+        radius: parseFloat(query.radius as string) || 50,
+        page: parseInt(query.page as string) || 1,
+        limit: parseInt(query.limit as string) || 10,
+      },
+    );
 
     return {
       message: 'Nearby intercity rides retrieved successfully!',

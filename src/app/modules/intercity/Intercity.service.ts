@@ -9,7 +9,12 @@ import {
 } from './Intercity.interface';
 import ServerError from '../../../errors/ServerError';
 import { StatusCodes } from 'http-status-codes';
-import { EDay } from '../../../../prisma';
+import {
+  EDay,
+  IntercityStatus,
+  JoinRequestStatus,
+  Prisma,
+} from '../../../../prisma';
 import { TPagination } from '../../../utils/server/serveResponse';
 import { NotificationServices } from '../notification/Notification.service';
 
@@ -68,8 +73,12 @@ export const IntercityServices = {
         where: { driver_id: driverId },
         skip,
         take: limit,
+        orderBy: { scheduled_at: 'desc' },
         include: {
           join_requests: {
+            where: {
+              status: JoinRequestStatus.PENDING,
+            },
             select: {
               id: true,
               passenger_id: true,
@@ -163,18 +172,24 @@ export const IntercityServices = {
   ) {
     const existingIntercity = await prisma.intercity.findUnique({
       where: { id: intercityId },
-      select: { driver_id: true, status: true },
+      select: { driver_id: true, status: true, join_requests: true },
     });
 
     if (data.driver_id !== existingIntercity?.driver_id) {
       throw new ServerError(StatusCodes.FORBIDDEN, 'Unauthorized access');
     }
 
+    const payload: Prisma.IntercityUpdateArgs['data'] = {
+      status: data.status,
+      join_requests: {
+        deleteMany: {},
+      },
+    };
+
     const intercity = await prisma.intercity.update({
       where: { id: intercityId },
-      data: { status: data.status },
+      data: payload,
       include: {
-        join_requests: true,
         bookings: true,
       },
     });
@@ -211,8 +226,8 @@ export const IntercityServices = {
     });
 
     // Notify join request passengers for all status updates
-    if (intercity.join_requests.length > 0) {
-      intercity.join_requests.forEach(request => {
+    if (existingIntercity.join_requests.length > 0) {
+      existingIntercity.join_requests.forEach(request => {
         if (request.passenger_id) {
           let notificationTitle = `Ride ${data.status}`;
           let notificationMessage = getStatusMessage(data.status);
@@ -281,8 +296,30 @@ export const IntercityServices = {
 
     // Notify passenger and create booking if accepted
     if (data.status === 'ACCEPTED') {
-      if (joinRequest.status !== 'ACCEPTED') {
-        // Create intercity booking
+      // Check if there is an existing booking for this passenger and intercity ride
+      const existingBooking = await prisma.intercityBooking.findFirst({
+        where: {
+          intercity_id: joinRequest.intercity_id,
+          passenger_id: joinRequest.passenger_id,
+        },
+      });
+
+      if (existingBooking) {
+        // Increment seats and fare in the existing booking
+        await prisma.intercityBooking.update({
+          where: { id: existingBooking.id },
+          data: {
+            seats_booked: {
+              increment: joinRequest.seats_requested,
+            },
+            total_fare: {
+              increment:
+                (intercity?.price_per_seat || 0) * joinRequest.seats_requested,
+            },
+          },
+        });
+      } else {
+        // Create new intercity booking
         await prisma.intercityBooking.create({
           data: {
             intercity_id: joinRequest.intercity_id,
@@ -293,18 +330,18 @@ export const IntercityServices = {
             pickup_location: joinRequest.pickup_location,
           },
         });
+      }
 
-        // Update available seats
-        if (intercity) {
-          const newAvailableSeats =
-            (intercity.available_seats || 0) - joinRequest.seats_requested;
-          await prisma.intercity.update({
-            where: { id: joinRequest.intercity_id },
-            data: {
-              available_seats: Math.max(0, newAvailableSeats),
-            },
-          });
-        }
+      // Update available seats
+      if (intercity) {
+        const newAvailableSeats =
+          (intercity.available_seats || 0) - joinRequest.seats_requested;
+        await prisma.intercity.update({
+          where: { id: joinRequest.intercity_id },
+          data: {
+            available_seats: Math.max(0, newAvailableSeats),
+          },
+        });
       }
 
       await NotificationServices.createNotification({
@@ -324,7 +361,10 @@ export const IntercityServices = {
     return updated;
   },
 
-  async findNearbyIntercities(query: TFindNearbyIntercities) {
+  async findNearbyIntercities(
+    passengerId: string,
+    query: TFindNearbyIntercities,
+  ) {
     const skip = (query.page - 1) * query.limit;
     const radiusInMeters = query.radius * 1000; // Convert km to meters
 
@@ -428,7 +468,7 @@ export const IntercityServices = {
       },
     ];
 
-    const intercities = (await prisma.intercity.aggregateRaw({
+    const scheduledIntercities = (await prisma.intercity.aggregateRaw({
       pipeline,
     })) as unknown as any[];
 
@@ -445,7 +485,7 @@ export const IntercityServices = {
           maxDistance: radiusInMeters,
           key: 'pickup_address.geo',
           query: {
-            status: 'SCHEDULED',
+            status: IntercityStatus.SCHEDULED,
           },
         },
       },
@@ -461,57 +501,83 @@ export const IntercityServices = {
     const total = countResult?.[0]?.total || 0;
 
     // Map results to match expected format and convert BSON to JSON
-    const enrichedData = intercities.map((intercity: any) => {
-      const getId = (val: any) => {
-        if (!val) return null;
-        if (typeof val === 'string') return val;
-        if (val.$oid) return val.$oid;
-        return val.toString?.() || val;
-      };
+    const intercityTransformer = (intercities: any) =>
+      intercities.map((intercity: any) => {
+        const getId = (val: any) => {
+          if (!val) return null;
+          if (typeof val === 'string') return val;
+          if (val.$oid) return val.$oid;
+          return val.toString?.() || val;
+        };
 
-      const getDate = (val: any) => {
-        if (!val) return null;
-        if (val.$date) return new Date(val.$date);
-        return new Date(val);
-      };
+        const getDate = (val: any) => {
+          if (!val) return null;
+          if (val.$date) return new Date(val.$date);
+          return new Date(val);
+        };
 
-      return {
-        id: getId(intercity._id),
-        driver_id: getId(intercity.driver_id),
-        status: intercity.status,
-        scheduled_at: getDate(intercity.scheduled_at),
-        available_seats: intercity.available_seats,
-        total_seats: intercity.total_seats,
-        price_per_seat: intercity.price_per_seat,
-        notes: intercity.notes,
-        day: intercity.day,
-        vehicle: intercity.vehicle,
-        pickup_address: intercity.pickup_address,
-        dropoff_address: intercity.dropoff_address,
-        stops: intercity.stops || [],
-        distance: intercity.distance,
-        driver: intercity.driver
-          ? {
-              id: getId(intercity.driver._id),
-              name: intercity.driver.name,
-              avatar: intercity.driver.avatar,
-              rating: intercity.driver.rating,
-              phone: intercity.driver.phone,
-            }
-          : null,
-        join_requests: (intercity.join_requests || []).map((req: any) => ({
-          id: getId(req._id),
-          status: req.status,
-        })),
-        bookings: (intercity.bookings || []).map((booking: any) => ({
-          id: getId(booking._id),
-          seats_booked: booking.seats_booked,
-        })),
-      };
+        return {
+          id: getId(intercity._id),
+          driver_id: getId(intercity.driver_id),
+          status: intercity.status,
+          scheduled_at: getDate(intercity.scheduled_at),
+          available_seats: intercity.available_seats,
+          total_seats: intercity.total_seats,
+          price_per_seat: intercity.price_per_seat,
+          notes: intercity.notes,
+          day: intercity.day,
+          vehicle: intercity.vehicle,
+          pickup_address: intercity.pickup_address,
+          dropoff_address: intercity.dropoff_address,
+          stops: intercity.stops || [],
+          distance: intercity.distance,
+          driver: intercity.driver
+            ? {
+                id: getId(intercity.driver._id),
+                name: intercity.driver.name,
+                avatar: intercity.driver.avatar,
+                rating: intercity.driver.rating,
+                phone: intercity.driver.phone,
+              }
+            : null,
+          join_requests: (intercity.join_requests || []).map((req: any) => ({
+            id: getId(req._id),
+            status: req.status,
+          })),
+          bookings: (intercity.bookings || []).map((booking: any) => ({
+            id: getId(booking._id),
+            seats_booked: booking.seats_booked,
+          })),
+        };
+      });
+
+    const ongoingIntercity = await prisma.intercity.findFirst({
+      where: {
+        status: IntercityStatus.ONGOING,
+        bookings: {
+          some: {
+            passenger_id: passengerId,
+          },
+        },
+      },
+      include: {
+        driver: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            rating: true,
+            phone: true,
+          },
+        },
+      },
     });
 
     return {
-      data: enrichedData,
+      data: {
+        scheduled: intercityTransformer(scheduledIntercities),
+        ongoing: ongoingIntercity,
+      },
       meta: {
         pagination: {
           total,
@@ -557,12 +623,12 @@ export const IntercityServices = {
       },
     });
 
-    if (existingRequest) {
-      throw new ServerError(
-        StatusCodes.BAD_REQUEST,
-        'You already have a pending or accepted request for this ride',
-      );
-    }
+    // if (existingRequest) {
+    //   throw new ServerError(
+    //     StatusCodes.BAD_REQUEST,
+    //     'You already have a pending or accepted request for this ride',
+    //   );
+    // }
 
     if (!intercity.available_seats) {
       throw new ServerError(

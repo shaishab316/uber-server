@@ -64,7 +64,7 @@ router.post(
   AuthControllers.resetPassword,
 );
 
-router.get('/logout', AuthControllers.logout);
+router.post('/logout', auth.all, AuthControllers.logout);
 
 /**
  * generate new access token

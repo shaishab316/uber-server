@@ -124,8 +124,10 @@ export const AuthControllers = {
     };
   }),
 
-  logout: catchAsync(async ({ cookies }, res) => {
+  logout: catchAsync(async ({ cookies, user }, res) => {
     AuthServices.destroyTokens(res, ...(Object.keys(cookies) as TToken[]));
+
+    await AuthServices.logout(user.id);
 
     return {
       message: 'Logged out successfully!',

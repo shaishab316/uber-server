@@ -12,8 +12,8 @@ model Trip {
   distance_km  Float?
   duration_sec Int?
 
-  total_cost      Float              @default(0)
-  price_breakdown TripPriceBreakdown
+  total_cost      Float               @default(0)
+  price_breakdown TripPriceBreakdown?
 
   driver_id      String? @db.ObjectId
   passenger_id   String  @db.ObjectId

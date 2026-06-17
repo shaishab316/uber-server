@@ -375,4 +375,13 @@ export const AuthServices = {
       throw error;
     }
   },
+
+  async logout(userId: string) {
+    return await prisma.user.update({
+      where: { id: userId },
+      data: {
+        onesignal_id: null,
+      },
+    });
+  },
 };
