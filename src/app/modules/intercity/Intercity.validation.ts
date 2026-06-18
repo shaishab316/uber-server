@@ -32,8 +32,8 @@ export const IntercityValidations = {
       vehicle: z.string().transform(enum_encode).pipe(z.enum(EVehicle)),
       pickup_address: locationSchema,
       dropoff_address: locationSchema,
-      available_seats: z.coerce.number().min(1).max(7),
-      total_seats: z.coerce.number().min(1).max(7),
+      available_seats: z.coerce.number().min(1),
+      total_seats: z.coerce.number().min(1),
       price_per_seat: z.coerce.number().min(0),
       scheduled_at: z.iso.datetime().optional(),
       notes: z.string().optional(),
@@ -62,7 +62,7 @@ export const IntercityValidations = {
   }),
   sendJoinRequest: z.object({
     body: z.object({
-      seats_requested: z.coerce.number().min(1).max(7),
+      seats_requested: z.coerce.number().min(1),
       pickup_location: locationSchema,
       message: z.string().optional(),
     }),
